@@ -186,7 +186,7 @@ shape = SubResource("RectangleShape2D_vonw3")
 position = Vector2(3.8146973e-06, -26)
 offset = Vector2(0, -5)
 zoom = Vector2(1.32, 1.32)
-limit_smoothed = true
+limit_enabled = false
 position_smoothing_enabled = true
 position_smoothing_speed = 100.0
 

@@ -56,7 +56,8 @@ func _process(delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if _is_finished:
 		return
-	
+	if event is InputEventMouseButton:
+		return
 	if _is_grab_pressed(event):
 		var hovered := get_viewport().gui_get_hovered_control()
 		if hovered == generate_button:
