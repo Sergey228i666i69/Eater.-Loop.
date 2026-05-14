@@ -6,9 +6,9 @@
 
 База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт `is_completed`, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Это пока работает за счёт дисциплины сцен, но уже даёт реальные gameplay-ловушки.
 
-## P1: Dependency-Система Может Запирать Прогресс
+## P1: Dependency-Система Стала Безопаснее, Но Контракт Ломкий
 
-`InteractiveObject` ждёт `dependency_object.is_completed` и `interaction_finished`, но `Door` при успешном использовании не всегда вызывает `complete_interaction()`. В `level_04_findkey` несколько `SearchSpot` завязаны на дверь `ToBedroom`.
+`InteractiveObject` ждёт `dependency_object.is_completed` и `interaction_finished`. Конкретный softlock из `level_04_findkey`, где `SearchSpot` с `door_key` зависел от двери `ToBedroom`, которая сама требовала `door_key`, закрыт: search spots больше не завязаны на эту дверь, а `test_scene_dependency_contracts.gd` ловит такие key-door циклы.
 
 Файлы:
 
@@ -16,9 +16,9 @@
 - [`objects/interactable/door/door.gd`](../objects/interactable/door/door.gd), около строки 60.
 - [`levels/cycles/level_04_findkey.tscn`](../levels/cycles/level_04_findkey.tscn), около строки 1725.
 
-Практический эффект: поиск ключа может остаться навсегда заблокированным, хотя игрок уже выполнил ожидаемое действие.
+Оставшийся практический риск: зависимости всё ещё смотрят на один общий `is_completed`, хотя разным объектам нужны разные outcome-ы: attempted, succeeded, completed forever.
 
-Ремонт: разделить `interaction_requested`, `interaction_succeeded`, `completed_forever`; зависимости должны смотреть на явный outcome.
+Следующий ремонт: разделить `interaction_requested`, `interaction_succeeded`, `completed_forever`; зависимости должны смотреть на явный outcome.
 
 ## P1: Нет Единого Фокуса Интерактива
 

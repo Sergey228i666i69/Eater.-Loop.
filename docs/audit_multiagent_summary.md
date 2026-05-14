@@ -22,7 +22,7 @@
 
 ## Самые Важные P1
 
-1. **Dependency-система интерактивов может запереть прогресс.** Дверь может не вызвать complete-state, а завязанные объекты ждут именно его.
+1. **Dependency-система интерактивов всё ещё слишком общая.** Key-door цикл в `level_04_findkey` закрыт, но завязанные объекты по-прежнему ждут прямой `is_completed`, а не typed outcome.
 2. **God objects остаются крупными.** `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager` всё ещё смешивают много областей ответственности.
 3. **NodePath/name contracts ломкие.** Переименование дочернего узла может silently выключить поведение.
 4. **Огромные STU-сцены требуют DRY-разбора.** Scene instances и reusable contracts пока не доведены до системного уровня.

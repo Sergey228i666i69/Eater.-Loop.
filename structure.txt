@@ -1478,6 +1478,7 @@
 │   │   ├── test_respawn_checkpoint_restore.gd.uid
 │   │   ├── test_save_state_split.gd
 │   │   ├── test_save_state_split.gd.uid
+│   │   ├── test_scene_dependency_contracts.gd
 │   │   ├── test_scenes_load.gd
 │   │   ├── test_scenes_load.gd.uid
 │   │   ├── test_scripts_compile.gd
@@ -1512,4 +1513,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1388 files
+125 directories, 1389 files
