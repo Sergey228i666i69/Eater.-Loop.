@@ -201,6 +201,8 @@ func _perform_return_transition() -> void:
 	_hide_exit_hint()
 	get_tree().paused = false
 	if GameState != null:
+		if GameState.has_method("reset_run"):
+			GameState.reset_run()
 		GameState.set_meta(STARTUP_DISCLAIMER_META, true)
 	_stop_credits_music()
 	if UIMessage != null and UIMessage.has_method("play_fade_sequence") and return_fade_time > 0.0:

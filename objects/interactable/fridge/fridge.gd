@@ -212,7 +212,9 @@ func _start_feeding_process() -> void:
 	var selected_scene := _resolve_feeding_scene()
 	if selected_scene == null or not has_food:
 		push_warning("Frizzer: Нет сцены мини-игры или еды!")
-		_finish_feeding_logic()
+		_is_interacting = false
+		if UIMessage:
+			UIMessage.show_notification("Холодильник пуст.")
 		return
 	
 	# Запуск игры

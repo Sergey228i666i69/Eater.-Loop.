@@ -8,6 +8,7 @@ class DummyMarker:
 
 func run() -> Array[String]:
 	await _test_level_moves_player_to_fridge_checkpoint_spawn()
+	_test_next_cycle_preserves_pending_sleep_spawn()
 	return get_failures()
 
 func _test_level_moves_player_to_fridge_checkpoint_spawn() -> void:
@@ -44,5 +45,19 @@ func _test_level_moves_player_to_fridge_checkpoint_spawn() -> void:
 	player.queue_free()
 	level.queue_free()
 	await tree.process_frame
+	GameState.reset_run()
+	CycleState.reset_cycle_state()
+
+func _test_next_cycle_preserves_pending_sleep_spawn() -> void:
+	assert_true(CycleState != null, "CycleState autoload is missing")
+	assert_true(GameState != null, "GameState autoload is missing")
+	if CycleState == null or GameState == null:
+		return
+	GameState.reset_run()
+	CycleState.reset_cycle_state()
+	CycleState.queue_sleep_spawn()
+	GameState.next_cycle()
+	assert_true(bool(CycleState.has_pending_sleep_spawn()), "Sleep spawn flag must survive the cycle transition that loads the next bedroom")
+	CycleState.consume_pending_sleep_spawn()
 	GameState.reset_run()
 	CycleState.reset_cycle_state()

@@ -67,15 +67,12 @@ func is_light_active() -> bool:
 func is_point_lit(point: Vector2) -> bool:
 	if not is_light_active():
 		return false
-	# Яркая вершина луча всегда находится прямо в позиции PointLight2D —
-	# offset выставляется в скрипте так, чтобы текстура уходила от этой
-	# точки наружу, а не была сдвинута относительно неё.
-	var origin := _light.global_position
+	var origin := ReactiveLightUtils.resolve_light_origin(_light)
 	var facing := _resolve_beam_direction()
 	return ReactiveLightUtils.is_point_within_cone(origin, facing, point, light_range, light_fov_deg)
 
 func _get_interact_action() -> String:
-	return "lamp_switch"
+	return "interact"
 
 func _on_interact() -> void:
 	_toggle()
@@ -103,8 +100,8 @@ func _hide_prompt() -> void:
 
 func _get_projector_prompt_text() -> String:
 	if is_light_active():
-		return tr("Q — выключить проектор")
-	return tr("Q — включить проектор")
+		return tr("E — выключить проектор")
+	return tr("E — включить проектор")
 
 func _update_light_enabled(play_sound: bool) -> void:
 	var should_enable := _is_on and _has_power

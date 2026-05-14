@@ -16,6 +16,8 @@ var _hud_label: Label = null
 var _hud_timer: Timer = null
 
 func _ready() -> void:
+	if not is_in_group(CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP):
+		add_to_group(CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP)
 	_setup_hud()
 
 func get_money() -> int:
@@ -35,6 +37,15 @@ func add_money(amount: int, reason: String = "") -> void:
 
 func has_enough_money(required_money_override: int = -1) -> bool:
 	return _money >= _resolve_required_money(required_money_override)
+
+func capture_checkpoint_state() -> Dictionary:
+	return {
+		"money": _money,
+	}
+
+func apply_checkpoint_state(state: Dictionary) -> void:
+	_money = max(0, int(state.get("money", _money)))
+	money_changed.emit(_money, 0, "checkpoint_restore")
 
 func try_open_blockpost(required_money_override: int = -1) -> bool:
 	var needed := _resolve_required_money(required_money_override)

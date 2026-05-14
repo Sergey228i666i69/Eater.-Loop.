@@ -19,6 +19,8 @@ func run() -> Array[String]:
 
 	if GameState != null and GameState.has_meta(STARTUP_DISCLAIMER_META):
 		GameState.remove_meta(STARTUP_DISCLAIMER_META)
+	if GameState != null and GameState.has_method("set_current_scene_path"):
+		GameState.set_current_scene_path("res://levels/cycles/level_14_end.tscn")
 
 	var credits := credits_scene.instantiate()
 	tree.root.add_child(credits)
@@ -31,6 +33,8 @@ func run() -> Array[String]:
 
 	if GameState != null:
 		assert_true(bool(GameState.get_meta(STARTUP_DISCLAIMER_META, false)), "Credits return must mark startup disclaimer as already shown for the current session")
+		if GameState.has_method("has_active_run_state"):
+			assert_true(not bool(GameState.has_active_run_state()), "Credits return must close the active run")
 
 	var menu := menu_scene.instantiate()
 	tree.root.add_child(menu)

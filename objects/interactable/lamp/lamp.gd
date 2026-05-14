@@ -97,9 +97,7 @@ func turn_on() -> void:
 	_update_light_enabled(true) # true = проиграть звук
 
 func _get_interact_action() -> String:
-	# Если у тебя в Input Map настроено действие "lamp_switch", оставь как есть.
-	# Если нет, используй стандартный "interact"
-	return "lamp_switch" 
+	return "interact"
 
 func _on_interact() -> void:
 	_toggle()

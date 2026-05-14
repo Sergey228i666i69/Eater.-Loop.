@@ -37,4 +37,19 @@ func run() -> Array[String]:
         if InputMap.has_action(name):
             var events = InputMap.action_get_events(name)
             assert_true(events.size() > 0, "Input action has no events: %s" % name)
+    _test_light_interactables_use_existing_action()
     return get_failures()
+
+func _test_light_interactables_use_existing_action() -> void:
+    var scene_paths := [
+        "res://objects/interactable/lamp/lamp.tscn",
+        "res://objects/interactable/projector/projector.tscn",
+    ]
+    for scene_path in scene_paths:
+        var scene := assert_loads(scene_path) as PackedScene
+        if scene == null:
+            continue
+        var instance := scene.instantiate()
+        var action := str(instance.call("_get_interact_action"))
+        assert_true(InputMap.has_action(action), "%s uses missing input action: %s" % [scene_path, action])
+        instance.free()

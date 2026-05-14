@@ -19,9 +19,12 @@ class TeleportFridgeProbe:
 	func _clear_chase_after_teleport_success() -> void:
 		chase_cleared = true
 
+const FridgeScript := preload("res://objects/interactable/fridge/fridge.gd")
+
 func run() -> Array[String]:
 	_test_fridge_is_not_blocked_during_chase()
 	_test_teleport_fridge_clears_chase_state()
+	_test_misconfigured_fridge_does_not_grant_food()
 	return get_failures()
 
 func _test_fridge_is_not_blocked_during_chase() -> void:
@@ -52,3 +55,16 @@ func _test_teleport_fridge_clears_chase_state() -> void:
 
 	assert_true(fridge.chase_cleared, "Teleporting fridge must stop chase state after successful feeding")
 	fridge.free()
+
+func _test_misconfigured_fridge_does_not_grant_food() -> void:
+	assert_true(CycleState != null, "CycleState autoload is missing")
+	if CycleState == null:
+		return
+	CycleState.reset_cycle_state()
+	var fridge := FridgeScript.new()
+	fridge.minigame_scene = null
+	fridge.food_scenes = []
+	fridge.call("_start_feeding_process")
+	assert_true(not bool(CycleState.has_eaten_this_cycle()), "Misconfigured fridge must fail closed instead of marking food as eaten")
+	fridge.free()
+	CycleState.reset_cycle_state()

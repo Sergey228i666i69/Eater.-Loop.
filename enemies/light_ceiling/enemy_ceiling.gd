@@ -112,8 +112,8 @@ func _is_lamp_light_hitting() -> bool:
 			continue
 		if not light_source.has_method("is_point_lit"):
 			continue
-			if bool(light_source.call("is_point_lit", global_position)):
-				return true
+		if bool(light_source.call("is_point_lit", global_position)):
+			return true
 	return false
 
 func capture_checkpoint_state() -> Dictionary:

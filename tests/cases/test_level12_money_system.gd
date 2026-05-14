@@ -32,6 +32,11 @@ func run() -> Array[String]:
 	money_system.call("add_money", 60, "Lab")
 	assert_eq(int(money_system.call("get_money")), 100, "After lab reward money should be 100")
 	assert_true(bool(money_system.call("try_open_blockpost", 100)), "100 money should pass blockpost")
+	var checkpoint_state := money_system.call("capture_checkpoint_state") as Dictionary
+	money_system.call("add_money", 30, "Extra")
+	assert_eq(int(money_system.call("get_money")), 130, "Extra money should change current balance before restore")
+	money_system.call("apply_checkpoint_state", checkpoint_state)
+	assert_eq(int(money_system.call("get_money")), 100, "Money checkpoint restore must restore the captured balance")
 
 	var hud_visible := _is_any_label_visible(money_system)
 	assert_true(hud_visible, "Money HUD label should become visible after updates")

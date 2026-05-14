@@ -52,3 +52,15 @@ func _resolve_money_system() -> Node:
 	if money_system_path.is_empty():
 		return get_node_or_null("../Level12MoneySystem")
 	return get_node_or_null(money_system_path)
+
+func capture_checkpoint_state() -> Dictionary:
+	var state := super.capture_checkpoint_state()
+	state["reward_given"] = _reward_given
+	return state
+
+func apply_checkpoint_state(state: Dictionary) -> void:
+	super.apply_checkpoint_state(state)
+	_reward_given = bool(state.get("reward_given", _reward_given))
+	_is_reward_in_progress = false
+	if _reward_given:
+		set_prompts_enabled(false)

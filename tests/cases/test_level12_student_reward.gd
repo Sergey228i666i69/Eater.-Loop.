@@ -35,9 +35,13 @@ func run() -> Array[String]:
 
 	await _await_if_needed(student.call("_on_interact"))
 	assert_eq(int(money_system.call("get_money")), 40, "Student should grant money on first interaction")
+	var student_checkpoint := student.call("capture_checkpoint_state") as Dictionary
 
 	await _await_if_needed(student.call("_on_interact"))
 	assert_eq(int(money_system.call("get_money")), 40, "Student reward must be one-time")
+	student.call("apply_checkpoint_state", student_checkpoint)
+	await _await_if_needed(student.call("_on_interact"))
+	assert_eq(int(money_system.call("get_money")), 40, "Restored student checkpoint must keep reward as already given")
 
 	root.queue_free()
 	await tree.process_frame

@@ -29,9 +29,14 @@ func next_cycle() -> void:
 	if not flashlight_unlocked and CycleState != null and CycleState.has_method("has_flashlight_for_current_cycle"):
 		if bool(CycleState.has_flashlight_for_current_cycle()):
 			flashlight_unlocked = true
+	var preserve_sleep_spawn := false
+	if CycleState != null and CycleState.has_method("has_pending_sleep_spawn"):
+		preserve_sleep_spawn = bool(CycleState.has_pending_sleep_spawn())
 	clear_checkpoint_state()
 	if CycleState != null and CycleState.has_method("next_cycle"):
 		CycleState.next_cycle()
+	if preserve_sleep_spawn and CycleState != null and CycleState.has_method("queue_sleep_spawn"):
+		CycleState.queue_sleep_spawn()
 	_save_run_state()
 
 func mark_unique_feeding_intro_played() -> void:
