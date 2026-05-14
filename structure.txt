@@ -2,6 +2,13 @@
 ├── docs
 │   ├── architecture_overview.md
 │   ├── audio_system.md
+│   ├── audit_architecture_state.md
+│   ├── audit_gameplay_loop.md
+│   ├── audit_interactables_and_scene_contracts.md
+│   ├── audit_multiagent_summary.md
+│   ├── audit_refactor_roadmap.md
+│   ├── audit_repo_hygiene.md
+│   ├── audit_tooling_assets_tests.md
 │   ├── level_end_endings.md
 │   ├── macos-dmg-export-fix.md
 │   └── minigame_gamepad_system.md
@@ -1500,6 +1507,7 @@
 │       ├── export_macos_dmg.sh
 │       ├── hdiutil
 │       └── run_godot_with_dmg_fix.sh
+├── AGENTS.md
 ├── default_bus_layout.tres
 ├── export_presets.cfg
 ├── icon.svg
@@ -1507,4 +1515,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1383 files
+125 directories, 1391 files
