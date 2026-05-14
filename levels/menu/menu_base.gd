@@ -1,4 +1,5 @@
 extends Control
+class_name MenuBase
 
 @export_group("Шрифт")
 ## Размер шрифта для заголовков.
@@ -28,6 +29,8 @@ extends Control
 @onready var _sfx_player: AudioStreamPlayer = _resolve_sfx_player()
 
 func _ready() -> void:
+	if SceneContext != null and SceneContext.has_method("mark_menu_scene"):
+		SceneContext.mark_menu_scene(self)
 	_apply_theme()
 	_wire_buttons()
 	_update_cursor_request()

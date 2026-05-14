@@ -50,6 +50,8 @@ var _cached_default_wake_blackout_duration: float = -1.0
 var _checkpoint_restored: bool = false
 
 func _ready() -> void:
+	if SceneContext != null and SceneContext.has_method("mark_gameplay_scene"):
+		SceneContext.mark_gameplay_scene(self)
 	if GameState != null and GameState.has_method("apply_checkpoint_to_scene"):
 		_checkpoint_restored = bool(GameState.apply_checkpoint_to_scene(self))
 	_apply_default_player_progress()

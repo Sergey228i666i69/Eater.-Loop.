@@ -28,7 +28,7 @@
 4. **Часть gameplay-багов закрыта.** Sleep/wake-флаг переживает переход цикла, run закрывается после титров, потолочный враг снова учитывает лампы, деньги level 12 сохраняются в checkpoint.
 5. **Интерактивы централизованы через `InteractionManager`.** Одно нажатие выбирает один объект по доступности, приоритету и расстоянию.
 6. **Dependency-система интерактивов может софтлочить прогресс.** Двери не всегда переводят dependency в completed-состояние, но другие объекты могут ждать именно его.
-7. **Глобальное состояние слишком открыто.** `GameState` и `CycleState` используются и через методы, и напрямую через публичные поля/reflective `get()`.
+7. **Path-based scene checks вынесены в `SceneContext`.** Новые проверки игровой/меню-сцены должны идти через `SceneContext`, а не через локальный `path.find(...)`.
 8. **Большие singleton/god-classes.** `GameDirector`, `MusicManager`, `MinigameController`, `UIMessage` уже смешивают несколько разных областей ответственности.
 9. **Уровни и объекты сильно завязаны на NodePath и имена детей.** Переименование узла может silently выключить звук, анимацию, двери, fridge-flow или scripted wiring.
 10. **Крупная археология удалена.** `archive(trash)` и `level_NSTU_test.tscn` убраны, активный `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
@@ -71,7 +71,6 @@
 
 1. Разобраться с `ObjectDB instances leaked at exit`.
 2. Укрепить checkpoint contract для динамических врагов.
-3. Убрать path-based "is gameplay scene" и заменить на явный `SceneContext`, группу или registry.
-4. Разделить `GameDirector` и `UIMessage` на меньшие сервисы.
-5. Добавить CI: Godot 4.6.1, `git lfs pull`, parser-only, full suite.
-6. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.
+3. Разделить `GameDirector` и `UIMessage` на меньшие сервисы.
+4. Добавить CI: Godot 4.6.1, `git lfs pull`, parser-only, full suite.
+5. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.

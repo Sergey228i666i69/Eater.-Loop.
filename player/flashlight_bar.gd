@@ -111,8 +111,7 @@ func _make_texture_rect(texture: Texture2D) -> TextureRect:
 
 func _update_visibility() -> void:
 	var scene := get_tree().current_scene
-	var path := scene.scene_file_path if scene else ""
-	var should_show := path.find("/levels/cycles/") != -1
+	var should_show := SceneContext != null and SceneContext.is_gameplay_scene(scene)
 	var player := _get_player()
 	if player != null and player.has_method("has_flashlight_available"):
 		should_show = should_show and bool(player.has_flashlight_available())

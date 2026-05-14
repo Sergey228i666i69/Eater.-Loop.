@@ -24,8 +24,7 @@ func _refresh_scene_state() -> void:
 	_update_in_game_from_scene(get_tree().current_scene)
 
 func _update_in_game_from_scene(scene: Node) -> void:
-	var path := scene.scene_file_path if scene else ""
-	_in_game = path.find("/levels/cycles/") != -1
+	_in_game = SceneContext != null and SceneContext.is_gameplay_scene(scene)
 	_update_mouse_mode()
 
 func request_visible(source: Object) -> void:

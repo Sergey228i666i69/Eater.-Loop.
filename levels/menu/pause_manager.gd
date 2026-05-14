@@ -79,7 +79,7 @@ func _is_menu_scene() -> bool:
 	var current := get_tree().current_scene
 	if current == null:
 		return true
-	return current.scene_file_path.find("/levels/menu/") != -1
+	return SceneContext != null and SceneContext.is_menu_scene(current)
 
 func _is_minigame_active() -> bool:
 	var nodes := get_tree().get_nodes_in_group("minigame_ui")

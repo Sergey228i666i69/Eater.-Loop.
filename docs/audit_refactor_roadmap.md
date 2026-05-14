@@ -87,6 +87,10 @@ Definition of done: типовые ошибки сцен падают тесто
 
 Definition of done: новые уровни не требуют править глобальный директор для локальных интерактивов.
 
+## Resolved: Scene Context
+
+Path-based checks вида `path.find("/levels/cycles/")` вынесены в `SceneContext`. Уровни и меню маркируются группами, а fallback по пути остался только централизованным.
+
 ## Фаза 6: Repo Hygiene
 
 Цель: сделать дерево проекта спокойным и предсказуемым.

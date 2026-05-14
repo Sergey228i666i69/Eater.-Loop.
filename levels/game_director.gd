@@ -426,8 +426,7 @@ func _on_scene_changed(scene: Node = null) -> void:
 
 func _update_for_scene(scene: Node) -> void:
 	_reset_death_screen_state()
-	var path := scene.scene_file_path if scene else ""
-	_in_game_scene = path.find("/levels/cycles/") != -1
+	_in_game_scene = SceneContext != null and SceneContext.is_gameplay_scene(scene)
 	_minigame_active = false
 	_minigame_blocks_distortion = false
 	_pending_distortion_activation = false

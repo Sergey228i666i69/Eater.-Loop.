@@ -35,6 +35,7 @@ const LEGACY_SCENE_CALLBACK_PATTERNS := [
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
+const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -69,6 +70,10 @@ func run() -> Array[String]:
 
 		for pattern in LEGACY_SCENE_CALLBACK_PATTERNS:
 			assert_true(content.find(pattern) == -1, "Legacy scene callback is forbidden: %s (%s)" % [path, pattern])
+
+		if path != SCENE_CONTEXT_PATH:
+			assert_true(content.find("path.find(\"/levels/cycles/\")") == -1, "Gameplay scene path checks must go through SceneContext: %s" % path)
+			assert_true(content.find("path.find(\"/levels/menu/\")") == -1, "Menu scene path checks must go through SceneContext: %s" % path)
 
 	var scenes: Array[String] = []
 	for dir_path in SCENE_DIRS:

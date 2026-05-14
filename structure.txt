@@ -293,6 +293,7 @@
 │   ├── macos_icon.icns
 │   ├── reactive_light_utils.gd
 │   ├── reactive_light_utils.gd.uid
+│   ├── scene_context.gd
 │   ├── windows_icon.ico
 │   ├── Иконка_предварительно.icns
 │   └── Иконка_предварительно.ico
@@ -1508,4 +1509,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1385 files
+124 directories, 1386 files

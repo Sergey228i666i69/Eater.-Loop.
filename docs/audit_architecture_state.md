@@ -22,7 +22,7 @@
 
 Практический риск: если playable-сцена окажется вне `levels/cycles`, intro/debug/bonus-level будет вести себя как меню. Это silent failure: код не упадёт, просто не включит нужные игровые правила.
 
-Ремонт: ввести явный `SceneContext`, `LevelRegistry`, группу `gameplay_scene` или ресурс-метаданные уровня.
+Статус: исправлено через `SceneContext`, группы `gameplay_scene` / `menu_scene` и архитектурный тест, запрещающий новые локальные `path.find("/levels/cycles/")` проверки вне `SceneContext`.
 
 ## P1: Глобальное Состояние Слишком Открыто
 

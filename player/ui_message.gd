@@ -526,7 +526,7 @@ func _track_scene(new_scene: PackedScene) -> void:
 	if GameState == null or new_scene == null:
 		return
 	var path := new_scene.resource_path
-	if path.find("/levels/cycles/") == -1:
+	if SceneContext == null or not SceneContext.is_gameplay_scene_path(path):
 		return
 	GameState.set_current_scene_path(path)
 
