@@ -19,6 +19,9 @@ func run() -> Array[String]:
 	var config := ConfigFile.new()
 	GameState.write_save_data(config)
 	CycleState.write_save_data(config)
+	assert_true(not config.has_section_key("game", "running_unlocked"), "GameState must not persist removed running_unlocked dead progress")
+	var runtime_state := GameState.call("_export_runtime_state") as Dictionary
+	assert_true(not runtime_state.has("running_unlocked"), "Checkpoint runtime state must not include removed running_unlocked dead progress")
 
 	GameState.reset_run()
 	GameState.load_save_data(config)

@@ -11,7 +11,6 @@ var unique_feeding_intro_played: bool = false
 var last_scene_path: String = ""
 var has_active_run: bool = false
 var flashlight_unlocked: bool = false
-var running_unlocked: bool = false
 
 var checkpoint_scene_path: String = ""
 var checkpoint_kind: String = CHECKPOINT_KIND_NONE
@@ -108,7 +107,6 @@ func consume_pending_respawn_blackout() -> bool:
 func reset_run() -> void:
 	unique_feeding_intro_played = false
 	flashlight_unlocked = false
-	running_unlocked = false
 	last_scene_path = ""
 	has_active_run = false
 	clear_checkpoint_state()
@@ -224,7 +222,6 @@ func write_save_data(config: ConfigFile) -> void:
 	config.set_value(GAME_SECTION, "has_active_run", has_active_run)
 	config.set_value(GAME_SECTION, "unique_feeding_intro_played", unique_feeding_intro_played)
 	config.set_value(GAME_SECTION, "flashlight_unlocked", flashlight_unlocked)
-	config.set_value(GAME_SECTION, "running_unlocked", running_unlocked)
 	config.set_value(CHECKPOINT_SECTION, "scene_path", checkpoint_scene_path)
 	config.set_value(CHECKPOINT_SECTION, "kind", checkpoint_kind)
 	config.set_value(CHECKPOINT_SECTION, "game_state", checkpoint_game_state)
@@ -240,7 +237,6 @@ func load_save_data(config: ConfigFile) -> void:
 	has_active_run = bool(config.get_value(GAME_SECTION, "has_active_run", false))
 	unique_feeding_intro_played = bool(config.get_value(GAME_SECTION, "unique_feeding_intro_played", false))
 	flashlight_unlocked = bool(config.get_value(GAME_SECTION, "flashlight_unlocked", false))
-	running_unlocked = bool(config.get_value(GAME_SECTION, "running_unlocked", false))
 	checkpoint_scene_path = str(config.get_value(CHECKPOINT_SECTION, "scene_path", ""))
 	checkpoint_kind = str(config.get_value(CHECKPOINT_SECTION, "kind", CHECKPOINT_KIND_NONE))
 	var raw_game_state: Variant = config.get_value(CHECKPOINT_SECTION, "game_state", {})
@@ -288,7 +284,6 @@ func _export_runtime_state() -> Dictionary:
 		"has_active_run": has_active_run,
 		"unique_feeding_intro_played": unique_feeding_intro_played,
 		"flashlight_unlocked": flashlight_unlocked,
-		"running_unlocked": running_unlocked,
 	}
 
 func _import_runtime_state(state: Dictionary) -> void:
@@ -296,7 +291,6 @@ func _import_runtime_state(state: Dictionary) -> void:
 	has_active_run = bool(state.get("has_active_run", has_active_run))
 	unique_feeding_intro_played = bool(state.get("unique_feeding_intro_played", unique_feeding_intro_played))
 	flashlight_unlocked = bool(state.get("flashlight_unlocked", flashlight_unlocked))
-	running_unlocked = bool(state.get("running_unlocked", running_unlocked))
 
 func _export_cycle_state() -> Dictionary:
 	if CycleState != null and CycleState.has_method("export_checkpoint_state"):
