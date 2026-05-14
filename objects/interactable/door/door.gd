@@ -62,6 +62,9 @@ func _on_interact() -> void:
 		return
 	_try_use_door()
 
+func _should_auto_complete_after_interact() -> bool:
+	return false
+
 func _try_use_door() -> void:
 	var player = get_interacting_player()
 	if player == null:
@@ -130,7 +133,9 @@ func _perform_transition() -> void:
 	
 	if is_instance_valid(player) and player.has_method("set_physics_process"):
 		player.set_physics_process(true)
-	
+
+	if not is_completed:
+		complete_interaction()
 	_is_transitioning = false
 
 func _stop_chase_for_transition() -> void:

@@ -77,7 +77,7 @@ func request_interact() -> void:
 	_on_interact()
 	
 	# 3. ЕСЛИ ОБЪЕКТ ОДНОРАЗОВЫЙ
-	if one_shot:
+	if _should_auto_complete_after_interact():
 		complete_interaction()
 
 # Вызывай это в дочерних скриптах, когда действие успешно завершено
@@ -88,6 +88,9 @@ func complete_interaction() -> void:
 # Переопределяй этот метод в наследниках (Frizzer, Generator, Laptop)
 func _on_interact() -> void:
 	pass
+
+func _should_auto_complete_after_interact() -> bool:
+	return one_shot
 
 # Показ сообщения о блокировке
 func _show_locked_message() -> void:

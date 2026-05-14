@@ -217,12 +217,12 @@ func start_normal_phase(timer_duration: float = -1.0) -> void:
 	if time_to_set > 0.0:
 		current_max_time = time_to_set
 		_timer.start(time_to_set)
-		print("GameDirector: Таймер запущен на %.1f сек." % time_to_set)
+		print_verbose("GameDirector: Таймер запущен на %.1f сек." % time_to_set)
 	else:
 		# Если время 0 или меньше, останавливаем таймер (он не будет тикать)
 		_timer.stop()
 		current_max_time = 0.0 
-		print("GameDirector: Таймер отключен для уровня.")
+		print_verbose("GameDirector: Таймер отключен для уровня.")
 
 func reduce_time(amount: float, damage_flash: bool = false) -> void:
 	if amount <= 0.0:

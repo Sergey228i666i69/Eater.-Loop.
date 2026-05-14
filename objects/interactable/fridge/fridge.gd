@@ -151,6 +151,9 @@ func _on_interact() -> void:
 	# 3. Если всё ок (замок открыт или не нужен) — ЕДИМ
 	_start_feeding_process()
 
+func _should_auto_complete_after_interact() -> bool:
+	return false
+
 # --- ЛОГИКА КОДОВОГО ЗАМКА ---
 func _start_code_lock() -> void:
 	if code_lock_scene == null:

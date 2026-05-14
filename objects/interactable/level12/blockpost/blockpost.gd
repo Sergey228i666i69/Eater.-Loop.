@@ -23,6 +23,8 @@ func _on_touch_area_body_entered(body: Node) -> void:
 	if body == null or not body.is_in_group("player"):
 		return
 	if _has_access:
+		if not is_completed:
+			complete_interaction()
 		return
 	if _can_afford_passage():
 		return
@@ -34,6 +36,8 @@ func _try_use_door() -> void:
 		return
 
 	if _has_access:
+		if not is_completed:
+			complete_interaction()
 		return
 
 	var money_system := _resolve_money_system()
@@ -54,6 +58,8 @@ func _try_use_door() -> void:
 	if access_granted_message.strip_edges() != "":
 		UIMessage.show_notification(access_granted_message)
 	_play_sound(sfx_open)
+	if not is_completed:
+		complete_interaction()
 
 func _resolve_money_system() -> Node:
 	if money_system_path.is_empty():

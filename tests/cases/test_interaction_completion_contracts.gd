@@ -1,0 +1,234 @@
+extends "res://tests/test_case.gd"
+
+const DoorScript := preload("res://objects/interactable/door/door.gd")
+const FridgeScript := preload("res://objects/interactable/fridge/fridge.gd")
+const LaptopScript := preload("res://objects/interactable/notebook/laptop.gd")
+const BlockpostScript := preload("res://objects/interactable/level12/blockpost/blockpost.gd")
+
+class DummyPlayer:
+	extends CharacterBody2D
+
+	var keys := {}
+
+	func _ready() -> void:
+		add_to_group("player")
+
+	func has_key(key_id: String) -> bool:
+		return bool(keys.get(key_id, false))
+
+	func remove_key(key_id: String) -> void:
+		keys.erase(key_id)
+
+class DummyMoneySystem:
+	extends Node
+
+	var can_open := false
+	var open_attempts := 0
+
+	func try_open_blockpost(_required_money: int) -> bool:
+		open_attempts += 1
+		return can_open
+
+	func has_enough_money(_required_money: int) -> bool:
+		return can_open
+
+func run() -> Array[String]:
+	await _test_locked_door_attempt_does_not_complete_one_shot_contract()
+	await _test_broken_door_transition_does_not_complete_one_shot_contract()
+	await _test_successful_door_transition_completes_interaction()
+	await _test_fridge_locked_gates_do_not_complete_one_shot_contract()
+	await _test_laptop_dependency_attempt_unlock_does_not_complete_laptop()
+	await _test_blockpost_completes_only_after_successful_payment()
+	return get_failures()
+
+func _test_locked_door_attempt_does_not_complete_one_shot_contract() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var player := DummyPlayer.new()
+	var door := DoorScript.new()
+	door.one_shot = true
+	door.is_locked = true
+	door.required_key_id = "door_key"
+	root.add_child(door)
+	root.add_child(player)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	door.call("_on_interact_area_body_entered", player)
+	door.request_interact()
+
+	assert_true(not door.is_completed, "Locked door must not complete after a failed one-shot interaction attempt")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_broken_door_transition_does_not_complete_one_shot_contract() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var player := DummyPlayer.new()
+	var door := DoorScript.new()
+	door.one_shot = true
+	door.is_locked = false
+	door.target_marker = NodePath("")
+	root.add_child(door)
+	root.add_child(player)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	door.call("_on_interact_area_body_entered", player)
+	door.request_interact()
+	await tree.process_frame
+
+	assert_true(not door.is_completed, "Door with missing target marker must not complete after a failed transition")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_successful_door_transition_completes_interaction() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var player := DummyPlayer.new()
+	player.name = "Player"
+	var door := DoorScript.new()
+	door.name = "Door"
+	door.one_shot = true
+	door.is_locked = false
+	door.target_marker = NodePath("../DoorTarget")
+	var target := Marker2D.new()
+	target.name = "DoorTarget"
+	target.global_position = Vector2(50.0, 60.0)
+	root.add_child(door)
+	root.add_child(target)
+	root.add_child(player)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	door.call("_on_interact_area_body_entered", player)
+	door.request_interact()
+	await _wait_for_condition(tree, func() -> bool:
+		return door.is_completed
+	)
+
+	assert_true(door.is_completed, "Door must complete only after a successful transition")
+	assert_eq(player.global_position, target.global_position, "Successful door transition must move the player to the target marker")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_fridge_locked_gates_do_not_complete_one_shot_contract() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+	if CycleState != null:
+		CycleState.reset_cycle_state()
+
+	var root := Node2D.new()
+	var lab_locked_fridge := FridgeScript.new()
+	lab_locked_fridge.one_shot = true
+	lab_locked_fridge.require_lab_completion = true
+	root.add_child(lab_locked_fridge)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	lab_locked_fridge.request_interact()
+	assert_true(not lab_locked_fridge.is_completed, "Fridge locked by lab completion must not complete after an attempt")
+
+	var code_locked_fridge := FridgeScript.new()
+	code_locked_fridge.one_shot = true
+	code_locked_fridge.require_access_code = true
+	root.add_child(code_locked_fridge)
+	await tree.process_frame
+
+	code_locked_fridge.request_interact()
+	assert_true(not code_locked_fridge.is_completed, "Fridge locked by missing code minigame must not complete after an attempt")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+	if CycleState != null:
+		CycleState.reset_cycle_state()
+
+func _test_laptop_dependency_attempt_unlock_does_not_complete_laptop() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var dependency := InteractiveObject.new()
+	dependency.name = "Dependency"
+	var laptop := LaptopScript.new()
+	laptop.name = "Laptop"
+	laptop.one_shot = true
+	laptop.unlock_on_dependency_interaction = true
+	laptop.dependency_object = dependency
+	root.add_child(dependency)
+	root.add_child(laptop)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	dependency.request_interact()
+
+	assert_true(bool(laptop.get("_dependency_override")), "Laptop should still unlock on dependency interaction attempts")
+	assert_true(not laptop.is_completed, "Laptop dependency-attempt unlock must not mark the laptop completed")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_blockpost_completes_only_after_successful_payment() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var player := DummyPlayer.new()
+	var money_system := DummyMoneySystem.new()
+	money_system.name = "Money"
+	var blockpost := BlockpostScript.new()
+	blockpost.name = "Blockpost"
+	blockpost.one_shot = true
+	blockpost.money_system_path = NodePath("../Money")
+	root.add_child(blockpost)
+	root.add_child(money_system)
+	root.add_child(player)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	blockpost.call("_on_interact_area_body_entered", player)
+	money_system.can_open = false
+	blockpost.request_interact()
+	assert_true(not blockpost.is_completed, "Blockpost must not complete after failed payment")
+
+	money_system.can_open = true
+	blockpost.request_interact()
+	assert_true(blockpost.is_completed, "Blockpost must complete after successful payment")
+	assert_eq(money_system.open_attempts, 2, "Blockpost should call the payment system for each active interaction attempt")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _wait_for_condition(tree: SceneTree, predicate: Callable, timeout_seconds: float = 1.5) -> void:
+	var timeout := tree.create_timer(timeout_seconds, true)
+	var tick := tree.create_timer(0.05, true)
+	while not bool(predicate.call()) and timeout.time_left > 0.0:
+		await tick.timeout
+		tick = tree.create_timer(0.05, true)

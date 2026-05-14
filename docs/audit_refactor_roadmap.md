@@ -43,17 +43,18 @@ Definition of done: каждый пункт имеет focused test или scene
 
 Цель: один input press должен активировать ровно один выбранный объект.
 
-1. Ввести `InteractionManager`.
-2. У каждого интерактива должны быть priority/distance/availability.
-3. Подсказку показывает manager, а не множество объектов одновременно.
-4. Manager должен проверять `MinigameController.is_active()`.
-5. Разделить outcomes:
+1. ~~Ввести `InteractionManager`.~~
+2. ~~У каждого интерактива должны быть priority/distance/availability.~~
+3. ~~Подсказку показывает manager, а не множество объектов одновременно.~~
+4. ~~Manager должен проверять активную мини-игру.~~
+5. Частично разделить outcomes:
    - interaction requested;
    - interaction succeeded;
    - completed forever.
+   One-shot fail-open закрыт через `_should_auto_complete_after_interact()` и явное `complete_interaction()` на успехе у двери, холодильника, ноутбука и блокпоста.
 6. Перевести dependency с прямого `InteractiveObject.is_completed` на typed conditions.
 
-Definition of done: overlapping Area2D больше не вызывает несколько интерактов одним нажатием.
+Definition of done: overlapping Area2D больше не вызывает несколько интерактов одним нажатием; следующий остаток фазы - typed dependency conditions.
 
 ## Фаза 4: Scene Contracts И Validators
 

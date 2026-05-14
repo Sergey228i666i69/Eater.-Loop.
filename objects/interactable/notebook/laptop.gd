@@ -147,6 +147,9 @@ func _handle_completed_interaction() -> void:
 func _on_dependency_finished() -> void:
 	_update_visuals()
 
+func _should_auto_complete_after_interact() -> bool:
+	return false
+
 func _on_dependency_interaction_requested(_player: Node = null) -> void:
 	if not unlock_on_dependency_interaction:
 		return

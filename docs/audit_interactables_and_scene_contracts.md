@@ -1,26 +1,31 @@
 # Интерактивные Объекты И Scene Contracts
 
-Оценка проблемности среза: **7/10**.
+Оценка проблемности среза: **6/10**.
 
 ## Диагноз
 
-База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт `is_completed`, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Это пока работает за счёт дисциплины сцен, но уже даёт реальные gameplay-ловушки.
+База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт `is_completed`, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Самые опасные fail-open случаи уже закрыты, но система всё ещё держится на дисциплине сцен.
 
 ## P1: Dependency-Система Стала Безопаснее, Но Контракт Ломкий
 
-`InteractiveObject` ждёт `dependency_object.is_completed` и `interaction_finished`. Конкретный softlock из `level_04_findkey`, где `SearchSpot` с `door_key` зависел от двери `ToBedroom`, которая сама требовала `door_key`, закрыт: search spots больше не завязаны на эту дверь, а `test_scene_dependency_contracts.gd` ловит такие key-door циклы.
+`InteractiveObject` всё ещё ждёт `dependency_object.is_completed` и `interaction_finished`, но два опасных класса багов закрыты. Конкретный softlock из `level_04_findkey`, где `SearchSpot` с `door_key` зависел от двери `ToBedroom`, которая сама требовала `door_key`, закрыт: search spots больше не завязаны на эту дверь, а `test_scene_dependency_contracts.gd` ловит такие key-door циклы.
+
+Второй закрытый fail-open: `one_shot` больше не означает "завершить после любой попытки". База вызывает `_should_auto_complete_after_interact()`, а `Door`, `Fridge`, `Laptop` и `Blockpost` запрещают авто-завершение и сами вызывают `complete_interaction()` только после успешного перехода, еды, лабораторной или оплаты. Это закреплено в `test_interaction_completion_contracts.gd`.
 
 Файлы:
 
 - [`objects/interactable/interactive_object.gd`](../objects/interactable/interactive_object.gd), около строк 73 и 216.
 - [`objects/interactable/door/door.gd`](../objects/interactable/door/door.gd), около строки 60.
+- [`objects/interactable/fridge/fridge.gd`](../objects/interactable/fridge/fridge.gd), около строки 153.
+- [`objects/interactable/notebook/laptop.gd`](../objects/interactable/notebook/laptop.gd), около строки 149.
+- [`objects/interactable/level12/blockpost/blockpost.gd`](../objects/interactable/level12/blockpost/blockpost.gd), около строки 35.
 - [`levels/cycles/level_04_findkey.tscn`](../levels/cycles/level_04_findkey.tscn), около строки 1725.
 
 Оставшийся практический риск: зависимости всё ещё смотрят на один общий `is_completed`, хотя разным объектам нужны разные outcome-ы: attempted, succeeded, completed forever.
 
 Следующий ремонт: разделить `interaction_requested`, `interaction_succeeded`, `completed_forever`; зависимости должны смотреть на явный outcome.
 
-## P1: Нет Единого Фокуса Интерактива
+## Resolved: Нет Единого Фокуса Интерактива
 
 Каждый `InteractiveObject` сам слушает `_unhandled_input`. Если игрок стоит в нескольких Area2D, одно нажатие может активировать несколько объектов.
 
@@ -35,7 +40,7 @@
 - прожекторов;
 - кровати.
 
-Ремонт: единый `InteractionManager`, который выбирает один объект по priority/distance, показывает одну подсказку и consume-ит input.
+Статус: закрыто. `InteractionManager` выбирает один объект по availability, priority, distance и порядку входа, показывает одну подсказку и consume-ит input. Поведение покрыто `test_interaction_manager_focus.gd`.
 
 ## Resolved: Деньги Level 12 Плохо Переживают Чекпоинты
 

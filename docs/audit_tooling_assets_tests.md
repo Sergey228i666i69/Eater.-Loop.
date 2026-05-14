@@ -10,7 +10,7 @@
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизвёлся 1 failure. Поэтому bedroom ambient suppression ниже отмечен как ранее замеченный, но не подтверждённый финальным прогоном.
 - Полный export/build не запускался, чтобы не писать в output paths и импорт-кэш.
 
-## P1: Fresh Clone/CI Почти Наверняка Не Воспроизводит Игру
+## Resolved: Fresh Clone/CI Почти Наверняка Не Воспроизводит Игру
 
 `.gitignore` исключает:
 
@@ -30,11 +30,7 @@
 
 Статический аудит нашёл 387 уникальных `res://` ссылок на ассеты; 381 из них существуют локально, но не tracked. Это означает, что локальная машина богаче Git-репозитория.
 
-Ремонт:
-
-1. выбрать Git LFS/tracked assets или documented external asset pack;
-2. зафиксировать bootstrap-инструкцию;
-3. добавить проверку fresh clone/resource existence в CI.
+Статус: закрыто на уровне репозитория. Выбран Git LFS, source assets и `.import` tracked, root `export_presets.cfg` tracked, а CI делает checkout с LFS и `git lfs pull`.
 
 ## Resolved: Полный Тестовый Suite Красный
 
@@ -46,7 +42,7 @@
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Финальный прогон после документации это не воспроизвёл, поэтому пункт нужно расследовать как возможный flaky/state-order bug, а не считать текущим единственным подтверждённым падением.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (49)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (51)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -79,7 +75,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 49 тестов.
+- 51 тест.
 
 Добавлено:
 
