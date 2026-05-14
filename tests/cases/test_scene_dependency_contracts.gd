@@ -9,6 +9,7 @@ const SCENE_DIRS := [
 func run() -> Array[String]:
 	_test_key_search_spots_do_not_depend_on_the_door_they_unlock()
 	_test_target_monster_spawners_declare_spawn_condition()
+	_test_reversible_triggers_are_not_one_shot()
 	return get_failures()
 
 func _test_key_search_spots_do_not_depend_on_the_door_they_unlock() -> void:
@@ -61,6 +62,33 @@ func _test_target_monster_spawners_declare_spawn_condition() -> void:
 				assert_true(
 					block.find("condition_configured = true") != -1,
 					"TargetMonsterSpawner with enemy_scene must explicitly confirm its spawn condition: %s" % path
+				)
+			from = next_node
+
+func _test_reversible_triggers_are_not_one_shot() -> void:
+	var scenes: Array[String] = []
+	for dir_path in SCENE_DIRS:
+		scenes.append_array(utils.list_files(dir_path, ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"]))
+	scenes.sort()
+
+	for path in scenes:
+		var content := FileAccess.get_file_as_string(path)
+		assert_true(content != "", "Failed to read scene: %s" % path)
+		if content == "":
+			continue
+		var from := 0
+		while true:
+			var node_start := content.find("[node ", from)
+			if node_start == -1:
+				break
+			var next_node := content.find("\n[node ", node_start + 1)
+			if next_node == -1:
+				next_node = content.length()
+			var block := content.substr(node_start, next_node - node_start)
+			if block.find("affect_on_exit = true") != -1:
+				assert_true(
+					block.find("one_shot = false") != -1,
+					"Trigger with affect_on_exit=true must set one_shot=false so exit behavior can run: %s" % path
 				)
 			from = next_node
 

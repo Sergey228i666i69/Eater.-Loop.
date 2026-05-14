@@ -1307,6 +1307,7 @@ texture = ExtResource("39_3jki4")
 position = Vector2(9126, 94)
 script = ExtResource("40_fx2a0")
 affect_on_exit = true
+one_shot = false
 sfx_stream = ExtResource("41_vdt5w")
 sfx_use_trigger_position = true
 metadata/_edit_group_ = true

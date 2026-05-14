@@ -69,16 +69,16 @@
 
 Ремонт: exported `NodePath`, required-node validation tests, typed child references или composition components.
 
-## P2: `TriggerSetProperty` Слишком Универсален
+## Resolved: `TriggerSetProperty` Слишком Универсален
 
-`TriggerSetProperty` меняет любые свойства через `Variant value`. По умолчанию `one_shot=true`, поэтому enter+exit сценарий может сработать на входе и уже не восстановить состояние на выходе.
+`TriggerSetProperty` меняет любые свойства через `Variant value`. По умолчанию `one_shot=true`, поэтому enter+exit сценарий мог сработать на входе и уже не восстановить состояние на выходе.
 
 Файлы:
 
 - [`objects/interactable/trigger/trigger_set_property.gd`](../objects/interactable/trigger/trigger_set_property.gd), около строк 5 и 94.
 - [`objects/interactable/trigger/property_change.gd`](../objects/interactable/trigger/property_change.gd), около строки 21.
 
-Ремонт: разделить one-shot и reversible trigger, добавить типизированные property changes и тест на enter/exit restore.
+Статус: закрыто минимально. Найденный reversible trigger в `level_06_corridordistortion` теперь явно `one_shot=false`, а `test_scene_dependency_contracts.gd` запрещает `affect_on_exit=true` без `one_shot=false`. Более крупный ремонт всё ещё полезен: разделить one-shot и reversible trigger на разные typed components.
 
 ## P2: Свет, Генератор И Враги Завязаны На Строковые Группы
 
