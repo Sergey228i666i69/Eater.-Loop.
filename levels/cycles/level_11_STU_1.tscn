@@ -8557,6 +8557,10 @@ texture = null
 [node name="TargetMonsterSpawner" parent="." unique_id=249516465 instance=ExtResource("132_0grpv")]
 position = Vector2(10961, 6659)
 enemy_scene = ExtResource("133_g6lqu")
+condition_configured = true
+condition_type = 0
+game_state_flag_name = "ate_this_cycle"
+game_state_expected_value = true
 
 [node name="Lamp" parent="." unique_id=1861148071 instance=ExtResource("131_upyn3")]
 position = Vector2(12091, 6290)

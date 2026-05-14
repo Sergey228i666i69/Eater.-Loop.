@@ -95,13 +95,13 @@
 
 Ремонт: light/power interface component, validator на groups/methods, единый input contract для родственных источников света.
 
-## P2: `TargetMonsterSpawner` Конфигурируется Слишком Неявно
+## Resolved: `TargetMonsterSpawner` Конфигурируется Слишком Неявно
 
-По умолчанию spawner ждёт `CycleState.ate_this_cycle == true`. В `level_11_STU_1` инстанс задаёт только `enemy_scene`, значит условие спавна скрыто в дефолтах скрипта/сцены.
+Изначально spawner по умолчанию ждал `CycleState.ate_this_cycle == true`, а в `level_11_STU_1` инстанс задавал только `enemy_scene`, так что условие спавна было скрыто в дефолтах скрипта/сцены.
 
 Файлы:
 
 - [`objects/environment/smart/target/target.gd`](../objects/environment/smart/target/target.gd), около строк 28 и 98.
 - [`levels/cycles/level_11_STU_1.tscn`](../levels/cycles/level_11_STU_1.tscn), около строки 8557.
 
-Ремонт: сделать trigger condition явным в уровне или вынести условия в resource.
+Статус: закрыто минимально. `TargetMonsterSpawner` получил `condition_configured`, реальный инстанс в `level_11_STU_1` явно задаёт `ate_this_cycle == true`, а `test_scene_dependency_contracts.gd` запрещает spawner-ы с `enemy_scene`, которые не подтвердили условие.

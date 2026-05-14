@@ -198,6 +198,7 @@ func _test_target_spawner_spawned_enemy_survives_respawn() -> void:
 	var spawner_a := spawner_scene.instantiate()
 	spawner_a.name = "Spawner"
 	spawner_a.set("enemy_scene", enemy_scene)
+	spawner_a.set("condition_configured", true)
 	spawner_a.set("spawn_parent_path", NodePath(".."))
 	scene_a.add_child(spawner_a)
 	tree.root.add_child(scene_a)
@@ -224,6 +225,7 @@ func _test_target_spawner_spawned_enemy_survives_respawn() -> void:
 	var spawner_b := spawner_scene.instantiate()
 	spawner_b.name = "Spawner"
 	spawner_b.set("enemy_scene", enemy_scene)
+	spawner_b.set("condition_configured", true)
 	spawner_b.set("spawn_parent_path", NodePath(".."))
 	scene_b.add_child(spawner_b)
 	tree.root.add_child(scene_b)

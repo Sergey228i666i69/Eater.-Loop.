@@ -24,6 +24,8 @@ enum ConditionType {
 @export var auto_free_after_spawn: bool = false
 
 @export_group("Condition")
+## Подтверждает, что условие спавна задано в конкретном уровне, а не случайно оставлено дефолтом.
+@export var condition_configured: bool = false
 ## Тип условия, после которого будет спавн.
 @export_enum("Флаг GameState", "Сигнал от узла", "Вход в триггер") var condition_type: int = ConditionType.GAMESTATE_BOOL
 
@@ -65,6 +67,8 @@ func _ready() -> void:
 	add_to_group("target_monster_spawner")
 	if not is_in_group("checkpoint_stateful"):
 		add_to_group("checkpoint_stateful")
+	if enemy_scene != null and not condition_configured:
+		push_warning("TargetMonsterSpawner: condition_configured=false; spawner relies on script defaults.")
 	_arm_condition()
 
 func _process(_delta: float) -> void:
