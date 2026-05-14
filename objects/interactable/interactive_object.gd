@@ -17,6 +17,8 @@ signal interaction_finished # <--- НОВЫЙ СИГНАЛ: для цепоче�
 @export var auto_prompt: bool = true
 ## Обрабатывать ввод автоматически.
 @export var handle_input: bool = true
+## Приоритет выбора, если игрок стоит в нескольких интерактивах.
+@export var interaction_priority: int = 0
 
 @export_group("Prompt Indicator")
 ## Смещение спрайта подсказки относительно центра объекта.
@@ -35,6 +37,7 @@ signal interaction_finished # <--- НОВЫЙ СИГНАЛ: для цепоче�
 var _interact_area: Area2D = null
 var _player_in_range: Node = null
 var _prompts_enabled: bool = true
+var _interaction_focused: bool = false
 var is_completed: bool = false # <--- ФЛАГ: Выполнен объект или нет
 
 func _ready() -> void:
@@ -107,6 +110,8 @@ func _setup_interaction_area() -> void:
 			_interact_area.body_exited.connect(_on_interact_area_body_exited)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _uses_interaction_manager():
+		return
 	if not handle_input:
 		return
 	if _player_in_range == null:
@@ -120,15 +125,39 @@ func _can_interact() -> bool:
 func _get_interact_action() -> String:
 	return "interact"
 
+func get_interact_action_name() -> String:
+	return _get_interact_action()
+
+func is_manager_candidate() -> bool:
+	return handle_input and is_player_in_range() and _can_interact()
+
+func can_show_manager_prompt() -> bool:
+	return auto_prompt and _allow_prompt_display()
+
+func show_manager_prompt() -> void:
+	_interaction_focused = true
+	_refresh_prompt_state()
+
+func hide_manager_prompt() -> void:
+	_interaction_focused = false
+	_hide_prompt()
+
+func get_interaction_sort_position() -> Vector2:
+	return global_position
+
 func _on_interact_area_body_entered(body: Node) -> void:
 	if not body.is_in_group("player"):
 		return
 	_player_in_range = body
+	if _uses_interaction_manager():
+		InteractionManager.register_candidate(self, body)
 	_on_player_entered(body)
 
 func _on_interact_area_body_exited(body: Node) -> void:
 	if body != _player_in_range:
 		return
+	if _uses_interaction_manager():
+		InteractionManager.unregister_candidate(self)
 	_player_in_range = null
 	_on_player_exited(body)
 
@@ -177,8 +206,10 @@ func set_prompts_enabled(enabled: bool) -> void:
 func set_interaction_enabled(enabled: bool) -> void:
 	handle_input = enabled
 	set_prompts_enabled(enabled)
+	_notify_interaction_manager_changed()
 
 func refresh_interaction_state() -> void:
+	_notify_interaction_manager_changed()
 	_refresh_prompt_state()
 
 func set_dependency_object(new_dependency: InteractiveObject) -> void:
@@ -253,7 +284,26 @@ func _refresh_prompt_state() -> void:
 	if _player_in_range == null:
 		_hide_prompt()
 		return
+	if _uses_interaction_manager() and not _interaction_focused:
+		_hide_prompt()
+		return
 	if auto_prompt and _allow_prompt_display():
 		_show_prompt()
 	else:
 		_hide_prompt()
+
+func _set_interaction_focus(focused: bool) -> void:
+	if _interaction_focused == focused:
+		_refresh_prompt_state()
+		return
+	if focused:
+		show_manager_prompt()
+	else:
+		hide_manager_prompt()
+
+func _uses_interaction_manager() -> bool:
+	return InteractionManager != null and InteractionManager.has_method("register_candidate")
+
+func _notify_interaction_manager_changed() -> void:
+	if _uses_interaction_manager():
+		InteractionManager.refresh_candidate(self)

@@ -287,6 +287,7 @@
 │   ├── export_presets.cfg
 │   ├── iconofgame.png
 │   ├── iconofgame.png.import
+│   ├── interaction_manager.gd
 │   ├── itchio.jpg
 │   ├── itchio.jpg.import
 │   ├── macos_icon.icns
@@ -1436,6 +1437,7 @@
 │   │   ├── test_input_actions.gd.uid
 │   │   ├── test_interaction_architecture_contracts.gd
 │   │   ├── test_interaction_architecture_contracts.gd.uid
+│   │   ├── test_interaction_manager_focus.gd
 │   │   ├── test_interactive_object_locked_message.gd
 │   │   ├── test_interactive_object_locked_message.gd.uid
 │   │   ├── test_lamp_generator_requirement.gd
@@ -1515,4 +1517,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1391 files
+125 directories, 1393 files
