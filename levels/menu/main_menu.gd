@@ -122,8 +122,6 @@ func _update_continue_state() -> void:
 	var can_continue := false
 	if GameState != null and GameState.has_method("has_active_run_state") and GameState.has_method("get_last_scene_path"):
 		can_continue = GameState.has_active_run_state() and GameState.get_last_scene_path() != ""
-	elif GameState != null:
-		can_continue = GameState.has_active_run and GameState.last_scene_path != ""
 	_continue_button.disabled = not can_continue
 
 func _show_main() -> void:
@@ -193,8 +191,6 @@ func _start_continue() -> void:
 	var scene_path := ""
 	if GameState.has_method("get_last_scene_path"):
 		scene_path = String(GameState.get_last_scene_path())
-	else:
-		scene_path = String(GameState.last_scene_path)
 	if scene_path == "":
 		return
 	var scene := load(scene_path) as PackedScene

@@ -42,6 +42,12 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"call(\"handle_custom_death_screen\"",
 	"call('handle_custom_death_screen'"
 ]
+const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
+	"GameState.last_scene_path",
+	"GameState.has_active_run",
+	"GameState.flashlight_unlocked",
+	"GameState.unique_feeding_intro_played"
+]
 const FORBIDDEN_ACTIVE_SCENE_PATTERNS := [
 	"archive(trash)"
 ]
@@ -73,6 +79,10 @@ func run() -> Array[String]:
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 
+		if path != GAME_STATE_PATH:
+			for pattern in FORBIDDEN_GAME_STATE_FIELD_PATTERNS:
+				assert_true(not _contains_symbol_access(content, pattern), "External GameState field access must go through public methods: %s (%s)" % [path, pattern])
+
 		if path != SCENE_CONTEXT_PATH:
 			assert_true(content.find("path.find(\"/levels/cycles/\")") == -1, "Gameplay scene path checks must go through SceneContext: %s" % path)
 			assert_true(content.find("path.find(\"/levels/menu/\")") == -1, "Menu scene path checks must go through SceneContext: %s" % path)
@@ -102,3 +112,21 @@ func run() -> Array[String]:
 	assert_true(fridge_content.find("autosave_run") != -1, "Fridge must trigger autosave after successful interaction")
 
 	return get_failures()
+
+func _contains_symbol_access(content: String, symbol: String) -> bool:
+	var from := 0
+	while true:
+		var index := content.find(symbol, from)
+		if index == -1:
+			return false
+		var end := index + symbol.length()
+		if end >= content.length() or not _is_identifier_char(content.unicode_at(end)):
+			return true
+		from = end
+	return false
+
+func _is_identifier_char(codepoint: int) -> bool:
+	return codepoint == 95 \
+		or (codepoint >= 48 and codepoint <= 57) \
+		or (codepoint >= 65 and codepoint <= 90) \
+		or (codepoint >= 97 and codepoint <= 122)

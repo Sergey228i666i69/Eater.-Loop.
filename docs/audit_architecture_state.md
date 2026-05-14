@@ -32,11 +32,11 @@
 
 - [`levels/cycles/game_state.gd`](../levels/cycles/game_state.gd), около строки 8: `last_scene_path`, `has_active_run`, `flashlight_unlocked`.
 - [`levels/cycles/cycle_state.gd`](../levels/cycles/cycle_state.gd), около строки 16: `phase`, `ate_this_cycle`, `lab_done`.
-- [`levels/menu/main_menu.gd`](../levels/menu/main_menu.gd), около строки 121: fallback к прямым полям.
+- [`levels/menu/main_menu.gd`](../levels/menu/main_menu.gd), около строки 121: раньше имел fallback к прямым полям, теперь использует публичные методы `GameState`.
 
 Практический риск: состояние можно изменить в обход валидации, сигналов и инвариантов. При росте проекта это превращается в трудно воспроизводимые регрессии.
 
-Ремонт: закрывать поля за методами, сигналами и typed contract-ами; reflective `get()` использовать только для debug/compat слоёв.
+Статус: частично исправлено. Внешний доступ к ключевым полям `GameState` запрещён архитектурным тестом и меню использует публичные методы. Оставшийся ремонт: закрывать поля `CycleState` за методами, сигналами и typed contract-ами; reflective `get()` использовать только для debug/compat слоёв.
 
 ## P2: `GameDirector` Перегружен
 
