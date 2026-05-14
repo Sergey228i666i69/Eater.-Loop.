@@ -701,6 +701,8 @@
 │   ├── MusicForEat.mp3.import
 │   ├── MusicForLabs.wav
 │   ├── MusicForLabs.wav.import
+│   ├── MusicForLabs2.wav
+│   ├── MusicForLabs2.wav.import
 │   ├── MyHorrorHit_1.wav
 │   ├── MyHorrorHit_1.wav.import
 │   ├── MyHorrorHit_2.wav
@@ -711,6 +713,8 @@
 │   ├── RunnerHARDMUSIC.wav.import
 │   ├── StressMusic.wav
 │   ├── StressMusic.wav.import
+│   ├── TimerForLabs2.wav
+│   ├── TimerForLabs2.wav.import
 │   ├── TimerForLabs_DEMO.wav
 │   ├── TimerForLabs_DEMO.wav.import
 │   ├── TypeSilentHill.wav
@@ -1262,6 +1266,10 @@
 │       │   ├── projector.gd
 │       │   ├── projector.gd.uid
 │       │   └── projector.tscn
+│       ├── projector2
+│       │   ├── projector2.gd
+│       │   ├── projector2.gd.uid
+│       │   └── projector2.tscn
 │       ├── search_spot
 │       │   ├── search_spot.gd
 │       │   ├── search_spot.gd.uid
@@ -1499,4 +1507,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1376 files
+125 directories, 1383 files

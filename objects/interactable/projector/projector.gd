@@ -10,10 +10,15 @@ extends InteractiveObject
 
 @export_group("Light Settings")
 @export var light_node: NodePath = NodePath("PointLight2D")
-@export var light_color: Color = Color(0.95, 0.98, 1.0, 1.0)
-@export var light_range: float = 1100.0
-@export var light_energy: float = 1.6
+@export var light_color: Color = Color(1.0, 0.98, 0.92, 1.0)
+## Длина луча в пикселях. Луч масштабируется так, чтобы его яркая вершина
+## всегда оставалась у самого спрайта проектора.
+@export var light_range: float = 1400.0
+@export var light_energy: float = 1.7
 @export_range(1.0, 180.0, 1.0) var light_fov_deg: float = 36.0
+## Направление луча в локальных координатах. По умолчанию вправо — туда же,
+## куда смотрит линза неперевёрнутого спрайта. Если вы зеркалите Sprite2D,
+## выставьте Vector2.LEFT.
 @export var beam_direction_local: Vector2 = Vector2.RIGHT
 
 @export_group("Sprite Settings")
@@ -62,7 +67,10 @@ func is_light_active() -> bool:
 func is_point_lit(point: Vector2) -> bool:
 	if not is_light_active():
 		return false
-	var origin := ReactiveLightUtils.resolve_light_origin(_light)
+	# Яркая вершина луча всегда находится прямо в позиции PointLight2D —
+	# offset выставляется в скрипте так, чтобы текстура уходила от этой
+	# точки наружу, а не была сдвинута относительно неё.
+	var origin := _light.global_position
 	var facing := _resolve_beam_direction()
 	return ReactiveLightUtils.is_point_within_cone(origin, facing, point, light_range, light_fov_deg)
 
@@ -118,14 +126,38 @@ func _apply_light_settings() -> void:
 	_light.color = light_color
 	_light.energy = light_energy
 	_update_light_range()
+	_align_beam_with_sprite()
 
+## Подгоняет масштаб текстуры света и сдвигает её так, чтобы яркая вершина
+## градиента всегда совпадала с позицией PointLight2D, а сам луч уходил
+## наружу. Без этого луч резко обрывается далеко от прожектора.
 func _update_light_range() -> void:
 	if _light == null or _light.texture == null:
 		return
-	var base_radius := maxf(_light.texture.get_width(), _light.texture.get_height()) * 0.5
-	if base_radius <= 0.0:
+	var texture_width := float(_light.texture.get_width())
+	if texture_width <= 0.0:
 		return
-	_light.texture_scale = maxf(1.0, light_range) / base_radius
+	# Длина луча в мире = ширина текстуры * texture_scale.
+	var desired_scale := maxf(0.05, light_range / texture_width)
+	_light.texture_scale = desired_scale
+	# Текстура нарисована как радиальный градиент с вершиной у левого края
+	# (fill_from = (0, 0.5)). PointLight2D рисует текстуру по центру относительно
+	# своей позиции, значит чтобы вершина оказалась в самой позиции света,
+	# нужно сдвинуть текстуру вправо ровно на половину её ширины (с учётом
+	# масштаба). Сдвиг применяется в локальных координатах PointLight2D, а его
+	# вращение мы выставляем отдельно — это превращает сдвиг в направление луча.
+	_light.offset = Vector2(texture_width * 0.5 * desired_scale, 0.0)
+
+## Поворачивает PointLight2D так, чтобы луч уходил в направлении
+## beam_direction_local. Текстура устроена так, что без поворота луч
+## направлен по +X (вправо), что совпадает с линзой неперевёрнутого спрайта.
+func _align_beam_with_sprite() -> void:
+	if _light == null:
+		return
+	var direction := beam_direction_local
+	if direction.length_squared() <= 0.000001:
+		direction = Vector2.RIGHT
+	_light.rotation = direction.angle()
 
 func _update_sprite(is_lit: bool) -> void:
 	if _sprite == null:
