@@ -84,17 +84,17 @@ Credits возвращают в меню и ставят только meta-фл�
 
 Статус: закрыто. `MinigameController` хранит `_timeout_emitted`, сбрасывает его при setup/clear timer и эмитит timeout один раз за запуск мини-игры. Контракт покрыт `test_minigame_backdrop_transition_visibility.gd`.
 
-## P2: Холодильник Fail-Open
+## Resolved: Холодильник Fail-Open
 
-Если `minigame_scene` или `food_scenes` не назначены, холодильник сразу вызывает `_finish_feeding_logic()` и засчитывает еду.
+Изначально, если `minigame_scene` или `food_scenes` не назначены, холодильник сразу вызывал `_finish_feeding_logic()` и засчитывал еду.
 
 Файлы:
 
 - [`objects/interactable/fridge/fridge.gd`](../objects/interactable/fridge/fridge.gd), около строк 211 и 267.
 
-Практический эффект: production misconfiguration превращается в бесплатный прогресс.
+Практический эффект был такой: production misconfiguration превращался в бесплатный прогресс.
 
-Ремонт: fail-closed с явной ошибкой в debug/test и безопасным player-facing отказом в release.
+Статус: закрыто. Холодильник fail-closed показывает отказ игроку и не отмечает `ate`; поведение покрыто `test_fridge_chase_interaction.gd`.
 
 ## P2/P3: Дублирование И Мёртвый Прогресс
 
