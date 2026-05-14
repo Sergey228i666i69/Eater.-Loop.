@@ -2,7 +2,7 @@
 
 Оценка проблемности среза на момент первичного аудита: **7/10**.
 
-Текущий статус: крупная часть hygiene-проблем уже закрыта. `archive(trash)` и `level_NSTU_test.tscn` удалены из runtime-дерева, активный уровень с кириллической `с` переименован в `level_09_crazy.tscn`, ассеты заведены через Git LFS, root `export_presets.cfg` отслеживается.
+Текущий статус: крупная часть hygiene-проблем уже закрыта. `archive(trash)` и `level_NSTU_test.tscn` удалены из runtime-дерева, активный уровень с кириллической `с` переименован в `level_09_crazy.tscn`, ассеты заведены через Git LFS, root `export_presets.cfg` отслеживается, runtime `print()` запрещён архитектурным тестом.
 
 ## Диагноз
 
@@ -98,7 +98,7 @@ Git почти не трекает аудио/изображения, но сц�
 
 Ремонт: один базовый light-source/power component и разные scene skins/config resources.
 
-## P3: Debug Leftovers
+## Resolved: Debug Leftovers
 
 Найдены production `print()`/debug leftovers.
 
@@ -109,7 +109,7 @@ Git почти не трекает аудио/изображения, но сц�
 - [`objects/interactable/fridge/fridge.gd`](../objects/interactable/fridge/fridge.gd), около строки 300.
 - [`objects/interactable/generator/generator.gd`](../objects/interactable/generator/generator.gd), около строки 29.
 
-Ремонт: centralized logger с уровнями, либо убрать шум из runtime.
+Статус: runtime `print()` заменён на `print_verbose()`, а `test_interaction_architecture_contracts.gd` запрещает новые raw `print()` в `levels`, `objects`, `player`, `enemies` и `global`.
 
 ## P3: Magic Strings/Numbers
 

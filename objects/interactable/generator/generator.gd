@@ -26,7 +26,7 @@ func _on_interact() -> void:
 		return
 
 	# --- ЛОГИКА ЗАПУСКА ---
-	print("Генератор запускается...")
+	print_verbose("Генератор запускается...")
 	
 	# 1. Включаем анимацию (если есть спрайт и анимация)
 	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation(on_animation):

@@ -158,9 +158,9 @@ func finish_game(success: bool):
 func _finalize_finish_after_fade(success: bool) -> void:
 	task_completed.emit(success)
 	if success:
-		print("Лабораторная выполнена!")
+		print_verbose("Лабораторная выполнена!")
 	else:
-		print("Время вышло! Штраф.")
+		print_verbose("Время вышло! Штраф.")
 	apply_standard_lab_outcome(success)
 	queue_free()
 

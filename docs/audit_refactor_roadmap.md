@@ -99,7 +99,7 @@ Path-based checks вида `path.find("/levels/cycles/")` вынесены в `S
 1. ~~Вынести или удалить `archive(trash)` и test/old/save runtime-сцены.~~
 2. ~~Нормализовать самый опасный naming.~~ `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
 3. Разбить huge `.tscn` на reusable scene instances.
-4. Убрать debug `print()` или заменить logger-ом.
+4. ~~Убрать debug `print()` или заменить logger-ом.~~ Runtime `print()` заменён на `print_verbose()`, архитектурный тест запрещает новые raw `print()`.
 5. Вынести magic numbers/strings в constants/resources.
 
 Definition of done: `rg "trash|old|test"` по runtime-папкам не находит активной археологии без явного whitelist.

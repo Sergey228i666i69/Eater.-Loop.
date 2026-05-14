@@ -302,7 +302,7 @@ func _show_locked_message() -> void:
 		if UIMessage:
 			UIMessage.show_notification(lab_required_message)
 		else:
-			print("LOCKED: " + lab_required_message)
+			print_verbose("LOCKED: " + lab_required_message)
 		return
 	super._show_locked_message()
 
@@ -313,7 +313,7 @@ func _show_access_code_failed_message() -> void:
 	if UIMessage:
 		UIMessage.show_notification(message)
 	else:
-		print("LOCKED: " + message)
+		print_verbose("LOCKED: " + message)
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 func _is_available_for_player() -> bool:

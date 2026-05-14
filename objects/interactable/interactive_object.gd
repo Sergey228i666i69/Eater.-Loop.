@@ -98,7 +98,7 @@ func _show_locked_message() -> void:
 	if UIMessage:
 		UIMessage.show_notification(localized_message)
 	else:
-		print("LOCKED: " + localized_message)
+		print_verbose("LOCKED: " + localized_message)
 
 # --- ИНФРАСТРУКТУРА (ОСТАВЛЯЕМ БЕЗ ИЗМЕНЕНИЙ) ---
 
