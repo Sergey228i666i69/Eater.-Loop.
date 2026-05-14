@@ -60,9 +60,9 @@ Credits возвращают в меню и ставят только meta-фл�
 
 Статус: закрыто. Проверка света вынесена в достижимую ветку; focused light contract покрыт тестами.
 
-## P2: Мини-Игры Не Блокируют Общий Interact
+## Resolved: Мини-Игры Не Блокируют Общий Interact
 
-`InteractiveObject._unhandled_input()` продолжает слушать `interact`, если игрок в зоне. `MinigameController` обрабатывает cancel/gamepad, но не ставит глобальный запрет интерактов.
+Изначально `InteractiveObject._unhandled_input()` продолжал слушать `interact`, если игрок в зоне. `MinigameController` обрабатывал cancel/gamepad, но не ставил глобальный запрет интерактов.
 
 Файлы:
 
@@ -70,9 +70,9 @@ Credits возвращают в меню и ставят только meta-фл�
 - [`levels/minigames/minigame_controller.gd`](../levels/minigames/minigame_controller.gd), около строки 73.
 - [`project.godot`](../project.godot), около строки 109: пересечение input actions.
 
-Практический эффект: во время мини-игры можно повторно дернуть холодильник, дверь, кровать или другой интерактив.
+Практический эффект был такой: во время мини-игры можно повторно дернуть холодильник, дверь, кровать или другой интерактив.
 
-Ремонт: `InteractionManager` должен спрашивать `MinigameController.is_active()` и consume input.
+Статус: закрыто. `InteractionManager` спрашивает `MinigameController.has_active_minigame()`, consume-ит `interact` во время мини-игры и покрыт `test_interaction_manager_focus.gd`.
 
 ## P2: Таймаут Мини-Игры Может Спамить События
 
