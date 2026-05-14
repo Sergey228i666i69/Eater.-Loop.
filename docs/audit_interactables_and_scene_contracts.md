@@ -57,7 +57,7 @@
 
 ## P2: Жёсткая Связь С Именами Дочерних Узлов
 
-Пример: `generator.gd` ищет `AudioStreamPlayer2D` и `AnimatedSprite2D`, но `generator.tscn` содержит только `CollisionShape2D` и `Sprite2D`. Звук/анимация silently no-op.
+Пример из первичного аудита: `generator.gd` искал `AudioStreamPlayer2D` и `AnimatedSprite2D`, но `generator.tscn` содержал только `CollisionShape2D` и `Sprite2D`. Звуковой hook генератора теперь закреплён реальным `AudioStreamPlayer2D` и тестом; animation hook остаётся optional skin-частью.
 
 Файлы:
 
@@ -67,7 +67,7 @@
 
 Похожий паттерн встречается у дверей, ламп, ноутбуков, холодильника и прожекторов.
 
-Ремонт: exported `NodePath`, required-node validation tests, typed child references или composition components.
+Ремонт: продолжать переводить такие места на exported `NodePath`, required-node validation tests, typed child references или composition components.
 
 ## Resolved: `TriggerSetProperty` Слишком Универсален
 

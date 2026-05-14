@@ -33,6 +33,7 @@ func run() -> Array[String]:
 	root.add_child(generator)
 	await tree.process_frame
 
+	assert_true(generator.get_node_or_null("AudioStreamPlayer2D") is AudioStreamPlayer2D, "Generator scene must include its optional audio hook node")
 	assert_true(not _is_lit(required_lamp), "Required lamp must start off")
 	assert_true(not _is_lit(regular_lamp), "Regular lamp must start off")
 

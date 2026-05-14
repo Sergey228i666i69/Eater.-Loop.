@@ -14,3 +14,6 @@ shape = SubResource("RectangleShape2D_generator")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=590397961]
 texture = ExtResource("2_u3usq")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1581545644]
+bus = &"Sounds"
