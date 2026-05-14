@@ -38,6 +38,7 @@ var _active_minigame: Node = null
 var _time_limit: float = -1.0
 var _time_left: float = 0.0
 var _auto_finish_on_timeout: bool = false
+var _timeout_emitted: bool = false
 var _pause_requested: bool = true
 var _pause_prev: bool = false
 var _show_mouse_cursor: bool = true
@@ -350,7 +351,8 @@ func _update_timer(delta: float) -> void:
 		return
 	_time_left = max(0.0, _time_left - delta)
 	minigame_time_updated.emit(_active_minigame, _time_left, _time_limit)
-	if _time_left <= 0.0:
+	if _time_left <= 0.0 and not _timeout_emitted:
+		_timeout_emitted = true
 		minigame_time_expired.emit(_active_minigame)
 		if _auto_finish_on_timeout:
 			finish_minigame(_active_minigame, false)
@@ -426,6 +428,7 @@ func _on_prompt_restore_target_exited() -> void:
 	_restore_prompts_if_safe()
 
 func _setup_timer(limit: float) -> void:
+	_timeout_emitted = false
 	_time_limit = float(limit)
 	if _time_limit > 0.0:
 		_time_left = _time_limit
@@ -435,6 +438,7 @@ func _setup_timer(limit: float) -> void:
 func _clear_timer() -> void:
 	_time_limit = -1.0
 	_time_left = 0.0
+	_timeout_emitted = false
 
 func _setup_music(stream: AudioStream, volume_db: float, suspend_music: bool) -> void:
 	if MusicManager == null:

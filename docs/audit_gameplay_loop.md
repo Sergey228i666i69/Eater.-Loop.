@@ -74,15 +74,15 @@ Credits возвращают в меню и ставят только meta-фл�
 
 Статус: закрыто. `InteractionManager` спрашивает `MinigameController.has_active_minigame()`, consume-ит `interact` во время мини-игры и покрыт `test_interaction_manager_focus.gd`.
 
-## P2: Таймаут Мини-Игры Может Спамить События
+## Resolved: Таймаут Мини-Игры Может Спамить События
 
-Когда `_time_left <= 0`, `minigame_time_expired` эмитится каждый кадр, если `auto_finish_on_timeout=false`.
+Изначально, когда `_time_left <= 0`, `minigame_time_expired` эмитился каждый кадр, если `auto_finish_on_timeout=false`.
 
 Файл: [`levels/minigames/minigame_controller.gd`](../levels/minigames/minigame_controller.gd), около строки 346.
 
 Некоторые лабы защищаются своим `_is_finished`, например [`levels/minigames/labs/sql/sql_minigame.gd`](../levels/minigames/labs/sql/sql_minigame.gd), около строки 149, но это хрупкий контракт.
 
-Ремонт: одноразовый `_timeout_emitted` внутри controller.
+Статус: закрыто. `MinigameController` хранит `_timeout_emitted`, сбрасывает его при setup/clear timer и эмитит timeout один раз за запуск мини-игры. Контракт покрыт `test_minigame_backdrop_transition_visibility.gd`.
 
 ## P2: Холодильник Fail-Open
 
