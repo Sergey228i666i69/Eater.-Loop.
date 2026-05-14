@@ -71,9 +71,9 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`export_presets.cfg`](../export_presets.cfg), около строки 11.
 - [`tools/macos_dmg_fix/export_macos_dmg.sh`](../tools/macos_dmg_fix/export_macos_dmg.sh), около строк 20 и 24.
 
-Оставшийся ремонт: добавить CI/export dry-run, если понадобится проверять release artifacts автоматически.
+Оставшийся ремонт: добавить export dry-run, если понадобится проверять release artifacts автоматически.
 
-## P2: CI-Like Слой Есть, Но Неполный
+## Resolved: CI-Like Слой Есть, Но Был Неполный
 
 Есть:
 
@@ -81,21 +81,16 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
 - 49 тестов.
 
-Не найдено:
+Добавлено:
 
-- `.github/workflows`;
-- `Makefile`;
-- `justfile`.
+- [`.github/workflows/godot-tests.yml`](../.github/workflows/godot-tests.yml), который делает checkout с LFS, `git lfs pull`, ставит Godot 4.6.1, запускает parser-only и full suite.
 
 Ограничения:
 
 - discovery тестов нерекурсивный только по `tests/cases`;
 - shell helper требует запуск из корня, потому что не задаёт `--path`.
 
-Ремонт:
+Оставшийся ремонт:
 
-1. добавить GitHub Actions или другой CI runner;
-2. фиксировать Godot 4.6.1;
-3. запускать import/parser check/full tests;
-4. добавить optional export dry run;
-5. сделать runner независимым от cwd.
+1. добавить optional export dry run;
+2. сделать runner независимым от cwd, если тесты нужно запускать не из корня проекта.

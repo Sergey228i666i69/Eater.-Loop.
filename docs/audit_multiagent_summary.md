@@ -17,16 +17,16 @@
 | Архитектура и состояние | 6.5/10 | singleton-и, строковые пути, публичный mutable state |
 | Gameplay loop | 7/10 | ключевые runtime-баги закрыты, но система всё ещё держится на глобальном state |
 | Интерактивы | 7/10 | фокус централизован, dependency и NodePath ломкие |
-| Tooling/assets/tests | 8/10 | LFS/assets починены, CI ещё не добавлен |
+| Tooling/assets/tests | 8/10 | LFS/assets и CI починены, export dry-run ещё не автоматизирован |
 | Repo hygiene | 7/10 | архивы, huge scenes, naming-risk, debug leftovers |
 
 ## Самые Важные P1
 
-1. **CI ещё нет.** Локальный suite зелёный, но GitHub Actions/другой runner пока не закрепляет `git lfs pull`, parser check и full suite.
-2. **Dependency-система интерактивов может запереть прогресс.** Дверь может не вызвать complete-state, а завязанные объекты ждут именно его.
-3. **God objects остаются крупными.** `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager` всё ещё смешивают много областей ответственности.
-4. **NodePath/name contracts ломкие.** Переименование дочернего узла может silently выключить поведение.
-5. **Огромные STU-сцены требуют DRY-разбора.** Scene instances и reusable contracts пока не доведены до системного уровня.
+1. **Dependency-система интерактивов может запереть прогресс.** Дверь может не вызвать complete-state, а завязанные объекты ждут именно его.
+2. **God objects остаются крупными.** `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager` всё ещё смешивают много областей ответственности.
+3. **NodePath/name contracts ломкие.** Переименование дочернего узла может silently выключить поведение.
+4. **Огромные STU-сцены требуют DRY-разбора.** Scene instances и reusable contracts пока не доведены до системного уровня.
+5. **Export dry-run не автоматизирован.** Тесты закреплены CI, но release artifacts пока остаются локальной ответственностью.
 
 ## Что Стоит Сохранить
 

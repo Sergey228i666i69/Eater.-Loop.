@@ -70,7 +70,7 @@
 ## Первый Ремонтный Порядок
 
 1. Разделить `GameDirector` и `UIMessage` на меньшие сервисы.
-2. Добавить CI: Godot 4.6.1, `git lfs pull`, parser-only, full suite.
-3. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.
-4. Перевести dependency-условия интерактивов с прямых ссылок на typed conditions.
-5. Добавить validators для обязательных NodePath/group/method contracts.
+2. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.
+3. Перевести dependency-условия интерактивов с прямых ссылок на typed conditions.
+4. Добавить validators для обязательных NodePath/group/method contracts.
+5. Добавить export dry-run, если понадобится проверять release artifacts автоматически.

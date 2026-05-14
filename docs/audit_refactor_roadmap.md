@@ -22,9 +22,9 @@ Definition of done: `godot --headless --check-only -s res://tests/run_tests.gd` 
 2. ~~Пересмотреть `.gitignore`.~~ Source assets и `.import` больше не игнорируются.
 3. ~~Нормализовать `export_presets.cfg`.~~ Root preset tracked, export paths repo-local.
 4. ~~Убрать локальные пути вида `../Documents/EaterLoopExport/...`.~~
-5. Добавить CI workflow с Godot 4.6.1, import, parser check, full tests.
+5. ~~Добавить CI workflow с Godot 4.6.1, import, parser check, full tests.~~ `.github/workflows/godot-tests.yml` делает checkout с LFS, `git lfs pull`, parser check и full suite.
 
-Definition of done: проект можно склонировать на чистую машину и получить одинаковый test result по документированной инструкции.
+Definition of done: проект можно склонировать на чистую машину и получить одинаковый test result по документированной инструкции и CI workflow.
 
 ## Фаза 2: Критические Gameplay-Баги
 
