@@ -298,14 +298,6 @@
 │   └── Иконка_предварительно.ico
 ├── levels
 │   ├── cycles
-│   │   ├── archive(trash)
-│   │   │   ├── level_04_old_trash.tscn
-│   │   │   ├── level_05_keystests.tscn
-│   │   │   ├── level_06.tscn
-│   │   │   ├── level_07_doors_save.tscn
-│   │   │   ├── level_test_enemies.tscn
-│   │   │   ├── level_test_enemies2.tscn
-│   │   │   └── trashhh.tscn
 │   │   ├── TextureDistortionManager.tscn
 │   │   ├── corridor_distortion.gd
 │   │   ├── corridor_distortion.gd.uid
@@ -332,7 +324,7 @@
 │   │   ├── level_08_PT.tscn
 │   │   ├── level_09_crazy.gd
 │   │   ├── level_09_crazy.gd.uid
-│   │   ├── level_09_сrazy.tscn
+│   │   ├── level_09_crazy.tscn
 │   │   ├── level_11_STU_1.tscn
 │   │   ├── level_11_end.gd
 │   │   ├── level_11_end.gd.uid
@@ -347,7 +339,6 @@
 │   │   ├── level_14_end.gd
 │   │   ├── level_14_end.gd.uid
 │   │   ├── level_14_end.tscn
-│   │   ├── level_NSTU_test.tscn
 │   │   ├── level_music.gd
 │   │   ├── level_music.gd.uid
 │   │   ├── texture_distortion_manager.gd
@@ -1517,4 +1508,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1393 files
+124 directories, 1385 files

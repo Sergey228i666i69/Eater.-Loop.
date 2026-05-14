@@ -9,7 +9,9 @@ const BEDROOM_SCENES := [
 	"res://levels/cycles/level_06_corridordistortion.tscn",
 	"res://levels/cycles/level_07_doors.tscn",
 	"res://levels/cycles/level_08_PT.tscn",
-	"res://levels/cycles/level_NSTU_test.tscn"
+	"res://levels/cycles/level_11_STU_1.tscn",
+	"res://levels/cycles/level_12_STU_2.tscn",
+	"res://levels/cycles/level_13_STU_3.tscn"
 ]
 
 func run() -> Array[String]:

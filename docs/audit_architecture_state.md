@@ -105,5 +105,4 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 - `CursorManager` вычисляет `_in_game`, но `_update_mouse_mode` его фактически не использует.
 - `ending_credits.gd` имеет export `return_scene`, но resolver всегда возвращает main menu.
 - `Bed._try_sleep` делает ручной fade и затем вызывает scene-change с fade delay.
-- Сцена `level_09_сrazy.tscn` содержит кириллическую `с`, что опасно для путей и поиска.
-
+- Первичный аудит находил `level_09_сrazy.tscn` с кириллической `с`; файл переименован в `level_09_crazy.tscn`.

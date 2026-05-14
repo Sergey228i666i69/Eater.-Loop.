@@ -22,16 +22,16 @@
 
 ## Главные Риски
 
-1. **Fresh clone и CI невоспроизводимы.** `.gitignore` исключает импортированные ресурсы, картинки, аудио, `*.import`, `*.translation` и `export_presets.cfg`, но сцены ссылаются на эти файлы.
-2. **Полный тестовый прогон сейчас красный.** Финальный прогон `bash tests/run_tests.sh` падал с 1 failure: directional contract старого прожектора. Tooling-агент раньше также наблюдал bedroom ambient suppression failure, но финальный прогон его не воспроизвёл.
-3. **Часть runtime-входов сломана контрактно.** `lamp_switch` отсутствует в Input Map, но используется лампой и старым проектором.
-4. **Есть реальные gameplay-баги.** Sleep/wake-флаг теряется при переходе цикла; run не закрывается после концовки; потолочный враг игнорирует лампы; динамически заспавненные угрозы не восстанавливаются чекпоинтом.
-5. **Интерактивы могут конфликтовать.** Каждый `InteractiveObject` сам слушает input, поэтому одно нажатие может задеть несколько объектов в пересекающихся зонах.
+1. **Fresh clone стал воспроизводимее, но требует Git LFS.** Ассеты и `*.import` теперь tracked, root `export_presets.cfg` tracked, бинарники идут через LFS. После clone нужен `git lfs install && git lfs pull`.
+2. **Полный тестовый прогон зелёный на момент последней проверки.** `bash tests/run_tests.sh` проходил с 49 тестами; остаётся warning `ObjectDB instances leaked at exit`.
+3. **Runtime-входы света переведены на `interact`.** Старый `lamp_switch` больше не нужен лампе и старому прожектору.
+4. **Часть gameplay-багов закрыта.** Sleep/wake-флаг переживает переход цикла, run закрывается после титров, потолочный враг снова учитывает лампы, деньги level 12 сохраняются в checkpoint.
+5. **Интерактивы централизованы через `InteractionManager`.** Одно нажатие выбирает один объект по доступности, приоритету и расстоянию.
 6. **Dependency-система интерактивов может софтлочить прогресс.** Двери не всегда переводят dependency в completed-состояние, но другие объекты могут ждать именно его.
 7. **Глобальное состояние слишком открыто.** `GameState` и `CycleState` используются и через методы, и напрямую через публичные поля/reflective `get()`.
 8. **Большие singleton/god-classes.** `GameDirector`, `MusicManager`, `MinigameController`, `UIMessage` уже смешивают несколько разных областей ответственности.
 9. **Уровни и объекты сильно завязаны на NodePath и имена детей.** Переименование узла может silently выключить звук, анимацию, двери, fridge-flow или scripted wiring.
-10. **В репозитории есть археология.** Отслеживаются `archive(trash)`, test/old/save-сцены и naming-ловушки вроде кириллической `с` в имени уровня.
+10. **Крупная археология удалена.** `archive(trash)` и `level_NSTU_test.tscn` убраны, активный `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
 
 ## Оценки По Срезам
 
@@ -55,7 +55,7 @@
 - Parser-only: `godot --headless --check-only -s res://tests/run_tests.gd`
 - Полный локальный suite: `bash tests/run_tests.sh`
 
-На момент финальной проверки parser-only проходил, а полный suite падал с 1 failure по directional contract старого прожектора. Перед релизными выводами или крупным рефакторингом нужно перепроверить текущее состояние командой выше.
+На момент последней проверки parser-only проходил, а полный suite проходил с 49 тестами. Перед релизными выводами или крупным рефакторингом нужно перепроверить текущее состояние командой выше.
 
 ## Правила Работы Для Агентов
 
@@ -69,13 +69,9 @@
 
 ## Первый Ремонтный Порядок
 
-1. Починить красный тест projector direction и отдельно расследовать ранее замеченный bedroom ambient suppression.
-2. Вернуть/заменить `lamp_switch` в Input Map либо перевести старую лампу/проектор на существующее действие.
-3. Определить asset policy: Git LFS/tracked assets или документированный external asset pack.
-4. Закрыть run после концовок через `GameState.reset_run()` или явный завершённый state.
-5. Починить порядок `queue_sleep_spawn()` / `next_cycle()`.
-6. Ввести единый `InteractionManager` с одним выбранным объектом и consume input.
-7. Укрепить checkpoint contract для динамических врагов и level-12 money state.
-8. Убрать path-based "is gameplay scene" и заменить на явный `SceneContext`, группу или registry.
-9. Разделить `GameDirector` и `UIMessage` на меньшие сервисы.
-10. Вычистить archive/trash/test-сцены из runtime-дерева или явно оформить их как архив.
+1. Разобраться с `ObjectDB instances leaked at exit`.
+2. Укрепить checkpoint contract для динамических врагов.
+3. Убрать path-based "is gameplay scene" и заменить на явный `SceneContext`, группу или registry.
+4. Разделить `GameDirector` и `UIMessage` на меньшие сервисы.
+5. Добавить CI: Godot 4.6.1, `git lfs pull`, parser-only, full suite.
+6. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.

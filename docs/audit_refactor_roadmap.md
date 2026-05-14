@@ -6,11 +6,11 @@
 
 Цель: вернуть доверие к тестам и локальному запуску.
 
-1. Починить `test_light_adds_directional_contract.gd`: старый projector direction сейчас не соответствует контракту.
-2. Расследовать ранее замеченный `test_audio_menu_to_level01_bedroom_runtime.gd`: tooling-агент видел failure, финальный прогон после документации не воспроизвёл.
+1. ~~Починить `test_light_adds_directional_contract.gd`.~~
+2. ~~Расследовать ранее замеченный bedroom ambient failure.~~ Полный suite сейчас зелёный.
 3. Разобраться с `ObjectDB instances leaked at exit`.
-4. Вернуть или заменить `lamp_switch`: сейчас action отсутствует в `project.godot`, но используется лампой и старым проектором.
-5. Расширить `test_input_actions.gd`, чтобы он проверял actions, реально возвращаемые `_get_interact_action()`.
+4. ~~Вернуть или заменить `lamp_switch`.~~ Лампа и старый проектор используют `interact`.
+5. ~~Расширить `test_input_actions.gd`.~~ Тест проверяет реальные light-interactable actions.
 
 Definition of done: `godot --headless --check-only -s res://tests/run_tests.gd` и `bash tests/run_tests.sh` проходят локально.
 
@@ -18,14 +18,10 @@ Definition of done: `godot --headless --check-only -s res://tests/run_tests.gd` 
 
 Цель: fresh clone должен иметь понятный путь к запуску.
 
-1. Выбрать asset policy:
-   - Git LFS/tracked assets;
-   - или внешний asset pack с bootstrap-инструкцией и checksum.
-2. Пересмотреть `.gitignore`: не игнорировать то, что нужно для сборки без явного bootstrap.
-3. Нормализовать `export_presets.cfg`:
-   - трекать безопасный preset;
-   - или генерировать его из template.
-4. Убрать локальные пути вида `../Documents/EaterLoopExport/...`.
+1. ~~Выбрать asset policy.~~ Выбран Git LFS.
+2. ~~Пересмотреть `.gitignore`.~~ Source assets и `.import` больше не игнорируются.
+3. ~~Нормализовать `export_presets.cfg`.~~ Root preset tracked, export paths repo-local.
+4. ~~Убрать локальные пути вида `../Documents/EaterLoopExport/...`.~~
 5. Добавить CI workflow с Godot 4.6.1, import, parser check, full tests.
 
 Definition of done: проект можно склонировать на чистую машину и получить одинаковый test result по документированной инструкции.
@@ -95,11 +91,8 @@ Definition of done: новые уровни не требуют править �
 
 Цель: сделать дерево проекта спокойным и предсказуемым.
 
-1. Вынести или удалить `archive(trash)` и test/old/save runtime-сцены.
-2. Нормализовать naming:
-   - lowercase snake_case;
-   - без lookalike-кириллицы;
-   - без `trash`, `test`, `old` в runtime paths.
+1. ~~Вынести или удалить `archive(trash)` и test/old/save runtime-сцены.~~
+2. ~~Нормализовать самый опасный naming.~~ `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
 3. Разбить huge `.tscn` на reusable scene instances.
 4. Убрать debug `print()` или заменить logger-ом.
 5. Вынести magic numbers/strings в constants/resources.
