@@ -11,7 +11,7 @@
 3. Холодильник отмечает `ate`/`fridge_interacted` и делает checkpoint: [`objects/interactable/fridge/fridge.gd`](../objects/interactable/fridge/fridge.gd), около строки 267.
 4. Кровать переводит на следующий уровень: [`objects/interactable/bed/bed.gd`](../objects/interactable/bed/bed.gd), около строки 63.
 
-## P1: Sleep/Wake Spawn-Флаг Теряется
+## Resolved: Sleep/Wake Spawn-Флаг Теряется
 
 `Bed` вызывает `CycleState.queue_sleep_spawn()`, но затем перед сменой сцены через `UIMessage` вызывается `GameState.next_cycle()`. `next_cycle()` сбрасывает `CycleState`, а reset чистит `pending_sleep_spawn`.
 
@@ -23,11 +23,11 @@
 
 Практический эффект: следующий `Bed._ready()` почти всегда не увидит pending wake spawn и не проиграет wake SFX/событие.
 
-Ремонт: переносить pending-флаг через `GameState.next_cycle()` или менять порядок: сначала фиксировать переносимое состояние, потом сбрасывать cycle-local поля.
+Статус: закрыто. `GameState.next_cycle()` переносит pending sleep spawn через reset cycle-state, а `test_level_checkpoint_spawn.gd` фиксирует контракт.
 
-## P1: Чекпоинты Не Восстанавливают Динамических Врагов
+## Resolved: Чекпоинты Не Восстанавливают Динамических Врагов
 
-`GameState` сохраняет пути `checkpoint_stateful` нод, но при apply пропускает отсутствующие ноды. Динамические угрозы могут появляться через `TargetMonsterSpawner` или `GameDirector` stalker-spawn.
+Изначально `GameState` сохранял пути `checkpoint_stateful` нод, но при apply пропускал отсутствующие ноды. После ремонта checkpoint entry для runtime enemy хранит `scene_path`, `parent_path`, `node_name` и snapshot, а restore пересоздаёт отсутствующую dynamic-ноду перед применением snapshot.
 
 Файлы:
 
@@ -35,11 +35,11 @@
 - [`objects/environment/smart/target/target.gd`](../objects/environment/smart/target/target.gd), около строки 222.
 - [`levels/game_director.gd`](../levels/game_director.gd), около строки 1040.
 
-Практический эффект: после смерти/restore опасность, существовавшая на чекпоинте, может исчезнуть. Это меняет сложность и ломает ожидаемую причинность.
+Также `TargetMonsterSpawner` запоминает spawned enemy и восстанавливает его локально, а `GameDirector` сохраняет/восстанавливает spawned stalker snapshot.
 
-Ремонт: checkpoint id + spawn descriptor + restore factory для runtime entities.
+Покрытие: `test_respawn_checkpoint_restore.gd` проверяет обычный scene snapshot, dynamic enemy recreation и `TargetMonsterSpawner` restore без дублей.
 
-## P1: После Концовки Run Не Закрывается
+## Resolved: После Концовки Run Не Закрывается
 
 Credits возвращают в меню и ставят только meta-флаг дисклеймера, но не вызывают `GameState.reset_run()`. Главное меню включает Continue по `has_active_run`/`last_scene_path`.
 
@@ -50,15 +50,15 @@ Credits возвращают в меню и ставят только meta-фл�
 
 Практический эффект: после хорошей/плохой концовки можно получить Continue в старый финальный run.
 
-Ремонт: ввести явный terminal-run state и сбрасывать/архивировать run при входе в credits.
+Статус: закрыто минимально. Credits сбрасывают active run через `GameState.reset_run()`, а тест фиксирует, что Continue не остаётся привязанным к финальному run.
 
-## P1: Потолочный Враг Игнорирует Лампы
+## Resolved: Потолочный Враг Игнорирует Лампы
 
 В [`enemies/light_ceiling/enemy_ceiling.gd`](../enemies/light_ceiling/enemy_ceiling.gd), около строки 110, проверка `is_point_lit` стоит после `continue` внутри ветки `if not has_method`. Поэтому этот блок фактически недостижим.
 
 Практический эффект: игрок ожидает светочувствительное поведение, но конкретный враг не замораживается лампой.
 
-Ремонт: вынести проверку метода и вызов в корректную ветку; добавить тест для ceiling enemy vs light source.
+Статус: закрыто. Проверка света вынесена в достижимую ветку; focused light contract покрыт тестами.
 
 ## P2: Мини-Игры Не Блокируют Общий Interact
 
@@ -109,4 +109,3 @@ Credits возвращают в меню и ставят только meta-фл�
 - Некоторые враги грузят animation frames в `_ready()` через файловую систему.
 
 На маленьких сценах это терпимо, но на плотных уровнях может дать статтер.
-

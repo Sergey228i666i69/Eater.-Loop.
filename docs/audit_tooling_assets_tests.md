@@ -36,21 +36,21 @@
 2. зафиксировать bootstrap-инструкцию;
 3. добавить проверку fresh clone/resource existence в CI.
 
-## P1: Полный Тестовый Suite Красный
+## Resolved: Полный Тестовый Suite Красный
 
-Финальный прогон `bash tests/run_tests.sh` падал с 1 failure:
+Изначальный аудит фиксировал красный `bash tests/run_tests.sh`:
 
 1. `test_light_adds_directional_contract.gd`: старый проектор светит назад. Проверка около строки 38.
 
-Также в конце был `ObjectDB instances leaked at exit`.
+Этот блок закрыт: projector direction исправлен, bedroom ambient failure не воспроизводится, а `ObjectDB instances leaked at exit` ушёл после ожидания async transition states в runtime-тестах и короткого drain в `tests/run_tests.gd`.
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Финальный прогон после документации это не воспроизвёл, поэтому пункт нужно расследовать как возможный flaky/state-order bug, а не считать текущим единственным подтверждённым падением.
 
-Ремонт: сначала починить projector direction, затем отдельно стабилизировать/подтвердить bedroom ambient test.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (49)`.
 
-## P1: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
+## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
-В текущем `project.godot` после `toggle_flashlight` сразу идёт `run`; `lamp_switch` отсутствует. Но старые лампа и проектор возвращают это действие.
+В текущем `project.godot` после `toggle_flashlight` сразу идёт `run`; `lamp_switch` отсутствует. Ранее старые лампа и проектор возвращали это действие.
 
 Файлы:
 
@@ -59,13 +59,11 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`objects/interactable/projector/projector.gd`](../objects/interactable/projector/projector.gd), около строки 77.
 - [`tests/cases/test_input_actions.gd`](../tests/cases/test_input_actions.gd), около строки 12: тест не требует `lamp_switch`.
 
-Практический эффект: объект может ждать action, которого нет в Input Map.
+Статус: лампа и старый проектор переведены на существующий `interact`; input contract закреплён тестом.
 
-Ремонт: либо вернуть action, либо перевести объекты на существующий `interact`; тест должен собирать required actions из `_get_interact_action()`.
+## Resolved: Export Hygiene Слабая
 
-## P2: Export Hygiene Слабая
-
-`export_presets.cfg` есть локально, но игнорируется. Путь export завязан на локальный `../Documents/EaterLoopExport/...`. Скрипт `export_macos_dmg.sh` читает первый `export_path` и пишет "DMG exported", хотя дефолтный путь сейчас `.app`, не `.dmg`.
+Изначально `export_presets.cfg` был локальным/игнорируемым, а export path указывал наружу из репозитория. Сейчас root `export_presets.cfg` tracked, export paths ведут в `exports/`, а shell helper больше не называет `.app`-экспорт DMG.
 
 Файлы:
 
@@ -73,12 +71,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`export_presets.cfg`](../export_presets.cfg), около строки 11.
 - [`tools/macos_dmg_fix/export_macos_dmg.sh`](../tools/macos_dmg_fix/export_macos_dmg.sh), около строк 20 и 24.
 
-Ремонт:
-
-- либо трекать export presets;
-- либо генерировать CI-safe preset из template;
-- убрать локальные абсолютные/личные пути;
-- сделать export script честным по типу артефакта.
+Оставшийся ремонт: добавить CI/export dry-run, если понадобится проверять release artifacts автоматически.
 
 ## P2: CI-Like Слой Есть, Но Неполный
 
@@ -86,7 +79,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- около 48 тестов.
+- 49 тестов.
 
 Не найдено:
 

@@ -187,6 +187,8 @@ func _fit_disclaimer_text_to_height() -> void:
 	_disclaimer_text.scroll_to_line(0)
 
 func _run_auto_advance() -> void:
+	if auto_advance_delay <= 0.0:
+		return
 	_wait_and_auto_advance()
 
 func _wait_and_auto_advance() -> void:

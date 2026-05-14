@@ -8,7 +8,7 @@
 
 1. ~~Починить `test_light_adds_directional_contract.gd`.~~
 2. ~~Расследовать ранее замеченный bedroom ambient failure.~~ Полный suite сейчас зелёный.
-3. Разобраться с `ObjectDB instances leaked at exit`.
+3. ~~Разобраться с `ObjectDB instances leaked at exit`.~~ Async runtime-тесты теперь дожидаются своих transition states, runner делает короткий drain.
 4. ~~Вернуть или заменить `lamp_switch`.~~ Лампа и старый проектор используют `interact`.
 5. ~~Расширить `test_input_actions.gd`.~~ Тест проверяет реальные light-interactable actions.
 
@@ -30,12 +30,12 @@ Definition of done: проект можно склонировать на чис
 
 Цель: убрать баги, которые меняют прогресс игрока.
 
-1. Починить `queue_sleep_spawn()` / `GameState.next_cycle()` ordering.
-2. При входе в credits закрывать или архивировать активный run.
-3. Исправить ceiling enemy light check.
-4. Сделать checkpoint restore для dynamic spawned threats.
-5. Сделать checkpoint-state для level-12 money и student reward flags.
-6. Закрыть fridge fail-open: отсутствие minigame/food config не должно засчитывать еду.
+1. ~~Починить `queue_sleep_spawn()` / `GameState.next_cycle()` ordering.~~
+2. ~~При входе в credits закрывать или архивировать активный run.~~
+3. ~~Исправить ceiling enemy light check.~~
+4. ~~Сделать checkpoint restore для dynamic spawned threats.~~ Runtime enemies, `TargetMonsterSpawner` и stalker restore покрыты тестами.
+5. ~~Сделать checkpoint-state для level-12 money и student reward flags.~~
+6. ~~Закрыть fridge fail-open: отсутствие minigame/food config не должно засчитывать еду.~~
 
 Definition of done: каждый пункт имеет focused test или scene validation.
 
@@ -62,7 +62,7 @@ Definition of done: overlapping Area2D больше не вызывает нес
 1. Добавить validators для required child nodes.
 2. Проверять groups/methods вроде `reactive_light_source`, `turn_on`, `is_point_lit`.
 3. Проверять missing/broken NodePath.
-4. Проверять checkpoint participants: capture/apply, stable id, dynamic restore.
+4. ~~Проверять checkpoint participants: capture/apply, stable id, dynamic restore.~~ Базовый и dynamic restore покрыты; validators для scene contracts остаются следующим шагом.
 5. Проверять localization keys для player-facing строк.
 
 Definition of done: типовые ошибки сцен падают тестом, а не silently no-op.

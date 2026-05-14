@@ -26,4 +26,4 @@ fi
 
 PATH="$WRAP_DIR:$PATH" "$GODOT_BIN" --headless --path "$PROJECT_ROOT" --export-release "MacOS" "$OUTPUT_PATH"
 
-echo "DMG exported to: $OUTPUT_PATH"
+echo "macOS export written to: $OUTPUT_PATH"

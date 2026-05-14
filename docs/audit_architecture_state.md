@@ -74,18 +74,18 @@
 
 Ремонт: разделить message/prompt layer, transition service и scene navigation.
 
-## P2: Checkpoint System Хороша По Идее, Но Ломка По Контракту
+## P2: Checkpoint System Стал Надёжнее, Но Контракт Всё Ещё Нужен
 
-Snapshot собирает `checkpoint_stateful` участников и сохраняет relative path. При apply, если ноды нет в свежей сцене, она пропускается.
+Snapshot собирает `checkpoint_stateful` участников и сохраняет relative path. После ремонта runtime-created enemy-ноды дополнительно сохраняют dynamic restore descriptor (`scene_path`, `parent_path`, `node_name`) и могут быть пересозданы при apply.
 
 Примеры:
 
 - [`levels/cycles/game_state.gd`](../levels/cycles/game_state.gd), около строки 314: сбор snapshot.
 - [`levels/cycles/game_state.gd`](../levels/cycles/game_state.gd), около строки 341: apply по relative path.
 
-Для простых статичных объектов это нормально. Для динамических врагов, runtime-spawn и переименованных узлов это ломко.
+Для простых статичных объектов это нормально; для динамических врагов стало безопаснее. Оставшаяся ломкость: переименованные узлы, не-enemy runtime objects и scene contracts без validator-а.
 
-Ремонт: добавить стабильный checkpoint id, factory/restore contract для динамических сущностей и тест на missing participant.
+Следующий ремонт: добавить stable checkpoint ids/validators для важных сценовых участников и явно документировать, какие runtime classes имеют право на factory restore.
 
 ## P2: Локализация Неполная
 

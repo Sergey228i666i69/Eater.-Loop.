@@ -19,8 +19,10 @@ func run() -> Array[String]:
 		return get_failures()
 
 	_prepare_new_game_state(menu)
-	menu.call("_start_new_game", START_DIFFICULTY_SIMPLIFIED)
+	var transition_state: Variant = menu.call("_start_new_game", START_DIFFICULTY_SIMPLIFIED)
+	var transition_status := _watch_completed_state(transition_state)
 	var switched := await _await_scene_path_or_timeout(tree, LEVEL01_SCENE_PATH, MENU_TRANSITION_TIMEOUT_SEC)
+	await _await_transition_status(tree, transition_status, 2.0)
 	assert_true(switched, "Menu -> level transition timed out")
 	if not switched:
 		return get_failures()
@@ -80,6 +82,30 @@ func _await_scene_path_or_timeout(tree: SceneTree, expected_scene_path: String, 
 		await tick.timeout
 		tick = tree.create_timer(0.05, true)
 	return false
+
+func _watch_completed_state(state_candidate: Variant) -> Dictionary:
+	var status := {"done": true}
+	if not (state_candidate is Object):
+		return status
+	var state := state_candidate as Object
+	if not state.has_signal("completed"):
+		return status
+	if state.has_method("is_valid") and not bool(state.call("is_valid")):
+		return status
+	status["done"] = false
+	state.connect("completed", func(_value = null) -> void:
+		status["done"] = true
+	, Object.CONNECT_ONE_SHOT)
+	return status
+
+func _await_transition_status(tree: SceneTree, status: Dictionary, timeout_sec: float) -> void:
+	if bool(status.get("done", true)):
+		return
+	var timeout := tree.create_timer(timeout_sec, true)
+	var tick := tree.create_timer(0.05, true)
+	while not bool(status.get("done", false)) and timeout.time_left > 0.0:
+		await tick.timeout
+		tick = tree.create_timer(0.05, true)
 
 func _sample_active_ambient_volume(music_manager: Node) -> Dictionary:
 	var result: Dictionary = {"found": false, "loudest_db": -80.0}

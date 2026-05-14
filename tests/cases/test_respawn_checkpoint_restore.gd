@@ -1,6 +1,8 @@
 extends "res://tests/test_case.gd"
 
 const TEST_SCENE_PATH := "res://levels/cycles/test_checkpoint_scene.tscn"
+const DYNAMIC_ENEMY_SCENE_PATH := "res://tests/fixtures/dynamic_checkpoint_enemy.tscn"
+const TARGET_SPAWNER_SCENE_PATH := "res://objects/environment/smart/target/target.tscn"
 
 class DummyPlayer:
 	extends CharacterBody2D
@@ -39,6 +41,8 @@ class DummyPickup:
 
 func run() -> Array[String]:
 	await _test_fridge_checkpoint_restores_scene_snapshot()
+	await _test_dynamic_enemy_checkpoint_participant_is_recreated_after_reload()
+	await _test_target_spawner_spawned_enemy_survives_respawn()
 	return get_failures()
 
 func _test_fridge_checkpoint_restores_scene_snapshot() -> void:
@@ -124,3 +128,130 @@ func _test_fridge_checkpoint_restores_scene_snapshot() -> void:
 	await tree.process_frame
 	GameState.reset_run()
 	CycleState.reset_cycle_state()
+
+func _test_dynamic_enemy_checkpoint_participant_is_recreated_after_reload() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var enemy_scene := assert_loads(DYNAMIC_ENEMY_SCENE_PATH) as PackedScene
+	assert_true(tree != null, "SceneTree is not available")
+	if GameState == null or CycleState == null or tree == null or enemy_scene == null:
+		return
+
+	GameState.reset_run()
+	CycleState.reset_cycle_state()
+	GameState.set_current_scene_path(TEST_SCENE_PATH)
+
+	var scene_a := Node2D.new()
+	scene_a.name = "DynamicCheckpointSceneA"
+	var enemy_a := enemy_scene.instantiate() as CharacterBody2D
+	assert_true(enemy_a != null, "Enemy scene must instantiate as CharacterBody2D")
+	if enemy_a == null:
+		scene_a.queue_free()
+		return
+	enemy_a.name = "RuntimeEnemy"
+	enemy_a.global_position = Vector2(320.0, 72.0)
+	enemy_a.set("state_value", 7)
+	scene_a.add_child(enemy_a)
+	tree.root.add_child(scene_a)
+	await tree.process_frame
+	enemy_a.velocity = Vector2(12.0, 0.0)
+	enemy_a.set("state_value", 11)
+
+	GameState.capture_fridge_checkpoint(scene_a)
+
+	scene_a.queue_free()
+	await tree.process_frame
+
+	var scene_b := Node2D.new()
+	scene_b.name = "DynamicCheckpointSceneB"
+	tree.root.add_child(scene_b)
+	await tree.process_frame
+
+	assert_true(GameState.apply_checkpoint_to_scene(scene_b), "Dynamic checkpoint must apply to a fresh scene")
+	await tree.process_frame
+
+	var restored := scene_b.get_node_or_null("RuntimeEnemy") as CharacterBody2D
+	assert_true(restored != null, "Runtime enemy checkpoint participant must be recreated after reload")
+	if restored != null:
+		assert_eq(restored.global_position, Vector2(320.0, 72.0), "Restored runtime enemy position must match checkpoint")
+		assert_eq(restored.velocity, Vector2(12.0, 0.0), "Restored runtime enemy velocity must match checkpoint")
+		assert_eq(int(restored.get("state_value")), 11, "Restored runtime enemy custom state must match checkpoint")
+
+	scene_b.queue_free()
+	await tree.process_frame
+	GameState.reset_run()
+	CycleState.reset_cycle_state()
+
+func _test_target_spawner_spawned_enemy_survives_respawn() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var enemy_scene := assert_loads(DYNAMIC_ENEMY_SCENE_PATH) as PackedScene
+	var spawner_scene := assert_loads(TARGET_SPAWNER_SCENE_PATH) as PackedScene
+	assert_true(tree != null, "SceneTree is not available")
+	if GameState == null or CycleState == null or tree == null or enemy_scene == null or spawner_scene == null:
+		return
+
+	GameState.reset_run()
+	CycleState.reset_cycle_state()
+	GameState.set_current_scene_path(TEST_SCENE_PATH)
+
+	var scene_a := Node2D.new()
+	scene_a.name = "SpawnerCheckpointSceneA"
+	var spawner_a := spawner_scene.instantiate()
+	spawner_a.name = "Spawner"
+	spawner_a.set("enemy_scene", enemy_scene)
+	spawner_a.set("spawn_parent_path", NodePath(".."))
+	scene_a.add_child(spawner_a)
+	tree.root.add_child(scene_a)
+	await tree.process_frame
+
+	var spawned_a := spawner_a.call("_spawn_enemy") as CharacterBody2D
+	assert_true(spawned_a != null, "Target spawner must create a runtime enemy for the checkpoint test")
+	if spawned_a == null:
+		scene_a.queue_free()
+		return
+	spawned_a.global_position = Vector2(540.0, 88.0)
+	spawned_a.set("state_value", 3)
+	await tree.process_frame
+	spawned_a.velocity = Vector2(-10.0, 0.0)
+	spawned_a.set("state_value", 5)
+
+	GameState.capture_fridge_checkpoint(scene_a)
+
+	scene_a.queue_free()
+	await tree.process_frame
+
+	var scene_b := Node2D.new()
+	scene_b.name = "SpawnerCheckpointSceneB"
+	var spawner_b := spawner_scene.instantiate()
+	spawner_b.name = "Spawner"
+	spawner_b.set("enemy_scene", enemy_scene)
+	spawner_b.set("spawn_parent_path", NodePath(".."))
+	scene_b.add_child(spawner_b)
+	tree.root.add_child(scene_b)
+	await tree.process_frame
+
+	assert_true(GameState.apply_checkpoint_to_scene(scene_b), "Spawner checkpoint must apply to a fresh scene")
+
+	var enemies := _collect_scene_enemies(scene_b)
+	assert_eq(enemies.size(), 1, "Spawner checkpoint restore must create exactly one enemy")
+	if not enemies.is_empty():
+		var restored := enemies[0] as CharacterBody2D
+		assert_eq(restored.global_position, Vector2(540.0, 88.0), "Spawner-restored enemy position must match checkpoint")
+		assert_eq(restored.velocity, Vector2(-10.0, 0.0), "Spawner-restored enemy velocity must match checkpoint")
+		assert_eq(int(restored.get("state_value")), 5, "Spawner-restored enemy custom state must match checkpoint")
+	var spawner_state := spawner_b.call("capture_checkpoint_state") as Dictionary
+	assert_true(bool(spawner_state.get("spawned", false)), "Restored spawner must keep spawned state")
+	assert_true(spawner_b.call("_spawn_enemy") == null, "One-shot restored spawner must not create a duplicate enemy")
+
+	scene_b.queue_free()
+	await tree.process_frame
+	GameState.reset_run()
+	CycleState.reset_cycle_state()
+
+func _collect_scene_enemies(scene: Node) -> Array[Node]:
+	var result: Array[Node] = []
+	if scene == null:
+		return result
+	for child in scene.get_children():
+		if child != null and child.is_in_group("enemies"):
+			result.append(child)
+	return result

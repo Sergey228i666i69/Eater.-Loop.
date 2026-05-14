@@ -1488,6 +1488,9 @@
 │   │   ├── test_stalker_motion_audio_component.gd.uid
 │   │   ├── test_ui_message_dialogue_channels.gd
 │   │   └── test_ui_message_dialogue_channels.gd.uid
+│   ├── fixtures
+│   │   ├── dynamic_checkpoint_enemy.gd
+│   │   └── dynamic_checkpoint_enemy.tscn
 │   ├── README.md
 │   ├── run_tests.gd
 │   ├── run_tests.gd.uid
@@ -1509,4 +1512,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1386 files
+125 directories, 1388 files

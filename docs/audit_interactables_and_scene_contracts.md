@@ -37,9 +37,9 @@
 
 Ремонт: единый `InteractionManager`, который выбирает один объект по priority/distance, показывает одну подсказку и consume-ит input.
 
-## P1: Деньги Level 12 Плохо Переживают Чекпоинты
+## Resolved: Деньги Level 12 Плохо Переживают Чекпоинты
 
-`Level12MoneySystem` хранит `_money`, но не входит в `checkpoint_stateful` и не имеет `capture_checkpoint_state` / `apply_checkpoint_state`. `StudentMoneyNPC` хранит `_reward_given`, но не сохраняет это состояние поверх базового `is_completed`.
+Изначально `Level12MoneySystem` хранил `_money`, но не входил в `checkpoint_stateful` и не имел `capture_checkpoint_state` / `apply_checkpoint_state`. `StudentMoneyNPC` хранил `_reward_given`, но не сохранял это состояние поверх базового `is_completed`.
 
 Файлы:
 
@@ -48,9 +48,7 @@
 - [`objects/interactable/level12/student/student_money_npc.gd`](../objects/interactable/level12/student/student_money_npc.gd), около строки 11.
 - [`levels/cycles/level_12_STU_2.tscn`](../levels/cycles/level_12_STU_2.tscn), около строки 8802.
 
-Практический эффект: после смерти/restore можно потерять деньги, получить повторную награду или упереться в блокпост.
-
-Ремонт: сделать money system checkpoint participant; сохранять `_money` и reward flags.
+Статус: закрыто. Money system и student reward flags сохраняются/восстанавливаются; поведение покрыто `test_level12_money_system.gd` и `test_level12_student_reward.gd`.
 
 ## P2: Жёсткая Связь С Именами Дочерних Узлов
 
@@ -102,4 +100,3 @@
 - [`levels/cycles/level_11_STU_1.tscn`](../levels/cycles/level_11_STU_1.tscn), около строки 8557.
 
 Ремонт: сделать trigger condition явным в уровне или вынести условия в resource.
-

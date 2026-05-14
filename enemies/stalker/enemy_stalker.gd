@@ -49,6 +49,7 @@ var _motion_audio: StalkerMotionAudioComponent = null
 
 func _ready() -> void:
 	super._ready()
+	add_to_group("stalker_enemy")
 	enable_chase_music = false
 	keep_chasing_outside_detection = true
 	chase_player = true

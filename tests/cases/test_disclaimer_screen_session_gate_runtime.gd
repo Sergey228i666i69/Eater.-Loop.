@@ -21,9 +21,11 @@ func run() -> Array[String]:
 		GameState.remove_meta(STARTUP_DISCLAIMER_META)
 
 	var disclaimer := disclaimer_scene.instantiate()
+	disclaimer.set("intro_duration", 0.0)
+	disclaimer.set("outro_duration", 0.0)
+	disclaimer.set("auto_advance_delay", 0.0)
 	tree.root.add_child(disclaimer)
-	await tree.process_frame
-	await tree.process_frame
+	await _await_intro_finished(tree, disclaimer)
 
 	var transition_state: Variant = disclaimer.call("_advance_to_main_menu")
 	if transition_state is Object and transition_state.has_signal("completed"):
@@ -50,3 +52,11 @@ func run() -> Array[String]:
 	if GameState != null and GameState.has_meta(STARTUP_DISCLAIMER_META):
 		GameState.remove_meta(STARTUP_DISCLAIMER_META)
 	return get_failures()
+
+func _await_intro_finished(tree: SceneTree, disclaimer: Node) -> void:
+	for _i in range(8):
+		if disclaimer == null or not is_instance_valid(disclaimer):
+			return
+		if bool(disclaimer.get("_intro_finished")):
+			return
+		await tree.process_frame

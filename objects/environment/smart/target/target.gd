@@ -56,8 +56,10 @@ enum ConditionType {
 @export var check_overlapping_on_ready: bool = true
 
 const OVERLAP_CHECK_ATTEMPTS := 6
+const SPAWNED_ENEMY_NAME_SUFFIX := "SpawnedEnemy"
 
 var _spawned: bool = false
+var _spawned_enemy_path: NodePath = NodePath("")
 
 func _ready() -> void:
 	add_to_group("target_monster_spawner")
@@ -229,13 +231,13 @@ func _spawn_enemy() -> Node:
 	if parent == null:
 		push_warning("TargetMonsterSpawner: не найден parent для спавна.")
 		return null
-	var enemy := enemy_scene.instantiate()
+	var enemy := _instantiate_enemy(parent, _build_spawned_enemy_name())
 	if enemy == null:
 		push_warning("TargetMonsterSpawner: не удалось инстанцировать enemy_scene.")
 		return null
-	parent.add_child(enemy)
 	_place_spawned_enemy(enemy)
 	_spawned = true
+	_remember_spawned_enemy(enemy)
 	set_process(false)
 	enemy_spawned.emit(enemy)
 	if auto_free_after_spawn:
@@ -243,14 +245,40 @@ func _spawn_enemy() -> Node:
 	return enemy
 
 func capture_checkpoint_state() -> Dictionary:
+	var enemy := _resolve_spawned_enemy()
+	var enemy_snapshot: Dictionary = {}
+	if enemy != null:
+		enemy_snapshot = CheckpointStateUtils.capture_node_snapshot(enemy)
 	return {
 		"spawned": _spawned,
+		"spawned_enemy_path": str(_spawned_enemy_path),
+		"spawned_enemy_name": enemy.name if enemy != null else _build_spawned_enemy_name(),
+		"spawned_enemy_snapshot": enemy_snapshot,
 	}
 
 func apply_checkpoint_state(state: Dictionary) -> void:
 	_spawned = bool(state.get("spawned", _spawned))
+	_spawned_enemy_path = NodePath(str(state.get("spawned_enemy_path", str(_spawned_enemy_path))))
 	if _spawned and one_shot:
 		set_process(false)
+	if _spawned:
+		_restore_spawned_enemy(state)
+
+func _restore_spawned_enemy(state: Dictionary) -> void:
+	var enemy := _resolve_spawned_enemy()
+	if enemy == null:
+		var parent := _resolve_spawn_parent()
+		if parent == null:
+			return
+		var preferred_name := str(state.get("spawned_enemy_name", _build_spawned_enemy_name()))
+		enemy = _instantiate_enemy(parent, preferred_name)
+		if enemy == null:
+			return
+		_place_spawned_enemy(enemy)
+		_remember_spawned_enemy(enemy)
+	var snapshot_raw: Variant = state.get("spawned_enemy_snapshot", {})
+	if snapshot_raw is Dictionary:
+		CheckpointStateUtils.apply_node_snapshot(enemy, snapshot_raw)
 
 func _place_spawned_enemy(enemy: Node) -> void:
 	if not (enemy is Node2D):
@@ -268,6 +296,58 @@ func _resolve_spawn_parent() -> Node:
 	if get_tree() != null and get_tree().current_scene != null:
 		return get_tree().current_scene
 	return get_parent()
+
+func _instantiate_enemy(parent: Node, preferred_name: String = "") -> Node:
+	if enemy_scene == null or parent == null:
+		return null
+	var enemy := enemy_scene.instantiate()
+	if enemy == null:
+		return null
+	if preferred_name != "":
+		enemy.name = preferred_name
+	parent.add_child(enemy)
+	return enemy
+
+func _remember_spawned_enemy(enemy: Node) -> void:
+	if enemy == null:
+		_spawned_enemy_path = NodePath("")
+		return
+	var scene := _resolve_scene_root()
+	if scene != null and scene.is_ancestor_of(enemy):
+		_spawned_enemy_path = scene.get_path_to(enemy)
+		return
+	_spawned_enemy_path = NodePath(enemy.name)
+
+func _resolve_spawned_enemy() -> Node:
+	var scene := _resolve_scene_root()
+	if scene != null and not _spawned_enemy_path.is_empty():
+		var from_scene := scene.get_node_or_null(_spawned_enemy_path)
+		if from_scene != null:
+			return from_scene
+	var parent := _resolve_spawn_parent()
+	if parent == null:
+		return null
+	if not _spawned_enemy_path.is_empty():
+		var from_parent := parent.get_node_or_null(_spawned_enemy_path)
+		if from_parent != null:
+			return from_parent
+	return parent.get_node_or_null(NodePath(_build_spawned_enemy_name()))
+
+func _resolve_scene_root() -> Node:
+	if get_tree() != null and get_tree().current_scene != null:
+		var scene := get_tree().current_scene
+		if scene == self or scene.is_ancestor_of(self):
+			return scene
+	var owner_node := owner
+	if owner_node != null and (owner_node == self or owner_node.is_ancestor_of(self)):
+		return owner_node
+	return get_parent()
+
+func _build_spawned_enemy_name() -> String:
+	var base := name
+	if base == "":
+		base = "TargetMonster"
+	return "%s%s" % [base, SPAWNED_ENEMY_NAME_SUFFIX]
 
 func _has_property(node: Node, prop_name: String) -> bool:
 	for info in node.get_property_list():

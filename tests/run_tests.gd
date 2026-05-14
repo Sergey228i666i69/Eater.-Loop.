@@ -18,6 +18,7 @@ func _run_all_tests() -> void:
                 failures.append("%s: %s" % [path.get_file(), message])
 
     _report(failures)
+    await _drain_pending_work()
     quit(failures.size())
 
 func _discover_tests() -> Array[String]:
@@ -81,3 +82,7 @@ func _report(failures: Array[String]) -> void:
     printerr("FAIL: ", failures.size(), " failure(s)")
     for message in failures:
         printerr(" - ", message)
+
+func _drain_pending_work() -> void:
+    for _i in range(4):
+        await process_frame

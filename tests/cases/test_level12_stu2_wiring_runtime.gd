@@ -18,6 +18,7 @@ func run() -> Array[String]:
 
 	var level := level_scene.instantiate()
 	tree.root.add_child(level)
+	level.set("show_start_subtitle", false)
 	await tree.process_frame
 
 	var generator := level.get_node_or_null("Generator")
