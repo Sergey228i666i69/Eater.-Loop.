@@ -34,7 +34,13 @@ class_name Laptop
 	get:
 		return _is_enabled
 ## Разблокировать ноутбук после попытки взаимодействия с зависимым объектом.
-@export var unlock_on_dependency_interaction: bool = false
+@export var unlock_on_dependency_interaction: bool = false:
+	set(value):
+		_unlock_on_dependency_interaction = value
+		if value:
+			dependency_condition = DependencyCondition.INTERACTION_REQUESTED
+	get:
+		return _unlock_on_dependency_interaction
 
 @export_group("Completed Visuals")
 ## Показывать записку после выполнения вместо повторного запуска?
@@ -61,10 +67,11 @@ var _available_light_secondary: CanvasItem = null
 var _current_minigame: Node = null
 var _is_ready: bool = false
 var _is_enabled: bool = true
-var _dependency_override: bool = false
+var _unlock_on_dependency_interaction: bool = false
 var _money_rewarded: bool = false
 
 func _ready() -> void:
+	_sync_dependency_condition_from_legacy_flag()
 	super._ready() # Важно для работы базового класса
 	
 	_sprite = get_node_or_null(sprite_node) as Sprite2D
@@ -73,8 +80,6 @@ func _ready() -> void:
 	
 	_is_ready = true
 	_apply_enabled_state()
-	
-	_setup_dependency_interaction_listener()
 	
 	if CycleState != null and CycleState.has_signal("lab_completed"):
 		CycleState.lab_completed.connect(_update_visuals)
@@ -145,43 +150,25 @@ func _handle_completed_interaction() -> void:
 
 # --- ВИЗУАЛ ---
 func _on_dependency_finished() -> void:
+	super._on_dependency_finished()
+	_update_visuals()
+
+func _on_dependency_interaction_requested(_player: Node = null) -> void:
+	super._on_dependency_interaction_requested(_player)
+	if not _is_dependency_satisfied():
+		return
+	if unlock_on_dependency_interaction and not _is_enabled:
+		is_enabled = true
 	_update_visuals()
 
 func _should_auto_complete_after_interact() -> bool:
 	return false
 
-func _on_dependency_interaction_requested(_player: Node = null) -> void:
-	if not unlock_on_dependency_interaction:
-		return
-	_dependency_override = true
-	if not _is_enabled:
-		is_enabled = true
-	_update_visuals()
-
-func set_dependency_object(new_dependency: InteractiveObject) -> void:
-	_disconnect_dependency_interaction_listener()
-	super.set_dependency_object(new_dependency)
-	_setup_dependency_interaction_listener()
-
-func _setup_dependency_interaction_listener() -> void:
-	if not unlock_on_dependency_interaction:
-		return
-	if dependency_object == null or not is_instance_valid(dependency_object):
-		return
-	if not dependency_object.interaction_requested.is_connected(_on_dependency_interaction_requested):
-		dependency_object.interaction_requested.connect(_on_dependency_interaction_requested)
-
-func _disconnect_dependency_interaction_listener() -> void:
-	if dependency_object == null or not is_instance_valid(dependency_object):
-		return
-	if dependency_object.interaction_requested.is_connected(_on_dependency_interaction_requested):
-		dependency_object.interaction_requested.disconnect(_on_dependency_interaction_requested)
-
 func _update_visuals() -> void:
 	# Ноутбук "доступен" (светится), если зависимость выполнена.
 	# (Базовый класс сам проверит зависимость при клике, но нам нужно обновить спрайт)
 	var is_unlocked = true
-	if dependency_object and not dependency_object.is_completed and not _dependency_override:
+	if dependency_object and not _is_dependency_satisfied():
 		is_unlocked = false
 	if not _is_enabled:
 		is_unlocked = false
@@ -229,13 +216,6 @@ func _is_lab_completed() -> bool:
 		return bool(CycleState.has_completed_any_lab())
 	return false
 
-func _is_dependency_satisfied() -> bool:
-	if _dependency_override:
-		return true
-	if dependency_object == null:
-		return true
-	return dependency_object.is_completed
-
 func _try_reward_for_work_completion() -> void:
 	if not reward_on_work_completion:
 		return
@@ -259,14 +239,18 @@ func _resolve_money_system() -> Node:
 func capture_checkpoint_state() -> Dictionary:
 	var state := super.capture_checkpoint_state()
 	state["is_enabled"] = _is_enabled
-	state["dependency_override"] = _dependency_override
 	state["money_rewarded"] = _money_rewarded
 	return state
 
 func apply_checkpoint_state(state: Dictionary) -> void:
 	super.apply_checkpoint_state(state)
 	_is_enabled = bool(state.get("is_enabled", _is_enabled))
-	_dependency_override = bool(state.get("dependency_override", _dependency_override))
+	if bool(state.get("dependency_override", false)):
+		mark_dependency_request_satisfied()
 	_money_rewarded = bool(state.get("money_rewarded", _money_rewarded))
 	_apply_enabled_state()
 	_update_visuals()
+
+func _sync_dependency_condition_from_legacy_flag() -> void:
+	if unlock_on_dependency_interaction:
+		dependency_condition = DependencyCondition.INTERACTION_REQUESTED

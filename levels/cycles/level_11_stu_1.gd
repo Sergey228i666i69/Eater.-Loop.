@@ -37,6 +37,7 @@ func _configure_note_dependency() -> void:
 		return
 
 	_note_story.set_dependency_object(_fridge)
+	_note_story.set_dependency_condition(InteractiveObject.DependencyCondition.COMPLETED)
 	_note_story.refresh_interaction_state()
 
 func _on_fridge_successfully_interacted() -> void:

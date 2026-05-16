@@ -322,7 +322,7 @@ func _is_available_for_player() -> bool:
 		is_unlocked = false
 	if _requires_lab_gate() and not _has_required_lab_completion():
 		is_unlocked = false
-	if dependency_object != null and not dependency_object.is_completed:
+	if dependency_object != null and not _is_dependency_satisfied():
 		is_unlocked = false
 	return is_unlocked
 

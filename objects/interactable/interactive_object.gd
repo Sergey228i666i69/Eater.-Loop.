@@ -7,6 +7,11 @@ signal player_exited(player: Node)
 signal interaction_requested(player: Node)
 signal interaction_finished # <--- НОВЫЙ СИГНАЛ: для цепочек событий
 
+enum DependencyCondition {
+	COMPLETED,
+	INTERACTION_REQUESTED,
+}
+
 # --- НАСТРОЙКИ ВЗАИМОДЕЙСТВИЯ (СТАРЫЕ) ---
 @export_group("Interaction")
 ## Узел Area2D для зоны взаимодействия (пусто — использовать сам объект).
@@ -30,6 +35,8 @@ signal interaction_finished # <--- НОВЫЙ СИГНАЛ: для цепоче�
 @export var one_shot: bool = false
 ## Объект, который должен быть выполнен перед использованием этого
 @export var dependency_object: InteractiveObject 
+## Как именно dependency_object должен разблокировать этот объект.
+@export_enum("Completed", "Interaction Requested") var dependency_condition: int = DependencyCondition.COMPLETED
 ## Сообщение при блокировке (если показывать вручную)
 @export var locked_message: String = "Сначала нужно сделать что-то другое..."
 
@@ -38,6 +45,7 @@ var _interact_area: Area2D = null
 var _player_in_range: Node = null
 var _prompts_enabled: bool = true
 var _interaction_focused: bool = false
+var _dependency_request_satisfied: bool = false
 var is_completed: bool = false # <--- ФЛАГ: Выполнен объект или нет
 
 func _ready() -> void:
@@ -53,6 +61,7 @@ func capture_checkpoint_state() -> Dictionary:
 		"handle_input": handle_input,
 		"auto_prompt": auto_prompt,
 		"prompts_enabled": _prompts_enabled,
+		"dependency_request_satisfied": _dependency_request_satisfied,
 	}
 
 func apply_checkpoint_state(state: Dictionary) -> void:
@@ -60,6 +69,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	handle_input = bool(state.get("handle_input", handle_input))
 	auto_prompt = bool(state.get("auto_prompt", auto_prompt))
 	_prompts_enabled = bool(state.get("prompts_enabled", _prompts_enabled))
+	_dependency_request_satisfied = bool(state.get("dependency_request_satisfied", _dependency_request_satisfied))
 	_refresh_prompt_state()
 
 # --- ЛОГИКА ВЗАИМОДЕЙСТВИЯ ---
@@ -217,12 +227,34 @@ func refresh_interaction_state() -> void:
 
 func set_dependency_object(new_dependency: InteractiveObject) -> void:
 	if dependency_object == new_dependency:
+		_setup_dependency_listener()
 		_refresh_prompt_state()
+		_notify_interaction_manager_changed()
 		return
 	_disconnect_dependency_listener()
 	dependency_object = new_dependency
+	_dependency_request_satisfied = false
 	_setup_dependency_listener()
 	_refresh_prompt_state()
+	_notify_interaction_manager_changed()
+
+func set_dependency_condition(condition: int) -> void:
+	var next_condition := _normalize_dependency_condition(condition)
+	if dependency_condition == next_condition:
+		_refresh_prompt_state()
+		return
+	dependency_condition = next_condition
+	_dependency_request_satisfied = false
+	_refresh_prompt_state()
+	_notify_interaction_manager_changed()
+
+func get_dependency_condition() -> int:
+	return dependency_condition
+
+func mark_dependency_request_satisfied() -> void:
+	_dependency_request_satisfied = true
+	_refresh_prompt_state()
+	_notify_interaction_manager_changed()
 
 func attach_minigame(minigame: Node, layer_override: int = -1, parent_override: Node = null) -> Node:
 	if minigame == null:
@@ -254,6 +286,8 @@ func _setup_dependency_listener() -> void:
 		return
 	if not dependency_object.interaction_finished.is_connected(_on_dependency_finished):
 		dependency_object.interaction_finished.connect(_on_dependency_finished)
+	if not dependency_object.interaction_requested.is_connected(_on_dependency_interaction_requested):
+		dependency_object.interaction_requested.connect(_on_dependency_interaction_requested)
 
 func _disconnect_dependency_listener() -> void:
 	if dependency_object == null:
@@ -262,14 +296,33 @@ func _disconnect_dependency_listener() -> void:
 		return
 	if dependency_object.interaction_finished.is_connected(_on_dependency_finished):
 		dependency_object.interaction_finished.disconnect(_on_dependency_finished)
+	if dependency_object.interaction_requested.is_connected(_on_dependency_interaction_requested):
+		dependency_object.interaction_requested.disconnect(_on_dependency_interaction_requested)
 
 func _on_dependency_finished() -> void:
 	_refresh_prompt_state()
+	_notify_interaction_manager_changed()
+
+func _on_dependency_interaction_requested(_player: Node = null) -> void:
+	if dependency_condition != DependencyCondition.INTERACTION_REQUESTED:
+		return
+	mark_dependency_request_satisfied()
 
 func _is_dependency_satisfied() -> bool:
 	if dependency_object == null:
 		return true
-	return dependency_object.is_completed
+	if dependency_object.is_completed:
+		return true
+	if dependency_condition == DependencyCondition.INTERACTION_REQUESTED:
+		return _dependency_request_satisfied
+	return false
+
+func _normalize_dependency_condition(condition: int) -> int:
+	match condition:
+		DependencyCondition.INTERACTION_REQUESTED:
+			return DependencyCondition.INTERACTION_REQUESTED
+		_:
+			return DependencyCondition.COMPLETED
 
 func _is_interaction_available() -> bool:
 	if not _can_interact():

@@ -28,6 +28,7 @@ func run() -> Array[String]:
 
 	if generator != null and fridge != null:
 		assert_true(fridge.get("dependency_object") == generator, "Fridge must depend on Generator")
+		assert_eq(fridge.get_dependency_condition(), InteractiveObject.DependencyCondition.COMPLETED, "Fridge must use explicit completed dependency condition")
 		assert_true(not bool(fridge.call("_is_dependency_satisfied")), "Fridge should be locked before generator interaction")
 		var noise_player := fridge.get_node_or_null("AudioStreamPlayer2D") as AudioStreamPlayer2D
 		if SettingsManager != null and SettingsManager.has_method("set_language"):

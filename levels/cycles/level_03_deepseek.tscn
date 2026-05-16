@@ -866,6 +866,7 @@ minigame_scene = ExtResource("67_v1c7v")
 time_limit = 60.0
 is_enabled = false
 unlock_on_dependency_interaction = true
+dependency_condition = 1
 completed_message = "Я уже сделал эту работу"
 dependency_object = NodePath("../../../Hall/InteractableObjects/Fridge")
 
@@ -1121,6 +1122,7 @@ minigame_scene = ExtResource("67_v1c7v")
 time_limit = 60.0
 is_enabled = false
 unlock_on_dependency_interaction = true
+dependency_condition = 1
 completed_message = "Я уже сделал эту работу"
 dependency_object = NodePath("../Hall/InteractableObjects/Fridge")
 

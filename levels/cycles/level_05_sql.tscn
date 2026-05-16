@@ -1269,6 +1269,7 @@ minigame_scene = ExtResource("67_ic6y1")
 time_limit = 60.0
 is_enabled = false
 unlock_on_dependency_interaction = true
+dependency_condition = 1
 show_note_on_completed = true
 completed_note_texture = ExtResource("69_x6q6p")
 completed_message = "Я уже сделал эту работу"

@@ -32,6 +32,13 @@ class DummyMoneySystem:
 	func has_enough_money(_required_money: int) -> bool:
 		return can_open
 
+func _attach_completed_dependent(root: Node, dependency: InteractiveObject) -> InteractiveObject:
+	var dependent := InteractiveObject.new()
+	root.add_child(dependent)
+	dependent.set_dependency_object(dependency)
+	dependent.set_dependency_condition(InteractiveObject.DependencyCondition.COMPLETED)
+	return dependent
+
 func run() -> Array[String]:
 	await _test_locked_door_attempt_does_not_complete_one_shot_contract()
 	await _test_broken_door_transition_does_not_complete_one_shot_contract()
@@ -58,10 +65,12 @@ func _test_locked_door_attempt_does_not_complete_one_shot_contract() -> void:
 	tree.root.add_child(root)
 	await tree.process_frame
 
+	var dependent := _attach_completed_dependent(root, door)
 	door.call("_on_interact_area_body_entered", player)
 	door.request_interact()
 
 	assert_true(not door.is_completed, "Locked door must not complete after a failed one-shot interaction attempt")
+	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Failed locked door attempt must not satisfy completed dependencies")
 
 	InteractionManager.clear_candidates()
 	root.queue_free()
@@ -146,8 +155,10 @@ func _test_fridge_locked_gates_do_not_complete_one_shot_contract() -> void:
 	tree.root.add_child(root)
 	await tree.process_frame
 
+	var dependent := _attach_completed_dependent(root, lab_locked_fridge)
 	lab_locked_fridge.request_interact()
 	assert_true(not lab_locked_fridge.is_completed, "Fridge locked by lab completion must not complete after an attempt")
+	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Failed lab-locked fridge attempt must not satisfy completed dependencies")
 
 	var code_locked_fridge := FridgeScript.new()
 	code_locked_fridge.one_shot = true
@@ -155,8 +166,10 @@ func _test_fridge_locked_gates_do_not_complete_one_shot_contract() -> void:
 	root.add_child(code_locked_fridge)
 	await tree.process_frame
 
+	dependent = _attach_completed_dependent(root, code_locked_fridge)
 	code_locked_fridge.request_interact()
 	assert_true(not code_locked_fridge.is_completed, "Fridge locked by missing code minigame must not complete after an attempt")
+	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Failed code-locked fridge attempt must not satisfy completed dependencies")
 
 	InteractionManager.clear_candidates()
 	root.queue_free()
@@ -185,7 +198,8 @@ func _test_laptop_dependency_attempt_unlock_does_not_complete_laptop() -> void:
 
 	dependency.request_interact()
 
-	assert_true(bool(laptop.get("_dependency_override")), "Laptop should still unlock on dependency interaction attempts")
+	assert_eq(laptop.get_dependency_condition(), InteractiveObject.DependencyCondition.INTERACTION_REQUESTED, "Legacy laptop attempt flag must set the typed dependency condition")
+	assert_true(bool(laptop.call("_is_dependency_satisfied")), "Laptop should still unlock on dependency interaction attempts")
 	assert_true(not laptop.is_completed, "Laptop dependency-attempt unlock must not mark the laptop completed")
 
 	InteractionManager.clear_candidates()
@@ -212,14 +226,17 @@ func _test_blockpost_completes_only_after_successful_payment() -> void:
 	tree.root.add_child(root)
 	await tree.process_frame
 
+	var dependent := _attach_completed_dependent(root, blockpost)
 	blockpost.call("_on_interact_area_body_entered", player)
 	money_system.can_open = false
 	blockpost.request_interact()
 	assert_true(not blockpost.is_completed, "Blockpost must not complete after failed payment")
+	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Failed blockpost payment must not satisfy completed dependencies")
 
 	money_system.can_open = true
 	blockpost.request_interact()
 	assert_true(blockpost.is_completed, "Blockpost must complete after successful payment")
+	assert_true(bool(dependent.call("_is_dependency_satisfied")), "Successful blockpost payment must satisfy completed dependencies")
 	assert_eq(money_system.open_attempts, 2, "Blockpost should call the payment system for each active interaction attempt")
 
 	InteractionManager.clear_candidates()

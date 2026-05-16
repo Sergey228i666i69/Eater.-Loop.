@@ -1,29 +1,36 @@
 # Интерактивные Объекты И Scene Contracts
 
-Оценка проблемности среза: **6/10**.
+Оценка проблемности среза: **5/10**.
 
 ## Диагноз
 
-База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт `is_completed`, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Самые опасные fail-open случаи уже закрыты, но система всё ещё держится на дисциплине сцен.
+База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт completion, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Самые опасные fail-open случаи уже закрыты, dependency-контракт теперь typed на два реально используемых смысла, но система всё ещё держится на дисциплине сцен.
 
-## P1: Dependency-Система Стала Безопаснее, Но Контракт Ломкий
+## Resolved Minimally: Dependency-Система Стала Typed
 
-`InteractiveObject` всё ещё ждёт `dependency_object.is_completed` и `interaction_finished`, но два опасных класса багов закрыты. Конкретный softlock из `level_04_findkey`, где `SearchSpot` с `door_key` зависел от двери `ToBedroom`, которая сама требовала `door_key`, закрыт: search spots больше не завязаны на эту дверь, а `test_scene_dependency_contracts.gd` ловит такие key-door циклы.
+`InteractiveObject` теперь различает `DependencyCondition.COMPLETED` и `DependencyCondition.INTERACTION_REQUESTED`. `COMPLETED` сохраняет старую семантику: зависимый объект открывается только после `complete_interaction()`. `INTERACTION_REQUESTED` открывает объект после попытки взаимодействия с dependency, но не помечает сам dependent завершённым. Requested-unlock состояние сохраняется в checkpoint state.
+
+Реальные цепочки мигрированы явно: laptop→fridge в `level_03_deepseek` и `level_05_sql` используют `INTERACTION_REQUESTED`, `NoteStory`→fridge в `level_11_STU_1` и fridge→generator в `level_12_STU_2` используют `COMPLETED`. Сцены с `dependency_object` теперь валидируются на явный `dependency_condition`, а level scripts не должны вызывать `set_dependency_object()` без близкого `set_dependency_condition()`.
+
+Два прежних опасных класса багов тоже закрыты. Конкретный softlock из `level_04_findkey`, где `SearchSpot` с `door_key` зависел от двери `ToBedroom`, которая сама требовала `door_key`, закрыт: search spots больше не завязаны на эту дверь, а `test_scene_dependency_contracts.gd` ловит такие key-door циклы.
 
 Второй закрытый fail-open: `one_shot` больше не означает "завершить после любой попытки". База вызывает `_should_auto_complete_after_interact()`, а `Door`, `Fridge`, `Laptop` и `Blockpost` запрещают авто-завершение и сами вызывают `complete_interaction()` только после успешного перехода, еды, лабораторной или оплаты. Это закреплено в `test_interaction_completion_contracts.gd`.
 
 Файлы:
 
-- [`objects/interactable/interactive_object.gd`](../objects/interactable/interactive_object.gd), около строк 73 и 216.
+- [`objects/interactable/interactive_object.gd`](../objects/interactable/interactive_object.gd), около строк 8, 33 и 218.
 - [`objects/interactable/door/door.gd`](../objects/interactable/door/door.gd), около строки 60.
 - [`objects/interactable/fridge/fridge.gd`](../objects/interactable/fridge/fridge.gd), около строки 153.
 - [`objects/interactable/notebook/laptop.gd`](../objects/interactable/notebook/laptop.gd), около строки 149.
 - [`objects/interactable/level12/blockpost/blockpost.gd`](../objects/interactable/level12/blockpost/blockpost.gd), около строки 35.
-- [`levels/cycles/level_04_findkey.tscn`](../levels/cycles/level_04_findkey.tscn), около строки 1725.
+- [`levels/cycles/level_03_deepseek.tscn`](../levels/cycles/level_03_deepseek.tscn), около строк 868 и 1123.
+- [`levels/cycles/level_05_sql.tscn`](../levels/cycles/level_05_sql.tscn), около строки 1271.
+- [`levels/cycles/level_11_stu_1.gd`](../levels/cycles/level_11_stu_1.gd), около строки 39.
+- [`levels/cycles/level_12_stu_2.gd`](../levels/cycles/level_12_stu_2.gd), около строки 56.
 
-Оставшийся практический риск: зависимости всё ещё смотрят на один общий `is_completed`, хотя разным объектам нужны разные outcome-ы: attempted, succeeded, completed forever.
+Оставшийся практический риск: typed conditions пока покрывают только два реально используемых смысла. Если появятся зависимости на "успешно, но не навсегда", "провалено", "получен конкретный предмет" или "получен outcome с payload", понадобится отдельный result/outcome слой, а не дальнейшее расширение ad-hoc флагами.
 
-Следующий ремонт: разделить `interaction_requested`, `interaction_succeeded`, `completed_forever`; зависимости должны смотреть на явный outcome.
+Следующий ремонт: вводить `interaction_succeeded` / outcome-result contract только когда появится третий реальный dependency-смысл.
 
 ## Resolved: Нет Единого Фокуса Интерактива
 

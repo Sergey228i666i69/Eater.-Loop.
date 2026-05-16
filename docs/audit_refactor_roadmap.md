@@ -51,10 +51,10 @@ Definition of done: каждый пункт имеет focused test или scene
    - interaction requested;
    - interaction succeeded;
    - completed forever.
-   One-shot fail-open закрыт через `_should_auto_complete_after_interact()` и явное `complete_interaction()` на успехе у двери, холодильника, ноутбука и блокпоста.
-6. Перевести dependency с прямого `InteractiveObject.is_completed` на typed conditions.
+   One-shot fail-open закрыт через `_should_auto_complete_after_interact()` и явное `complete_interaction()` на успехе у двери, холодильника, ноутбука и блокпоста. Минимальный dependency contract уже различает `COMPLETED` и `INTERACTION_REQUESTED`; полноценный `interaction_succeeded` / result outcome слой остаётся будущим шагом только при появлении третьего реального смысла.
+6. ~~Перевести dependency с прямого `InteractiveObject.is_completed` на typed conditions.~~ Минимально закрыто через `DependencyCondition`.
 
-Definition of done: overlapping Area2D больше не вызывает несколько интерактов одним нажатием; следующий остаток фазы - typed dependency conditions.
+Definition of done: overlapping Area2D больше не вызывает несколько интерактов одним нажатием; следующий остаток фазы - полноценные outcome results, если они понадобятся новым dependency-сценариям.
 
 ## Фаза 4: Scene Contracts И Validators
 

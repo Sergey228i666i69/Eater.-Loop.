@@ -22,6 +22,11 @@ func run() -> Array[String]:
 
 	locked_object.locked_message = LOCKED_MESSAGE
 	locked_object.set_dependency_object(dependency)
+	assert_eq(locked_object.get_dependency_condition(), InteractiveObject.DependencyCondition.COMPLETED, "Dependency condition must default to completed")
+
+	dependency.request_interact()
+	assert_true(not bool(locked_object.call("_is_dependency_satisfied")), "Default completed dependency must ignore interaction attempts")
+
 	locked_object.request_interact()
 
 	assert_true(ui.is_notification_visible(), "Blocked interaction must show a notification")

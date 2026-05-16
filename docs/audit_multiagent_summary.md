@@ -6,9 +6,9 @@
 
 ## Вердикт
 
-Первичная проблемность аудита: **7.3/10**. Текущая проблемность после ремонтных проходов: **5.8/10**.
+Первичная проблемность аудита: **7.3/10**. Текущая проблемность после ремонтных проходов: **5.6/10**.
 
-Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions и базовую completion-семантику интерактивов. Костыльность всё ещё заметна в поддержке: крупные singleton-и, NodePath/name contracts, отсутствие typed dependency conditions и огромные сцены остаются главными источниками риска.
+Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов и минимальные typed dependency conditions. Костыльность всё ещё заметна в поддержке: крупные singleton-и, NodePath/name contracts, неполная outcome-система и огромные сцены остаются главными источниками риска.
 
 ## Сводные Оценки
 
@@ -16,13 +16,13 @@
 | --- | ---: | --- |
 | Архитектура и состояние | 5.8/10 | singleton-и и CycleState public fields ещё открыты |
 | Gameplay loop | 4.8/10 | ключевые runtime-баги закрыты, остаются дубли и performance-risk |
-| Интерактивы | 5.5/10 | фокус, one-shot, trigger и spawner contracts исправлены, typed dependency conditions ещё нужны |
+| Интерактивы | 5/10 | фокус, one-shot, trigger, spawner и minimal typed dependency contracts исправлены |
 | Tooling/assets/tests | 4/10 | LFS/assets и CI починены, export dry-run ещё не автоматизирован |
 | Repo hygiene | 5.8/10 | архивы/debug убраны, huge scenes и naming debt остаются |
 
 ## Самые Важные P1
 
-1. **Dependency-система интерактивов всё ещё слишком общая.** Key-door цикл, one-shot fail-open и reversible trigger risk закрыты, но завязанные объекты по-прежнему ждут прямой `is_completed`, а не typed condition/outcome.
+1. **Outcome-система интерактивов всё ещё слишком минимальная.** Key-door цикл, one-shot fail-open, reversible trigger risk и два реальных dependency-смысла закрыты, но дальше `COMPLETED` / `INTERACTION_REQUESTED` слоя пока нет typed result/outcome model.
 2. **God objects остаются крупными.** `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager` всё ещё смешивают много областей ответственности.
 3. **NodePath/name contracts ломкие.** Переименование дочернего узла может silently выключить поведение.
 4. **Огромные STU-сцены требуют DRY-разбора.** Scene instances и reusable contracts пока не доведены до системного уровня.

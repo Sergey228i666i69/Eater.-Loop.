@@ -10,6 +10,7 @@ class ProbeInteractive:
 
 func run() -> Array[String]:
 	await _test_only_focused_interactive_consumes_input()
+	await _test_locked_high_priority_candidate_yields_to_available_low_priority_candidate()
 	await _test_active_minigame_blocks_world_interactions()
 	return get_failures()
 
@@ -53,6 +54,60 @@ func _test_only_focused_interactive_consumes_input() -> void:
 	high.call("_on_interact_area_body_exited", player)
 	InteractionManager.call("_unhandled_input", event)
 	assert_eq(low.interactions, 1, "Remaining interactive should become focused after higher-priority object exits")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_locked_high_priority_candidate_yields_to_available_low_priority_candidate() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	assert_true(InteractionManager != null, "InteractionManager autoload is missing")
+	if tree == null or InteractionManager == null:
+		return
+
+	InteractionManager.clear_candidates()
+	var root := Node2D.new()
+	tree.root.add_child(root)
+
+	var player := Node2D.new()
+	player.add_to_group("player")
+	root.add_child(player)
+
+	var dependency := ProbeInteractive.new()
+	dependency.name = "Dependency"
+	root.add_child(dependency)
+
+	var low := ProbeInteractive.new()
+	low.name = "AvailableLowPriority"
+	low.interaction_priority = 0
+	root.add_child(low)
+
+	var high := ProbeInteractive.new()
+	high.name = "LockedHighPriority"
+	high.interaction_priority = 10
+	high.set_dependency_object(dependency)
+	high.set_dependency_condition(InteractiveObject.DependencyCondition.COMPLETED)
+	root.add_child(high)
+	await tree.process_frame
+
+	low.call("_on_interact_area_body_entered", player)
+	high.call("_on_interact_area_body_entered", player)
+
+	var event := InputEventAction.new()
+	event.action = "interact"
+	event.pressed = true
+	InteractionManager.call("_unhandled_input", event)
+
+	assert_eq(low.interactions, 1, "Available low-priority interactive should receive input while high-priority object is dependency-locked")
+	assert_eq(high.interactions, 0, "Dependency-locked high-priority interactive must not consume input")
+
+	dependency.complete_interaction()
+	await tree.process_frame
+	InteractionManager.call("_unhandled_input", event)
+
+	assert_eq(low.interactions, 1, "Low-priority interactive should stop receiving input after high-priority dependency unlocks")
+	assert_eq(high.interactions, 1, "Unlocked high-priority interactive should receive input")
 
 	InteractionManager.clear_candidates()
 	root.queue_free()

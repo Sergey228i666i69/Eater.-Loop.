@@ -54,6 +54,7 @@ func _wire_level12_dependencies() -> void:
 
 	if _generator_node != null and _fridge_node != null and _fridge_node.has_method("set_dependency_object"):
 		_fridge_node.call("set_dependency_object", _generator_node)
+		_fridge_node.call("set_dependency_condition", InteractiveObject.DependencyCondition.COMPLETED)
 		_update_fridge_locked_message()
 		if _fridge_node.has_method("refresh_visual_state"):
 			_fridge_node.call("refresh_visual_state")

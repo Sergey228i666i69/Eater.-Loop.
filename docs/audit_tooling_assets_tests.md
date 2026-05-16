@@ -75,7 +75,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 51 тест.
+- 53 теста.
 
 Добавлено:
 
