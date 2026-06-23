@@ -67,6 +67,9 @@ const FLASHLIGHT_GRIP_MIN_LOCAL_X := -4.0
 const FLASHLIGHT_GRIP_MAX_LOCAL_X := 2.0
 const FLASHLIGHT_GRIP_MIN_LOCAL_Y_OFFSET := 6.0
 const FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET := 12.0
+const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
+const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
+const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -255,6 +258,9 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.68)
 					elif visual_path == FLASHLIGHT_VISUAL_PATH:
 						_assert_flashlight_cutout_has_completed_handle(visual.texture, visual_path)
+					elif visual_path == FRONT_FOREARM_VISUAL_PATH:
+						_assert_front_forearm_has_soft_elbow_taper(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
@@ -523,6 +529,27 @@ func _assert_flashlight_cutout_has_completed_handle(texture: Texture2D, visual_p
 	assert_true(
 			filled_columns >= FLASHLIGHT_MIN_FILLED_GAP_COLUMNS,
 			"Player skeleton flashlight cutout must complete the handle hidden under the front hand: %s" % visual_path
+	)
+
+func _assert_front_forearm_has_soft_elbow_taper(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton front forearm texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(mini(FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS, image.get_height())):
+		for x in range(image.get_width()):
+			assert_true(
+					image.get_pixel(x, y).a <= 0.05,
+					"Player skeleton front forearm must not start with a hard rectangular elbow crop: %s" % visual_path
+			)
+	if FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW >= image.get_height():
+		return
+	var max_alpha := 0.0
+	for x in range(image.get_width()):
+		max_alpha = maxf(max_alpha, image.get_pixel(x, FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW).a)
+	assert_true(
+			max_alpha <= FRONT_FOREARM_SOFT_TOP_MAX_ALPHA,
+			"Player skeleton front forearm must fade in under the upper arm instead of covering it with an opaque strip: %s" % visual_path
 	)
 
 func _assert_flashlight_visual_sits_inside_front_grip(front_hand_visual: Sprite2D, flashlight_visual: Sprite2D) -> void:
