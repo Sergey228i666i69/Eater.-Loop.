@@ -98,6 +98,7 @@
 - Размах `walk`/`light_run` намеренно сдержанный: риг построен из фото-cutout частей, поэтому тесты держат нижнюю и верхнюю границу torso/neck counter-sway, limb-swing, foot-lift, foot-stride и wrist follow-through, чтобы движение было заметным, но не разрывало суставы.
 - Фонарик является отдельным cutout-слоем из `AndryWithFlashlight.png` на `FlashlightMount`; он рендерится под передней кистью, чтобы рука перекрывала середину фонарика как на исходнике. Те же кости и анимации используются для варианта с фонариком и без него.
 - Skeleton-only звуки шагов привязаны к contact-time внутри `walk`/`light_run`, а не к независимому таймеру; тест рига сверяет эти таймкоды с нижним краем alpha-пикселей стоп.
+- Для дорисовки скрытых частей cutout-ов использовать контролируемый image-edit/inpaint пакет, а не blind text-to-image: `python3 tools/player_cutout_inpaint/build_player_cutout_inpaint_package.py --target front_thigh --out-dir /tmp/andry-cutout-inpaint`. Инструмент кладёт `edit_canvas`, `mask`, `reference_sheet`, `prompt` и `metadata`; существующие visible pixels заперты чёрной частью маски, а белая область даётся только рядом с прозрачным недостающим фрагментом.
 - Для визуального QA рига использовать `python3 tools/player_rig_preview/export_player_rig_montage.py --output /tmp/andry_player_rig_montage.png`; для варианта с фонариком добавить `--flashlight`. Инструмент снимает реальные Godot transforms и собирает монтаж поз, включая обе фазы `idle`; для проверки loop-плавности можно экспортировать последовательность на общем canvas: `--sequence-animation walk --output /tmp/andry_walk.gif`.
 - Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 
@@ -153,3 +154,4 @@
 - Активный `player.tscn` переведён на skeleton-only визуал, старый png-вариант сохранён в sprite-only `LEGASY-ANIMATIONS-CHARACTER.tscn`.
 - Полигональный placeholder заменён на cutout-части из `Andry.png` и отдельный flashlight cutout из `AndryWithFlashlight.png`; шаги skeleton-only варианта теперь срабатывают по foot-contact точкам анимации и закреплены визуально-звуковым тестом.
 - Cutout-текстуры героя обрезаны по alpha bounds, а `Visual*` позиции компенсированы в риге; это убирает full-canvas pivot-регрессию, из-за которой части тела разлетаются при bone rotation.
+- Добавлен reproducible inpaint-prep инструмент для дорисовки скрытых участков cutout-частей без изменения уже видимых пикселей Андрея.

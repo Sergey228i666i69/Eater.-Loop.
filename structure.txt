@@ -1547,6 +1547,7 @@
 │   │   ├── test_obstacle_interaction_contract.gd.uid
 │   │   ├── test_pause_manager_tokens.gd
 │   │   ├── test_pause_manager_tokens.gd.uid
+│   │   ├── test_player_cutout_inpaint_tool_contract.gd
 │   │   ├── test_player_skeleton_rig_contract.gd
 │   │   ├── test_player_skeleton_rig_contract.gd.uid
 │   │   ├── test_project_config.gd
@@ -1592,6 +1593,8 @@
 │   │   ├── export_macos_dmg.sh
 │   │   ├── hdiutil
 │   │   └── run_godot_with_dmg_fix.sh
+│   ├── player_cutout_inpaint
+│   │   └── build_player_cutout_inpaint_package.py
 │   └── player_rig_preview
 │       └── export_player_rig_montage.py
 ├── AGENTS.md
@@ -1603,4 +1606,4 @@
 ├── project.godot
 └── structure.txt
 
-128 directories, 1476 files
+129 directories, 1478 files
