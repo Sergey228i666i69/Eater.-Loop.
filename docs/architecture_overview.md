@@ -95,7 +95,7 @@
 - Имена костей рига считаются контрактом для skeletal animation клипов: `Hips`, `Spine`, `Chest`, `Head`, `Front*`, `Back*` и `FlashlightMount`.
 - `player.gd` зеркалит риг вместе с направлением игрока, чтобы bone-based skin не расходился с текущим разворотом героя.
 - `SkeletonAnimationPlayer` внутри рига держит loop-клипы `idle`, `walk` и `light_run` с cubic-интерполяцией bone-tracks; `idle` даёт лёгкое дыхание корпуса и кистей, а `player.gd` переключает клипы по фактическому движению.
-- Размах `walk`/`light_run` намеренно сдержанный: риг построен из фото-cutout частей, поэтому тесты держат нижнюю и верхнюю границу limb-swing, foot-lift и wrist follow-through, чтобы движение было заметным, но не разрывало суставы.
+- Размах `walk`/`light_run` намеренно сдержанный: риг построен из фото-cutout частей, поэтому тесты держат нижнюю и верхнюю границу torso/neck counter-sway, limb-swing, foot-lift и wrist follow-through, чтобы движение было заметным, но не разрывало суставы.
 - Фонарик является отдельным cutout-слоем из `AndryWithFlashlight.png` на `FlashlightMount`; те же кости и анимации используются для варианта с фонариком и без него.
 - Skeleton-only звуки шагов привязаны к contact-time внутри `walk`/`light_run`, а не к независимому таймеру; тест рига сверяет эти таймкоды с нижним краем alpha-пикселей стоп.
 - Для визуального QA рига использовать `python3 tools/player_rig_preview/export_player_rig_montage.py --output /tmp/andry_player_rig_montage.png`; для варианта с фонариком добавить `--flashlight`. Инструмент снимает реальные Godot transforms и собирает монтаж поз, включая обе фазы `idle`.
