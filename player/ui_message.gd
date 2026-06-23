@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const UIFadeController = preload("res://player/ui_fade_controller.gd")
+
 ## Длительность показа сообщений по умолчанию.
 @export var default_duration: float = 2.0
 
@@ -36,8 +38,7 @@ var _subtitle_label: Label
 var _timer: Timer
 var _subtitle_timer: Timer
 var _fade_rect: ColorRect
-var _fade_tween: Tween
-var _fade_token: int = 0
+var _fade_controller: RefCounted
 var _sfx_player: AudioStreamPlayer
 var _dialogue_voice_player: AudioStreamPlayer
 var _modules: Dictionary = {}
@@ -72,6 +73,7 @@ func _ready() -> void:
 	_fade_rect.color = Color(0, 0, 0, 0)
 	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_fade_rect)
+	_fade_controller = UIFadeController.new(self, _fade_rect)
 
 	# 2. Текст сообщений (тостеры)
 	_label = Label.new()
@@ -457,49 +459,31 @@ func _on_subtitle_timeout() -> void:
 		_dialogue_voice_player.stop()
 
 func fade_out(duration: float = 0.5) -> void:
-	if _fade_rect == null:
+	if _fade_controller == null:
 		return
-	var token := _begin_fade_tween()
-	_fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP
-	_fade_tween.tween_property(_fade_rect, "color:a", 1.0, maxf(0.0, duration))
-	await _wait_for_fade_token(token)
+	await _fade_controller.fade_out(duration)
 
 func fade_in(duration: float = 0.5) -> void:
-	if _fade_rect == null:
+	if _fade_controller == null:
 		return
-	var token := _begin_fade_tween()
-	_fade_tween.tween_property(_fade_rect, "color:a", 0.0, maxf(0.0, duration))
-	await _wait_for_fade_token(token)
-	if token == _fade_token:
-		_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	await _fade_controller.fade_in(duration)
 
 func set_screen_dark(dark: bool) -> void:
-	if _fade_rect == null:
+	if _fade_controller == null:
 		return
-	_cancel_fade_tween()
-	_fade_rect.color.a = 1.0 if dark else 0.0
-	_fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP if dark else Control.MOUSE_FILTER_IGNORE
+	_fade_controller.set_screen_dark(dark)
 
 func play_fade_sequence(fade_out_duration: float, fade_in_duration: float, on_black: Callable = Callable(), on_finished: Callable = Callable()) -> void:
-	if _fade_rect == null:
+	if _fade_controller == null:
 		if on_black.is_valid():
 			on_black.call()
 		if on_finished.is_valid():
 			on_finished.call()
 		return
-	var token := _begin_fade_tween()
-	_fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP
-	var out_time: float = max(0.0, float(fade_out_duration))
-	var in_time: float = max(0.0, float(fade_in_duration))
-	_fade_tween.tween_property(_fade_rect, "color:a", 1.0, out_time)
-	_fade_tween.tween_callback(Callable(self, "_invoke_fade_callback_if_current").bind(token, on_black))
-	_fade_tween.tween_property(_fade_rect, "color:a", 0.0, in_time)
-	_fade_tween.tween_callback(Callable(self, "_finish_fade_sequence").bind(token, on_finished))
+	_fade_controller.play_fade_sequence(fade_out_duration, fade_in_duration, on_black, on_finished)
 
 func is_screen_dark(threshold: float = 0.01) -> bool:
-	if _fade_rect == null:
-		return false
-	return _fade_rect.color.a > threshold
+	return _fade_controller != null and _fade_controller.is_screen_dark(threshold)
 
 func change_scene_with_fade(new_scene: PackedScene, duration: float = 0.5, unpause_after: bool = false) -> void:
 	_track_scene(new_scene)
@@ -539,38 +523,6 @@ func _play_dialogue_voice(stream: AudioStream, volume_db: float, pitch_scale: fl
 	_dialogue_voice_player.volume_db = volume_db
 	_dialogue_voice_player.pitch_scale = pitch_scale
 	_dialogue_voice_player.play()
-
-func _invoke_callable_if_valid(callback: Callable) -> void:
-	if callback.is_valid():
-		callback.call()
-
-func _invoke_fade_callback_if_current(token: int, callback: Callable) -> void:
-	if token != _fade_token:
-		return
-	_invoke_callable_if_valid(callback)
-
-func _finish_fade_sequence(token: int, callback: Callable) -> void:
-	if token != _fade_token:
-		return
-	if _fade_rect != null:
-		_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_invoke_callable_if_valid(callback)
-
-func _begin_fade_tween() -> int:
-	_cancel_fade_tween()
-	_fade_token += 1
-	_fade_tween = create_tween()
-	return _fade_token
-
-func _cancel_fade_tween() -> void:
-	_fade_token += 1
-	if _fade_tween and _fade_tween.is_running():
-		_fade_tween.kill()
-	_fade_tween = null
-
-func _wait_for_fade_token(token: int) -> void:
-	while token == _fade_token and _fade_tween != null and _fade_tween.is_running():
-		await get_tree().process_frame
 
 func _show_note_on_black(texture: Texture2D) -> void:
 	if texture == null:

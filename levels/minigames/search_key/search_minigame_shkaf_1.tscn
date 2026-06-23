@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dccsvb40ywqm0"]
 
 [ext_resource type="Script" uid="uid://cq7rpe0ney727" path="res://levels/minigames/search_key/search_minigame.gd" id="1_search"]
-[ext_resource type="Texture2D" uid="uid://cnemp2o0w2x7m" path="res://levels/minigames/search_key/shkaf/Без названия 6.png" id="2_v0ejh"]
+[ext_resource type="Texture2D" uid="uid://cnemp2o0w2x7m" path="res://levels/minigames/search_key/shkaf/cabinet_background.png" id="2_v0ejh"]
 
 [node name="SearchMinigame" type="Control" unique_id=1798677589]
 layout_mode = 3

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dmxpg5qoncpox"]
 
 [ext_resource type="Script" uid="uid://cq7rpe0ney727" path="res://levels/minigames/search_key/search_minigame.gd" id="1_y5sx4"]
-[ext_resource type="Texture2D" uid="uid://1kla0gyr0ell" path="res://levels/minigames/search_key/rakovina/Без названия 7.png" id="2_y5sx4"]
+[ext_resource type="Texture2D" uid="uid://1kla0gyr0ell" path="res://levels/minigames/search_key/rakovina/sink_background.png" id="2_y5sx4"]
 
 [node name="SearchMinigame" type="Control" unique_id=1798677589]
 layout_mode = 3

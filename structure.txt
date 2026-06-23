@@ -287,13 +287,16 @@
 │   ├── iconofgame.png
 │   ├── iconofgame.png.import
 │   ├── input_device_utils.gd
+│   ├── input_device_utils.gd.uid
 │   ├── interaction_manager.gd
+│   ├── interaction_manager.gd.uid
 │   ├── itchio.jpg
 │   ├── itchio.jpg.import
 │   ├── macos_icon.icns
 │   ├── reactive_light_utils.gd
 │   ├── reactive_light_utils.gd.uid
 │   ├── scene_context.gd
+│   ├── scene_context.gd.uid
 │   └── windows_icon.ico
 ├── levels
 │   ├── cycles
@@ -406,7 +409,7 @@
 │   │   │   │   │   ├── Burger.png
 │   │   │   │   │   ├── Burger.png.import
 │   │   │   │   │   └── food_burger.tscn
-│   │   │   │   ├── chiken
+│   │   │   │   ├── chicken
 │   │   │   │   │   ├── Chicken.png
 │   │   │   │   │   ├── Chicken.png.import
 │   │   │   │   │   └── food_chicken.tscn
@@ -462,10 +465,10 @@
 │   │   │   │   │   ├── Krilishko_2.png
 │   │   │   │   │   ├── Krilishko_2.png.import
 │   │   │   │   │   └── food_krilishki.tscn
-│   │   │   │   ├── meet
-│   │   │   │   │   ├── MeetSteak.png
-│   │   │   │   │   ├── MeetSteak.png.import
-│   │   │   │   │   └── food_meet.tscn
+│   │   │   │   ├── meat
+│   │   │   │   │   ├── MeatSteak.png
+│   │   │   │   │   ├── MeatSteak.png.import
+│   │   │   │   │   └── food_meat.tscn
 │   │   │   │   ├── naggets
 │   │   │   │   │   ├── Naggets.png
 │   │   │   │   │   ├── Naggets.png.import
@@ -560,11 +563,11 @@
 │   │   │   │   │   ├── Posuda_5.png.import
 │   │   │   │   │   ├── Posuda_6.png
 │   │   │   │   │   └── Posuda_6.png.import
-│   │   │   │   ├── Без названия 7.png
-│   │   │   │   └── Без названия 7.png.import
+│   │   │   │   ├── sink_background.png
+│   │   │   │   └── sink_background.png.import
 │   │   │   ├── shkaf
-│   │   │   │   ├── Без названия 6.png
-│   │   │   │   └── Без названия 6.png.import
+│   │   │   │   ├── cabinet_background.png
+│   │   │   │   └── cabinet_background.png.import
 │   │   │   ├── stiralka
 │   │   │   │   ├── sprites
 │   │   │   │   │   ├── Clear_Cloth_1.png
@@ -599,8 +602,8 @@
 │   │   │   │   │   ├── Clear_Cloth_8.png.import
 │   │   │   │   │   ├── Clear_Cloth_9.png
 │   │   │   │   │   └── Clear_Cloth_9.png.import
-│   │   │   │   ├── Без названия 10.png
-│   │   │   │   └── Без названия 10.png.import
+│   │   │   │   ├── washing_machine_background.png
+│   │   │   │   └── washing_machine_background.png.import
 │   │   │   ├── urna
 │   │   │   │   ├── sprites
 │   │   │   │   │   ├── Trash_1.png
@@ -635,9 +638,9 @@
 │   │   │   │   │   └── Trash_9.png.import
 │   │   │   │   ├── BackgroundUrna.png
 │   │   │   │   ├── BackgroundUrna.png.import
-│   │   │   │   ├── urna_search_minigame.tscn
-│   │   │   │   ├── Без названия 8.png
-│   │   │   │   └── Без названия 8.png.import
+│   │   │   │   ├── trash_bin_background.png
+│   │   │   │   ├── trash_bin_background.png.import
+│   │   │   │   └── urna_search_minigame.tscn
 │   │   │   ├── Key.png
 │   │   │   ├── Key.png.import
 │   │   │   ├── draggable_trash.gd
@@ -659,6 +662,8 @@
 │   │   │   └── drop_slot.tscn
 │   │   ├── cursor_manager.gd
 │   │   ├── cursor_manager.gd.uid
+│   │   ├── minigame_backdrop_presenter.gd
+│   │   ├── minigame_backdrop_presenter.gd.uid
 │   │   ├── minigame_controller.gd
 │   │   ├── minigame_controller.gd.uid
 │   │   ├── minigame_settings.gd
@@ -674,6 +679,8 @@
 │   ├── ScaryStepsAndDoor.mp3.import
 │   ├── game_director.gd
 │   ├── game_director.gd.uid
+│   ├── game_director_death_title_presenter.gd
+│   ├── game_director_death_title_presenter.gd.uid
 │   ├── interaction_prompts.gd
 │   ├── interaction_prompts.gd.uid
 │   ├── music_manager.gd
@@ -919,7 +926,7 @@
 │   │   │   │   ├── BedParents.png.import
 │   │   │   │   ├── ShkafParents.png
 │   │   │   │   └── ShkafParents.png.import
-│   │   │   └── toilet and bathroom
+│   │   │   └── toilet_bathroom
 │   │   │       ├── Mirror.png
 │   │   │       ├── Mirror.png.import
 │   │   │       ├── Rakovina.png
@@ -1125,8 +1132,8 @@
 │       │   │   ├── DoorBasic_Distorted.png.import
 │       │   │   ├── DoorExit.png
 │       │   │   ├── DoorExit.png.import
-│       │   │   ├── DoorNSTU_highevel.png
-│       │   │   ├── DoorNSTU_highevel.png.import
+│       │   │   ├── DoorNSTU_highlevel.png
+│       │   │   ├── DoorNSTU_highlevel.png.import
 │       │   │   ├── DoorStairs.png
 │       │   │   ├── DoorStairs.png.import
 │       │   │   ├── DoorToiletInside.png
@@ -1155,8 +1162,8 @@
 │       │   ├── audio
 │       │   │   ├── FridgeCreaking.wav
 │       │   │   ├── FridgeCreaking.wav.import
-│       │   │   ├── FridgeNoizeE.wav
-│       │   │   ├── FridgeNoizeE.wav.import
+│       │   │   ├── FridgeNoiseE.wav
+│       │   │   ├── FridgeNoiseE.wav.import
 │       │   │   ├── OpenFridgeE.wav
 │       │   │   ├── OpenFridgeE.wav.import
 │       │   │   ├── PigsScream.wav
@@ -1364,6 +1371,8 @@
 │   ├── stamina_bar.gd.uid
 │   ├── step_audio_component.gd
 │   ├── step_audio_component.gd.uid
+│   ├── ui_fade_controller.gd
+│   ├── ui_fade_controller.gd.uid
 │   ├── ui_message.gd
 │   └── ui_message.gd.uid
 ├── shaders
@@ -1404,6 +1413,7 @@
 │   │   ├── test_enemy_light_sensitive_flashlight_stun.gd
 │   │   ├── test_enemy_light_sensitive_flashlight_stun.gd.uid
 │   │   ├── test_export_presets_contract.gd
+│   │   ├── test_export_presets_contract.gd.uid
 │   │   ├── test_final_feed_minigame_stage_transition.gd
 │   │   ├── test_final_feed_minigame_stage_transition.gd.uid
 │   │   ├── test_flashlight_pickup_clears_location.gd
@@ -1421,11 +1431,15 @@
 │   │   ├── test_input_actions.gd
 │   │   ├── test_input_actions.gd.uid
 │   │   ├── test_input_device_utils.gd
+│   │   ├── test_input_device_utils.gd.uid
 │   │   ├── test_interaction_architecture_contracts.gd
 │   │   ├── test_interaction_architecture_contracts.gd.uid
 │   │   ├── test_interaction_completion_contracts.gd
+│   │   ├── test_interaction_completion_contracts.gd.uid
 │   │   ├── test_interaction_manager_focus.gd
+│   │   ├── test_interaction_manager_focus.gd.uid
 │   │   ├── test_interactive_dependency_conditions.gd
+│   │   ├── test_interactive_dependency_conditions.gd.uid
 │   │   ├── test_interactive_object_locked_message.gd
 │   │   ├── test_interactive_object_locked_message.gd.uid
 │   │   ├── test_lamp_generator_requirement.gd
@@ -1435,7 +1449,9 @@
 │   │   ├── test_laptop_multi_lab_ids.gd
 │   │   ├── test_laptop_multi_lab_ids.gd.uid
 │   │   ├── test_level11_end_flow_contracts.gd
+│   │   ├── test_level11_end_flow_contracts.gd.uid
 │   │   ├── test_level11_stu1_wiring_runtime.gd
+│   │   ├── test_level11_stu1_wiring_runtime.gd.uid
 │   │   ├── test_level12_laptop_money_reward.gd
 │   │   ├── test_level12_laptop_money_reward.gd.uid
 │   │   ├── test_level12_money_system.gd
@@ -1455,6 +1471,7 @@
 │   │   ├── test_light_adds_directional_contract.gd
 │   │   ├── test_light_adds_directional_contract.gd.uid
 │   │   ├── test_llm_glitch_fail_forward_contract.gd
+│   │   ├── test_llm_glitch_fail_forward_contract.gd.uid
 │   │   ├── test_main_menu_startup_disclaimer_runtime.gd
 │   │   ├── test_main_menu_startup_disclaimer_runtime.gd.uid
 │   │   ├── test_minigame_backdrop_dedup_runtime.gd
@@ -1472,7 +1489,9 @@
 │   │   ├── test_note_audio_optional.gd
 │   │   ├── test_note_audio_optional.gd.uid
 │   │   ├── test_obstacle_interaction_contract.gd
+│   │   ├── test_obstacle_interaction_contract.gd.uid
 │   │   ├── test_pause_manager_tokens.gd
+│   │   ├── test_pause_manager_tokens.gd.uid
 │   │   ├── test_project_config.gd
 │   │   ├── test_project_config.gd.uid
 │   │   ├── test_respawn_checkpoint_restore.gd
@@ -1480,8 +1499,11 @@
 │   │   ├── test_save_state_split.gd
 │   │   ├── test_save_state_split.gd.uid
 │   │   ├── test_scene_context_pause_classification.gd
+│   │   ├── test_scene_context_pause_classification.gd.uid
 │   │   ├── test_scene_dependency_contracts.gd
+│   │   ├── test_scene_dependency_contracts.gd.uid
 │   │   ├── test_scene_nodepath_contracts.gd
+│   │   ├── test_scene_nodepath_contracts.gd.uid
 │   │   ├── test_scenes_load.gd
 │   │   ├── test_scenes_load.gd.uid
 │   │   ├── test_scripts_compile.gd
@@ -1491,11 +1513,14 @@
 │   │   ├── test_stalker_motion_audio_component.gd
 │   │   ├── test_stalker_motion_audio_component.gd.uid
 │   │   ├── test_stu_level_path_contracts.gd
+│   │   ├── test_stu_level_path_contracts.gd.uid
 │   │   ├── test_ui_message_dialogue_channels.gd
 │   │   ├── test_ui_message_dialogue_channels.gd.uid
-│   │   └── test_ui_message_modal_state.gd
+│   │   ├── test_ui_message_modal_state.gd
+│   │   └── test_ui_message_modal_state.gd.uid
 │   ├── fixtures
 │   │   ├── dynamic_checkpoint_enemy.gd
+│   │   ├── dynamic_checkpoint_enemy.gd.uid
 │   │   └── dynamic_checkpoint_enemy.tscn
 │   ├── README.md
 │   ├── run_tests.gd
@@ -1519,4 +1544,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1396 files
+124 directories, 1421 files

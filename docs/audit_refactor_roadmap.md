@@ -75,17 +75,21 @@ Definition of done: типовые ошибки сцен падают тесто
 Цель: уменьшить blast radius будущих изменений.
 
 1. `GameDirector`:
-   - death/checkpoint service;
+   - ~~death-title/glitch presentation;~~ вынесено в `game_director_death_title_presenter.gd`.
+   - death/checkpoint lifecycle service;
    - distortion/stalker service;
    - overlay/cursor coordinator.
 2. `UIMessage`:
    - message/prompt UI;
-   - transition service;
+   - ~~fade transition tween/token state;~~ вынесено в `ui_fade_controller.gd`.
    - scene navigation.
 3. `MusicManager`:
    - оставить публичный фасад;
    - вынести data/layout/magic constants в resources.
-4. `Fridge`:
+4. `MinigameController`:
+   - ~~backdrop registry/presentation;~~ вынесено в `minigame_backdrop_presenter.gd`.
+   - timer/pause/music/gamepad lifecycle можно дробить отдельными tested slices.
+5. `Fridge`:
    - отделить lock/code/minigame/story hooks.
 
 Definition of done: новые уровни не требуют править глобальный директор для локальных интерактивов.
@@ -99,7 +103,7 @@ Path-based checks вида `path.find("/levels/cycles/")` вынесены в `S
 Цель: сделать дерево проекта спокойным и предсказуемым.
 
 1. ~~Вынести или удалить `archive(trash)` и test/old/save runtime-сцены.~~
-2. ~~Нормализовать самый опасный naming.~~ `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
+2. ~~Нормализовать самый опасный naming.~~ `level_09_сrazy.tscn`, `chiken`, `meet`, `Без названия *.png`, `toilet and bathroom`, `DoorNSTU_highevel.png` и `FridgeNoizeE.wav` исправлены с обновлением ссылок.
 3. Разбить huge `.tscn` на reusable scene instances.
 4. ~~Убрать debug `print()` или заменить logger-ом.~~ Runtime `print()` заменён на `print_verbose()`, архитектурный тест запрещает новые raw `print()`.
 5. Вынести magic numbers/strings в constants/resources.

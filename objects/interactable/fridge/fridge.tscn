@@ -5,7 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://cxl0npdtqanaw" path="res://objects/interactable/fridge/audio/OpenFridgeE.wav" id="2_lv756"]
 [ext_resource type="PackedScene" uid="uid://ck7hxh6s4dxr5" path="res://levels/minigames/ui/code_lock.tscn" id="2_s32oc"]
 [ext_resource type="Texture2D" uid="uid://ck6tq35q10qce" path="res://objects/interactable/fridge/sprites/OpenFridge.png" id="2_w83lr"]
-[ext_resource type="AudioStream" uid="uid://bedg28hlpja2w" path="res://objects/interactable/fridge/audio/FridgeNoizeE.wav" id="3_lv756"]
+[ext_resource type="AudioStream" uid="uid://bedg28hlpja2w" path="res://objects/interactable/fridge/audio/FridgeNoiseE.wav" id="3_lv756"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s32oc"]
 size = Vector2(187.5, 370.36243)

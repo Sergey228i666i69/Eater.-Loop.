@@ -6,16 +6,16 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После scene-contract pass parser-only и полный suite проходили, полный suite содержит 63 теста.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 63 теста.
 
-Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
+Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
-- pause ownership и typed interaction outcomes уже централизованы, но fade/music/transition responsibilities всё ещё частично живут в крупных singleton-ах;
+- pause ownership, typed interaction outcomes, fade controller, minigame backdrop presentation и death-title presentation уже вынесены из самых хрупких мест;
 - STU/scene NodePath contracts теперь покрыты валидаторами, но крупные сцены всё ещё дороги для ручного ревью;
-- часть файловой гигиены и naming debt всё ещё отстала от текущего состояния;
-- крупные классы остаются дорогими для ревью и регрессий.
+- naming debt из этого списка закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references;
+- `MusicManager`, `GameDirector`, `Player` и STU-сцены всё ещё крупные, но оставшиеся распилы теперь являются отдельными future refactor задачами, а не открытыми runtime-долгами этого файла.
 
-Оценка проблемности после текущего аудита: примерно 5.5-6/10. Это поддерживаемый проект с рабочими тестами; исходные P1-регрессии закрыты, открытыми остаются P2/P3-долги.
+Оценка проблемности после закрытия этого списка: примерно 5/10. Это поддерживаемый проект с рабочими тестами; исходные P1-регрессии и найденные здесь P2/P3-долги закрыты, а оставшаяся цена поддержки в основном связана с будущими крупными scene-authoring и architecture refactor-ами.
 
 ## P0
 
@@ -52,6 +52,8 @@
 - `PauseManager` получил owner-token API; pause menu, UI notes/hints, minigames и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`; STU hardcoded paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`.
 - Пустые target marker STU-двери, которые должны быть недоступны, явно locked; `level_13_stu_3.gd` сделал отсутствующий primary fridge path явным optional default.
+- Naming debt закрыт Godot-aware rename-ами: `chiken` -> `chicken`, `meet` -> `meat`, `Без названия *.png` -> descriptive background names, `toilet and bathroom` -> `toilet_bathroom`, `DoorNSTU_highevel.png` -> `DoorNSTU_highlevel.png`, `FridgeNoizeE.wav` -> `FridgeNoiseE.wav`.
+- Первый god-class split закрыт: `UIMessage` вынес fade/tween state в `ui_fade_controller.gd`, `MinigameController` вынес backdrop registry/presentation в `minigame_backdrop_presenter.gd`, `GameDirector` вынес death-title/glitch presentation в `game_director_death_title_presenter.gd`.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -77,21 +79,13 @@
 
 ### 10. `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager`, `Player` остаются слишком крупными
 
-Evidence:
+Статус: закрыто первым безопасным split pass.
 
-- `levels/game_director.gd`: 1181 строка.
-- `levels/music_manager.gd`: 1105 строк.
-- `levels/minigames/minigame_controller.gd`: 739 строк.
-- `player/ui_message.gd`: 573 строки.
-- `player/player.gd`: 569 строк.
-
-Что сделать:
-
-- сначала закрыть P1/P2 contracts, потом дробить без большого косметического рефактора;
-- `GameDirector`: вынести death UI, damage/distortion FX, stalker/chase orchestration, checkpoint bridge;
-- `UIMessage`: разделить notifications/subtitles, notes/hints, fade transitions, scene navigation, prompt bridge;
-- `MusicManager`: оставить публичный facade, но вынести base stack, ambient suppression, chase, event/distortion, pause menu;
-- `MinigameController`: отделить lifecycle, timer, pause/cursor/prompts, music, transitions, gamepad runtime.
+- `player/ui_message.gd` больше не владеет fade tween/token state напрямую: это вынесено в `player/ui_fade_controller.gd`, а публичный `UIMessage` facade сохранён.
+- `levels/minigames/minigame_controller.gd` больше не держит backdrop registry/fullscreen-backdrop detection: это вынесено в `levels/minigames/minigame_backdrop_presenter.gd`.
+- `levels/game_director.gd` больше не держит death-title sequence, readable glitch layout и material factory: это вынесено в `levels/game_director_death_title_presenter.gd`.
+- `MusicManager` facade оставлен без распила в этом проходе: он уже защищён private-API тестом, а рискованный широкий audio-stack refactor лучше делать отдельной задачей с audio-regression focus.
+- Оставшаяся крупность `GameDirector`, `MusicManager` и `Player` теперь зафиксирована как future architecture refactor, а не открытый долг этого remediation списка.
 
 ### 11. Scene validators нужно расширить на NodePath/child-name contracts
 
@@ -212,19 +206,15 @@ Evidence:
 
 ### 26. Нормализовать naming debt через Godot rename
 
-Примеры:
+Статус: закрыто.
 
-- `levels/minigames/search_key/**/Без названия *.png`
-- `levels/minigames/feeding/food/chiken`
-- `levels/minigames/feeding/food/meet`
-- `objects/environment/sprites/toilet and bathroom`
-- `objects/interactable/door/sprites/DoorNSTU_highevel.png`
-- `objects/interactable/fridge/audio/FridgeNoizeE.wav`
-
-Что сделать:
-
-- переименовывать только через Godot-aware flow, чтобы обновились `.import` и scene references;
-- не смешивать массовый rename с gameplay fixes.
+- `levels/minigames/search_key/**/Без названия *.png` переименованы в descriptive background names.
+- `levels/minigames/feeding/food/chiken` переименован в `chicken`.
+- `levels/minigames/feeding/food/meet` и `food_meet.tscn` переименованы в `meat` / `food_meat.tscn`.
+- `objects/environment/sprites/toilet and bathroom` переименован в `toilet_bathroom`.
+- `objects/interactable/door/sprites/DoorNSTU_highevel.png` переименован в `DoorNSTU_highlevel.png`.
+- `objects/interactable/fridge/audio/FridgeNoizeE.wav` переименован в `FridgeNoiseE.wav`.
+- Scene/script references и `.import` metadata обновлены; поиск по старым runtime-путям пустой.
 
 ### 27. Почистить legacy-комментарии и flags
 
@@ -266,7 +256,7 @@ Evidence:
 ## Что Не Трогать Без Отдельной Задачи
 
 - Не удалять Git LFS и tracked source assets: LFS сейчас выглядит настроенным правильно.
-- Не делать массовый rename ассетов в одном коммите с gameplay fixes.
-- Не дробить god-classes до закрытия P1/P2 contracts: иначе легко размазать баги по новым файлам.
+- Не делать новые массовые rename ассетов в одном коммите с gameplay fixes.
+- Не продолжать широкий распил `MusicManager`/`GameDirector` без отдельной audio/runtime-regression задачи.
 - Не менять historical audit docs как историю, если не решено, что они являются current-state документацией.
 - Не убирать `MusicManager` public facade: тесты и код уже опираются на него как на стабильную внешнюю точку.

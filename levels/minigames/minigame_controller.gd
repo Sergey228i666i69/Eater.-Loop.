@@ -1,5 +1,6 @@
 extends Node
 
+const MinigameBackdropPresenter = preload("res://levels/minigames/minigame_backdrop_presenter.gd")
 const GamepadRuntimeClass = preload("res://levels/minigames/gamepad/gamepad_runtime.gd")
 
 ## Центральный контроллер мини-игр.
@@ -57,10 +58,12 @@ var _transition_active: bool = false
 var _transition_queue: Array = []
 var _gamepad_runtime = null
 var _gamepad_schemes: Dictionary = {}
-var _minigame_backdrops: Dictionary = {}
+var _backdrop_presenter: RefCounted
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_backdrop_presenter = MinigameBackdropPresenter.new()
+	_backdrop_presenter.backdrop_color = minigame_backdrop_color
 	_gamepad_runtime = GamepadRuntimeClass.new()
 	if get_tree() and get_tree().has_signal("scene_changed"):
 		get_tree().scene_changed.connect(_on_scene_changed)
@@ -125,79 +128,10 @@ func attach_minigame(minigame: Node, layer_override: int = -1, parent_override: 
 	)
 
 func _ensure_minigame_backdrop(minigame: Node, target_layer: int, parent: Node) -> void:
-	if minigame == null or parent == null:
+	if _backdrop_presenter == null:
 		return
-	var id := minigame.get_instance_id()
-	var existing := _minigame_backdrops.get(id, null) as CanvasLayer
-	if existing != null and is_instance_valid(existing):
-		existing.layer = target_layer - 1
-		return
-	if _has_builtin_fullscreen_backdrop(minigame):
-		return
-	var backdrop_layer := CanvasLayer.new()
-	backdrop_layer.name = "MinigameBackdrop"
-	backdrop_layer.layer = target_layer - 1
-	backdrop_layer.process_mode = Node.PROCESS_MODE_ALWAYS
-	backdrop_layer.visible = false
-	var rect := ColorRect.new()
-	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	rect.color = minigame_backdrop_color
-	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	backdrop_layer.add_child(rect)
-	parent.add_child(backdrop_layer)
-	_minigame_backdrops[id] = backdrop_layer
-	minigame.tree_exited.connect(Callable(self, "_cleanup_minigame_backdrop").bind(id), Object.CONNECT_ONE_SHOT)
-
-func _cleanup_minigame_backdrop(minigame_id: int) -> void:
-	var backdrop := _minigame_backdrops.get(minigame_id, null) as CanvasLayer
-	if backdrop != null and is_instance_valid(backdrop):
-		backdrop.queue_free()
-	_minigame_backdrops.erase(minigame_id)
-
-func _has_builtin_fullscreen_backdrop(minigame: Node) -> bool:
-	return _find_builtin_fullscreen_backdrop(minigame, minigame)
-
-func _find_builtin_fullscreen_backdrop(node: Node, root: Node) -> bool:
-	if node is ColorRect:
-		var rect := node as ColorRect
-		if _is_opaque_fullscreen_rect(rect, root):
-			return true
-	for child in node.get_children():
-		if child is Node and _find_builtin_fullscreen_backdrop(child, root):
-			return true
-	return false
-
-func _fills_minigame_rect(control: Control, root: Node) -> bool:
-	var current: Node = control
-	while current != null and current != root:
-		if not (current is Control) or not _is_full_rect_control(current as Control):
-			return false
-		current = current.get_parent()
-	if current != root:
-		return false
-	if root is Control:
-		return _is_full_rect_control(root as Control)
-	return root is CanvasLayer
-
-func _is_full_rect_control(control: Control) -> bool:
-	return _is_zero_approx(control.anchor_left) \
-		and _is_zero_approx(control.anchor_top) \
-		and is_equal_approx(control.anchor_right, 1.0) \
-		and is_equal_approx(control.anchor_bottom, 1.0) \
-		and _is_zero_approx(control.offset_left) \
-		and _is_zero_approx(control.offset_top) \
-		and _is_zero_approx(control.offset_right) \
-		and _is_zero_approx(control.offset_bottom)
-
-func _is_opaque_fullscreen_rect(rect: ColorRect, root: Node) -> bool:
-	if rect == null or not rect.visible:
-		return false
-	if rect.color.a < 0.98:
-		return false
-	return _fills_minigame_rect(rect, root)
-
-func _is_zero_approx(value: float) -> bool:
-	return absf(value) <= 0.5
+	_backdrop_presenter.backdrop_color = minigame_backdrop_color
+	_backdrop_presenter.ensure_backdrop(minigame, target_layer, parent)
 
 func set_pause_menu_open(is_open: bool) -> void:
 	_pause_menu_open = is_open
@@ -676,21 +610,15 @@ func _queue_free_minigame_if_alive(minigame: Variant) -> void:
 	if target != null and target.is_inside_tree():
 		target.queue_free()
 
-func _get_minigame_backdrop(minigame: Node) -> CanvasLayer:
-	if minigame == null:
-		return null
-	var id := minigame.get_instance_id()
-	var backdrop := _minigame_backdrops.get(id, null) as CanvasLayer
-	if backdrop != null and not is_instance_valid(backdrop):
-		_minigame_backdrops.erase(id)
-		return null
-	return backdrop
-
 func _set_minigame_backdrop_visible(minigame: Node, visible: bool) -> void:
-	var backdrop := _get_minigame_backdrop(minigame)
-	if backdrop == null:
+	if _backdrop_presenter == null:
 		return
-	backdrop.visible = visible
+	_backdrop_presenter.set_backdrop_visible(minigame, visible)
+
+func _get_minigame_backdrop(minigame: Node) -> CanvasLayer:
+	if _backdrop_presenter == null:
+		return null
+	return _backdrop_presenter.get_backdrop(minigame)
 
 func _set_minigame_presentation_visible(minigame: Node, visible: bool) -> void:
 	_set_minigame_backdrop_visible(minigame, visible)

@@ -35,8 +35,8 @@ func _assert_opaque_fullscreen_scene_skips_extra_backdrop(host: Node, tree: Scen
 	MinigameController.attach_minigame(minigame, -1, host)
 	await tree.process_frame
 
-	var backdrops: Dictionary = MinigameController.get("_minigame_backdrops")
-	assert_true(not backdrops.has(minigame.get_instance_id()), "Mini-games with their own opaque fullscreen background must not receive an extra backdrop layer")
+	var backdrop := _get_backdrop(minigame)
+	assert_true(backdrop == null, "Mini-games with their own opaque fullscreen background must not receive an extra backdrop layer")
 
 	minigame.queue_free()
 	await tree.process_frame
@@ -51,8 +51,8 @@ func _assert_translucent_scene_gets_extra_backdrop(host: Node, tree: SceneTree) 
 	MinigameController.attach_minigame(minigame, -1, host)
 	await tree.process_frame
 
-	var backdrops: Dictionary = MinigameController.get("_minigame_backdrops")
-	assert_true(backdrops.has(minigame.get_instance_id()), "Mini-games with only a translucent fullscreen overlay must still receive the shared black backdrop")
+	var backdrop := _get_backdrop(minigame)
+	assert_true(backdrop != null, "Mini-games with only a translucent fullscreen overlay must still receive the shared black backdrop")
 
 	minigame.queue_free()
 	await tree.process_frame
@@ -67,8 +67,13 @@ func _assert_texture_background_scene_gets_extra_backdrop(host: Node, tree: Scen
 	MinigameController.attach_minigame(minigame, -1, host)
 	await tree.process_frame
 
-	var backdrops: Dictionary = MinigameController.get("_minigame_backdrops")
-	assert_true(backdrops.has(minigame.get_instance_id()), "Mini-games with fullscreen texture backgrounds must still receive the shared black backdrop behind the texture")
+	var backdrop := _get_backdrop(minigame)
+	assert_true(backdrop != null, "Mini-games with fullscreen texture backgrounds must still receive the shared black backdrop behind the texture")
 
 	minigame.queue_free()
 	await tree.process_frame
+
+func _get_backdrop(minigame: Node) -> CanvasLayer:
+	if MinigameController.has_method("_get_minigame_backdrop"):
+		return MinigameController.call("_get_minigame_backdrop", minigame) as CanvasLayer
+	return null

@@ -2,7 +2,7 @@
 
 Оценка проблемности среза на момент первичного аудита: **7/10**.
 
-Текущий статус: крупная часть hygiene-проблем уже закрыта. `archive(trash)` и `level_NSTU_test.tscn` удалены из runtime-дерева, активный уровень с кириллической `с` переименован в `level_09_crazy.tscn`, ассеты заведены через Git LFS, root `export_presets.cfg` отслеживается, runtime `print()` запрещён архитектурным тестом.
+Текущий статус: крупная часть hygiene-проблем уже закрыта. `archive(trash)` и `level_NSTU_test.tscn` удалены из runtime-дерева, активный уровень с кириллической `с` переименован в `level_09_crazy.tscn`, ассеты заведены через Git LFS, root `export_presets.cfg` отслеживается, runtime `print()` запрещён архитектурным тестом, а найденный naming debt нормализован Godot-aware rename-ами.
 
 ## Диагноз
 
@@ -46,14 +46,14 @@ Git почти не трекает аудио/изображения, но сц�
 
 Ремонт: вынос повторяемых комнат/коридоров/интерактивных кластеров в инстансы сцен и resources.
 
-## P2: Большие God Classes
+## Resolved: Первый Split Больших God Classes
 
 Найдены крупные классы:
 
-- `GameDirector`: около 1131 строк;
-- `MusicManager`: около 1105 строк;
-- `MinigameController`: около 735 строк;
-- `UIMessage`: около 573 строк.
+- `GameDirector`: было 1171 строка, стало около 1035 строк + `game_director_death_title_presenter.gd`;
+- `MusicManager`: около 1133 строк, публичный facade оставлен стабильным;
+- `MinigameController`: стало около 671 строки + `minigame_backdrop_presenter.gd`;
+- `UIMessage`: стало около 589 строк + `ui_fade_controller.gd`.
 
 Примеры:
 
@@ -62,23 +62,22 @@ Git почти не трекает аудио/изображения, но сц�
 - [`levels/minigames/minigame_controller.gd`](../levels/minigames/minigame_controller.gd).
 - [`player/ui_message.gd`](../player/ui_message.gd).
 
-Не каждый большой файл плох сам по себе, но здесь размеры совпадают со смешением обязанностей.
+Не каждый большой файл плох сам по себе, но здесь размеры совпадали со смешением обязанностей. Первый безопасный pass вынес fade/tween state из `UIMessage`, backdrop registry/presentation из `MinigameController` и death-title/glitch presentation из `GameDirector`. Более широкий распил `MusicManager`/`GameDirector` остаётся future refactor-ом, а не hygiene-блокером текущего состояния.
 
-## P2: Naming Inconsistent И Местами Опасный
+## Resolved: Naming Inconsistent И Местами Опасный
 
-Примеры:
+Найденные опасные имена нормализованы:
 
-- `level_13_STU_3.tscn` рядом с `level_13_stu_3.gd`;
-- `level_NSTU_test.tscn`;
 - `level_09_crazy.tscn` теперь использует латинскую `c`;
-- `chiken`;
-- `meet`;
-- `Frizzer`;
-- `FridgeNoizeE.wav`.
+- `levels/minigames/feeding/food/chiken` -> `chicken`;
+- `levels/minigames/feeding/food/meet` -> `meat`;
+- `food_meet.tscn` -> `food_meat.tscn`;
+- `objects/environment/sprites/toilet and bathroom` -> `toilet_bathroom`;
+- `DoorNSTU_highevel.png` -> `DoorNSTU_highlevel.png`;
+- `FridgeNoizeE.wav` -> `FridgeNoiseE.wav`;
+- search-key `Без названия *.png` backgrounds получили descriptive names.
 
-Практический риск: поиск, ручные пути, case-sensitive файловые системы и командная строка будут периодически наказывать проект.
-
-Ремонт: lowercase snake_case, без lookalike-кириллицы, без `trash/test/old` в runtime paths.
+Scene/script references и `.import` metadata обновлены вместе с файлами. Оставшиеся спорные имена вроде `Frizzer` лучше трогать только отдельным scene-authoring rename pass, если они окажутся реально вредными в текущей работе.
 
 ## Resolved: Дублировался Паттерн Прожектора
 

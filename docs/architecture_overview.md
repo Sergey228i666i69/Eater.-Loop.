@@ -9,7 +9,7 @@
 - `GameState` (`res://levels/cycles/game_state.gd`)
   Хранит состояние текущего забега/цикла, флаги прогресса и данные сохранения.
 - `GameDirector` (`res://levels/game_director.gd`)
-  Оркестрация времени цикла, фаз искажений, death-screen, спавн сталкера.
+  Оркестрация времени цикла, фаз искажений, death-screen lifecycle, спавн сталкера.
 - `MusicManager` (`res://levels/music_manager.gd`)
   Единая точка управления музыкой (ambient/event/minigame/chase/pause/menu).
 - `PauseManager` (`res://levels/menu/pause_manager.gd`)
@@ -23,6 +23,10 @@
 - `InputDeviceUtils` (`res://global/input_device_utils.gd`)
   Общий helper определения keyboard/mouse/gamepad/Sony input-событий для UI prompt-ов,
   меню и директорского input-mode state.
+- Внутренние helper-и крупных фасадов:
+  `GameDirectorDeathTitlePresenter`, `MinigameBackdropPresenter`, `UIFadeController`.
+  Они не являются публичными autoload API и используются для снижения размера
+  `GameDirector`, `MinigameController` и `UIMessage` без смены внешних вызовов.
 
 ## 2. Ключевые контуры
 
@@ -51,6 +55,7 @@
 
 - Мини-игра регистрируется в `MinigameController.start_minigame(...)`.
 - Игра/пауза/cursor/music синхронизируются централизованно в контроллере.
+- Backdrop registry/fullscreen backdrop detection вынесены в `MinigameBackdropPresenter`.
 - Схема геймпада задаётся через `set_gamepad_scheme`/`clear_gamepad_scheme`.
 - Timed lab-мини-игры наследуются от `res://levels/minigames/labs/timed_lab_minigame_base.gd`.
 - Общий timed-lab helper отвечает за таймер, cleanup, стандартный outcome и post-line для успеха/провала.
@@ -58,6 +63,9 @@
 ### 2.5 Текстовый UI-контур
 
 - `UIMessage` остаётся единой facade-точкой экранного текста.
+- Fade tween/token state живёт во внутреннем `UIFadeController`, публичные методы
+  `UIMessage.fade_out`, `fade_in`, `play_fade_sequence` и `change_scene_with_fade*`
+  остаются внешней точкой интеграции.
 - Публичный канал `show_dialogue(...)` используется для нижних реплик/субтитров, с опциональной озвучкой.
 - Публичный канал `show_notification(...)` используется для системных сообщений, лута, дверей, блокировок и наград.
 - `show_text`, `show_message`, `show_subtitle` считаются legacy-wrapper API и не должны быть основной точкой интеграции в новом коде.
@@ -125,3 +133,5 @@
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Добавлены scene-contract validators для critical NodePath/child contracts и отдельные STU path contracts.
+- Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
+- `UIMessage`, `MinigameController` и death-title часть `GameDirector` получили facade-preserving helper split-ы.

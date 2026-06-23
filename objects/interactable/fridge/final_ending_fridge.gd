@@ -16,8 +16,8 @@ const FOOD_SHAURMA := preload("res://levels/minigames/feeding/food/shaurma/food_
 const FOOD_TORT := preload("res://levels/minigames/feeding/food/tort/food_tort.tscn")
 const FOOD_COOKIE_A := preload("res://levels/minigames/feeding/food/cookie/food_cookie_1.tscn")
 const FOOD_COOKIE_B := preload("res://levels/minigames/feeding/food/cookie/food_cookie_5.tscn")
-const FOOD_MEAT := preload("res://levels/minigames/feeding/food/meet/food_meet.tscn")
-const FOOD_CHICKEN := preload("res://levels/minigames/feeding/food/chiken/food_chicken.tscn")
+const FOOD_MEAT := preload("res://levels/minigames/feeding/food/meat/food_meat.tscn")
+const FOOD_CHICKEN := preload("res://levels/minigames/feeding/food/chicken/food_chicken.tscn")
 
 var _distortion_forced: bool = false
 

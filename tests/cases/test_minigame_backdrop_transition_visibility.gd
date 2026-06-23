@@ -90,5 +90,6 @@ func _test_timeout_signal_emits_once_without_auto_finish() -> void:
 	await tree.process_frame
 
 func _get_backdrop(minigame: Node) -> CanvasLayer:
-	var backdrops: Dictionary = MinigameController.get("_minigame_backdrops")
-	return backdrops.get(minigame.get_instance_id(), null) as CanvasLayer
+	if MinigameController.has_method("_get_minigame_backdrop"):
+		return MinigameController.call("_get_minigame_backdrop", minigame) as CanvasLayer
+	return null

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://qrm8lgbhajjq"]
 
 [ext_resource type="Script" uid="uid://cq7rpe0ney727" path="res://levels/minigames/search_key/search_minigame.gd" id="1_b0n2f"]
-[ext_resource type="Texture2D" uid="uid://c37l3r8pnmtll" path="res://levels/minigames/search_key/stiralka/Без названия 10.png" id="2_b0n2f"]
+[ext_resource type="Texture2D" uid="uid://c37l3r8pnmtll" path="res://levels/minigames/search_key/stiralka/washing_machine_background.png" id="2_b0n2f"]
 
 [node name="SearchMinigame" type="Control" unique_id=1798677589]
 layout_mode = 3
