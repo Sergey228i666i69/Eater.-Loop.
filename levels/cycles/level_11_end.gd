@@ -48,12 +48,17 @@ func _resolve_nodes() -> void:
 	_bed = get_node_or_null(bed_path)
 
 func _connect_level_flow() -> void:
-	if _laptop != null and _laptop.has_signal("interaction_finished") and not _laptop.interaction_finished.is_connected(_on_laptop_interaction_finished):
+	if _laptop != null and _laptop.has_signal("interaction_succeeded") and not _laptop.interaction_succeeded.is_connected(_on_laptop_interaction_succeeded):
+		_laptop.interaction_succeeded.connect(_on_laptop_interaction_succeeded)
+	elif _laptop != null and _laptop.has_signal("interaction_finished") and not _laptop.interaction_finished.is_connected(_on_laptop_interaction_finished):
 		_laptop.interaction_finished.connect(_on_laptop_interaction_finished)
 	if CycleState != null and CycleState.has_signal("lab_completed") and not CycleState.lab_completed.is_connected(_on_lab_completed):
 		CycleState.lab_completed.connect(_on_lab_completed)
 	if _fridge != null and _fridge.has_signal("feeding_finished") and not _fridge.feeding_finished.is_connected(_on_fridge_feeding_finished):
 		_fridge.feeding_finished.connect(_on_fridge_feeding_finished)
+
+func _on_laptop_interaction_succeeded(_result: Dictionary = {}) -> void:
+	_on_laptop_interaction_finished()
 
 func _on_laptop_interaction_finished() -> void:
 	if _branch == EndingBranch.NONE:

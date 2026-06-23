@@ -47,14 +47,14 @@ Definition of done: каждый пункт имеет focused test или scene
 2. ~~У каждого интерактива должны быть priority/distance/availability.~~
 3. ~~Подсказку показывает manager, а не множество объектов одновременно.~~
 4. ~~Manager должен проверять активную мини-игру.~~
-5. Частично разделить outcomes:
+5. ~~Частично разделить outcomes.~~
    - interaction requested;
    - interaction succeeded;
    - completed forever.
-   One-shot fail-open закрыт через `_should_auto_complete_after_interact()` и явное `complete_interaction()` на успехе у двери, холодильника, ноутбука и блокпоста. Минимальный dependency contract уже различает `COMPLETED` и `INTERACTION_REQUESTED`; полноценный `interaction_succeeded` / result outcome слой остаётся будущим шагом только при появлении третьего реального смысла.
+   One-shot fail-open закрыт через `_should_auto_complete_after_interact()` и явное `complete_interaction()` на успехе у двери, холодильника, ноутбука и блокпоста. Dependency contract различает `COMPLETED` и `INTERACTION_REQUESTED`; `InteractiveObject` дополнительно получил `interaction_result`, `interaction_succeeded`, `interaction_failed` и `interaction_cancelled`, а failed/cancelled outcomes не удовлетворяют completed dependencies.
 6. ~~Перевести dependency с прямого `InteractiveObject.is_completed` на typed conditions.~~ Минимально закрыто через `DependencyCondition`.
 
-Definition of done: overlapping Area2D больше не вызывает несколько интерактов одним нажатием; следующий остаток фазы - полноценные outcome results, если они понадобятся новым dependency-сценариям.
+Definition of done: overlapping Area2D больше не вызывает несколько интерактов одним нажатием; success/failure/cancel outcomes выражены typed-сигналами и покрыты контрактными тестами.
 
 ## Фаза 4: Scene Contracts И Validators
 

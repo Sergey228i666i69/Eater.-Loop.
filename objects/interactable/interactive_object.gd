@@ -4,12 +4,32 @@ class_name InteractiveObject
 signal player_entered(player: Node)
 signal player_exited(player: Node)
 signal interaction_requested(player: Node)
+signal interaction_result(result: Dictionary)
+signal interaction_succeeded(result: Dictionary)
+signal interaction_failed(result: Dictionary)
+signal interaction_cancelled(result: Dictionary)
 signal interaction_finished
+
+enum InteractionOutcome {
+	SUCCEEDED,
+	FAILED,
+	CANCELLED,
+}
 
 enum DependencyCondition {
 	COMPLETED,
 	INTERACTION_REQUESTED,
 }
+
+const RESULT_OUTCOME := "outcome"
+const RESULT_SUCCESS := "success"
+const RESULT_SOURCE := "source"
+const RESULT_REASON := "reason"
+const RESULT_PLAYER := "player"
+const FAIL_REASON_DISABLED := "disabled"
+const FAIL_REASON_DEPENDENCY := "dependency"
+const FAIL_REASON_UNAVAILABLE := "unavailable"
+const FAIL_REASON_CANCELLED := "cancelled"
 
 @export_group("Interaction")
 ## Узел Area2D для зоны взаимодействия (пусто — использовать сам объект).
@@ -42,6 +62,7 @@ var _player_in_range: Node = null
 var _prompts_enabled: bool = true
 var _interaction_focused: bool = false
 var _dependency_request_satisfied: bool = false
+var _last_interaction_result: Dictionary = {}
 var is_completed: bool = false
 
 func _ready() -> void:
@@ -78,9 +99,11 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 
 func request_interact() -> void:
 	if not _can_interact():
+		fail_interaction(FAIL_REASON_DISABLED)
 		return
 	if not _is_dependency_satisfied():
 		_show_locked_message()
+		fail_interaction(FAIL_REASON_DEPENDENCY)
 		return
 
 	interaction_requested.emit(_player_in_range)
@@ -89,9 +112,28 @@ func request_interact() -> void:
 	if _should_auto_complete_after_interact():
 		complete_interaction()
 
-func complete_interaction() -> void:
+func complete_interaction(result_data: Dictionary = {}) -> Dictionary:
 	is_completed = true
+	var result := _emit_interaction_result(InteractionOutcome.SUCCEEDED, result_data)
 	interaction_finished.emit()
+	return result
+
+func fail_interaction(reason: String = "", result_data: Dictionary = {}) -> Dictionary:
+	var next_result := result_data.duplicate(true)
+	var normalized_reason := reason.strip_edges()
+	if normalized_reason != "" and not next_result.has(RESULT_REASON):
+		next_result[RESULT_REASON] = normalized_reason
+	return _emit_interaction_result(InteractionOutcome.FAILED, next_result)
+
+func cancel_interaction(reason: String = FAIL_REASON_CANCELLED, result_data: Dictionary = {}) -> Dictionary:
+	var next_result := result_data.duplicate(true)
+	var normalized_reason := reason.strip_edges()
+	if normalized_reason != "" and not next_result.has(RESULT_REASON):
+		next_result[RESULT_REASON] = normalized_reason
+	return _emit_interaction_result(InteractionOutcome.CANCELLED, next_result)
+
+func get_last_interaction_result() -> Dictionary:
+	return _last_interaction_result.duplicate(true)
 
 func _on_interact() -> void:
 	pass
@@ -278,8 +320,8 @@ func _setup_dependency_listener() -> void:
 		return
 	if not is_instance_valid(dependency_object):
 		return
-	if not dependency_object.interaction_finished.is_connected(_on_dependency_finished):
-		dependency_object.interaction_finished.connect(_on_dependency_finished)
+	if not dependency_object.interaction_succeeded.is_connected(_on_dependency_succeeded):
+		dependency_object.interaction_succeeded.connect(_on_dependency_succeeded)
 	if not dependency_object.interaction_requested.is_connected(_on_dependency_interaction_requested):
 		dependency_object.interaction_requested.connect(_on_dependency_interaction_requested)
 
@@ -288,10 +330,15 @@ func _disconnect_dependency_listener() -> void:
 		return
 	if not is_instance_valid(dependency_object):
 		return
+	if dependency_object.interaction_succeeded.is_connected(_on_dependency_succeeded):
+		dependency_object.interaction_succeeded.disconnect(_on_dependency_succeeded)
 	if dependency_object.interaction_finished.is_connected(_on_dependency_finished):
 		dependency_object.interaction_finished.disconnect(_on_dependency_finished)
 	if dependency_object.interaction_requested.is_connected(_on_dependency_interaction_requested):
 		dependency_object.interaction_requested.disconnect(_on_dependency_interaction_requested)
+
+func _on_dependency_succeeded(_result: Dictionary = {}) -> void:
+	_on_dependency_finished()
 
 func _on_dependency_finished() -> void:
 	_refresh_prompt_state()
@@ -317,6 +364,24 @@ func _normalize_dependency_condition(condition: int) -> int:
 			return DependencyCondition.INTERACTION_REQUESTED
 		_:
 			return DependencyCondition.COMPLETED
+
+func _emit_interaction_result(outcome: int, result_data: Dictionary = {}) -> Dictionary:
+	var result := result_data.duplicate(true)
+	result[RESULT_OUTCOME] = outcome
+	result[RESULT_SUCCESS] = outcome == InteractionOutcome.SUCCEEDED
+	result[RESULT_SOURCE] = self
+	if _player_in_range != null and not result.has(RESULT_PLAYER):
+		result[RESULT_PLAYER] = _player_in_range
+	_last_interaction_result = result.duplicate(true)
+	interaction_result.emit(result)
+	match outcome:
+		InteractionOutcome.SUCCEEDED:
+			interaction_succeeded.emit(result)
+		InteractionOutcome.CANCELLED:
+			interaction_cancelled.emit(result)
+		_:
+			interaction_failed.emit(result)
+	return result
 
 func _is_interaction_available() -> bool:
 	if not _can_interact():

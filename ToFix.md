@@ -11,7 +11,7 @@
 Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
 
 - несколько singleton-ов одновременно владеют pause/fade/music состояниями;
-- интерактивы всё ещё различают только "попытку" и "завершено", но не полноценный outcome/result;
+- интерактивы получили typed outcome/result слой, но крупные владельцы pause/fade/music состояний всё ещё пересекаются;
 - STU-уровни и крупные сцены сильно завязаны на `NodePath`, имена детей и serialized overrides;
 - часть файловой гигиены и naming debt всё ещё отстала от текущего состояния;
 - крупные классы остаются дорогими для ревью и регрессий.
@@ -49,21 +49,20 @@
 - Убран dead `CursorManager._in_game` state и пустая `laptop_money.gd` specialization-wrapper.
 - Legacy-комментарии из runtime-кода очищены в `InteractiveObject`, `fridge.gd` и `laptop.gd`.
 - Input-device detection централизован в `global/input_device_utils.gd` и переиспользуется `GameDirector`, `InteractionPrompts` и `MainMenu`.
+- `InteractiveObject` получил typed `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`; final branch и completed dependencies переведены на success outcome.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
 ### 8. Нужен typed outcome/result слой для интерактивов
 
-Evidence:
+Статус: закрыто.
 
-- `objects/interactable/interactive_object.gd`: есть только `interaction_requested` и `interaction_finished`.
-- `DependencyCondition` различает `COMPLETED` и `INTERACTION_REQUESTED`, но не success/failure/cancelled/result payload.
-
-Что сделать:
-
-- ввести `interaction_succeeded` или `interaction_result(result)` с типом outcome;
-- мигрировать final branch, dependencies и future unlocks на result, а не на raw attempt;
-- оставить `interaction_requested` только для UI/analytics/attempt-level поведения.
+- `objects/interactable/interactive_object.gd` теперь эмитит `interaction_result(result)`, `interaction_succeeded(result)`, `interaction_failed(result)` и `interaction_cancelled(result)`.
+- `complete_interaction()` остаётся совместимым success wrapper и по-прежнему эмитит legacy `interaction_finished`.
+- Failed/cancelled outcomes не выставляют `is_completed` и не удовлетворяют `COMPLETED` dependencies.
+- `DependencyCondition.COMPLETED` слушает typed success outcome, а `INTERACTION_REQUESTED` остаётся attempt-level unlock.
+- `level_11_end.gd` выбирает laptop branch по `interaction_succeeded`, с fallback только для старых объектов без typed signal.
+- Контракт покрыт `tests/cases/test_interactive_dependency_conditions.gd` и `tests/cases/test_level11_end_flow_contracts.gd`.
 
 ### 9. Владение `get_tree().paused` размазано по singleton-ам
 

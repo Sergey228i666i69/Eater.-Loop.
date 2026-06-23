@@ -4,13 +4,13 @@
 
 ## Диагноз
 
-База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт completion, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Самые опасные fail-open случаи уже закрыты, dependency-контракт теперь typed на два реально используемых смысла, но система всё ещё держится на дисциплине сцен.
+База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт completion, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Самые опасные fail-open случаи уже закрыты, dependency-контракт typed, а result/outcome слой теперь явно различает success, failure и cancel. Оставшийся риск смещён к scene contracts: система всё ещё держится на дисциплине NodePath, групп и имён детей.
 
 ## Resolved Minimally: Dependency-Система Стала Typed
 
-`InteractiveObject` теперь различает `DependencyCondition.COMPLETED` и `DependencyCondition.INTERACTION_REQUESTED`. `COMPLETED` сохраняет старую семантику: зависимый объект открывается только после `complete_interaction()`. `INTERACTION_REQUESTED` открывает объект после попытки взаимодействия с dependency, но не помечает сам dependent завершённым. Requested-unlock состояние сохраняется в checkpoint state.
+`InteractiveObject` теперь различает `DependencyCondition.COMPLETED` и `DependencyCondition.INTERACTION_REQUESTED`. `COMPLETED` открывается после typed success outcome (`interaction_succeeded` / `complete_interaction()`), а не после raw attempt. `INTERACTION_REQUESTED` остаётся явным attempt-level unlock и не помечает сам dependent завершённым. Requested-unlock состояние сохраняется в checkpoint state.
 
-Реальные цепочки мигрированы явно: laptop→fridge в `level_03_deepseek` и `level_05_sql` используют `INTERACTION_REQUESTED`, `NoteStory`→fridge в `level_11_STU_1` и fridge→generator в `level_12_STU_2` используют `COMPLETED`. Сцены с `dependency_object` теперь валидируются на явный `dependency_condition`, а level scripts не должны вызывать `set_dependency_object()` без близкого `set_dependency_condition()`.
+Реальные цепочки мигрированы явно: laptop→fridge в `level_03_deepseek` и `level_05_sql` используют `INTERACTION_REQUESTED`, `NoteStory`→fridge в `level_11_STU_1` и fridge→generator в `level_12_STU_2` используют `COMPLETED`. Финальная laptop-ветка слушает `interaction_succeeded`, а legacy `interaction_finished` остаётся только совместимым success wrapper для старого кода. Сцены с `dependency_object` теперь валидируются на явный `dependency_condition`, а level scripts не должны вызывать `set_dependency_object()` без близкого `set_dependency_condition()`.
 
 Два прежних опасных класса багов тоже закрыты. Конкретный softlock из `level_04_findkey`, где `SearchSpot` с `door_key` зависел от двери `ToBedroom`, которая сама требовала `door_key`, закрыт: search spots больше не завязаны на эту дверь, а `test_scene_dependency_contracts.gd` ловит такие key-door циклы.
 
@@ -28,9 +28,9 @@
 - [`levels/cycles/level_11_stu_1.gd`](../levels/cycles/level_11_stu_1.gd), около строки 39.
 - [`levels/cycles/level_12_stu_2.gd`](../levels/cycles/level_12_stu_2.gd), около строки 56.
 
-Оставшийся практический риск: typed conditions пока покрывают только два реально используемых смысла. Если появятся зависимости на "успешно, но не навсегда", "провалено", "получен конкретный предмет" или "получен outcome с payload", понадобится отдельный result/outcome слой, а не дальнейшее расширение ad-hoc флагами.
+Result/outcome слой введён: `interaction_result(result)` несёт outcome, success flag, source, reason/player/payload; отдельные сигналы `interaction_succeeded`, `interaction_failed`, `interaction_cancelled` позволяют не путать успешное завершение с провалом или отменой. Дверь, холодильник и ноутбук явно эмитят failed/cancelled outcomes на известных fail-closed ветках.
 
-Следующий ремонт: вводить `interaction_succeeded` / outcome-result contract только когда появится третий реальный dependency-смысл.
+Оставшийся практический риск: payload-семантика пока минимальная. Если появятся зависимости на конкретный предмет или typed reward, нужно расширять result payload и валидаторы, а не возвращаться к ad-hoc флагам.
 
 ## Resolved: Нет Единого Фокуса Интерактива
 

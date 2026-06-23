@@ -9,6 +9,7 @@ class ProbeInteractive:
 		interactions += 1
 
 func run() -> Array[String]:
+	await _test_interaction_result_signals_separate_success_failure_and_legacy_finish()
 	await _test_default_condition_behaves_like_legacy_completion()
 	await _test_completed_condition_ignores_attempts()
 	await _test_interaction_requested_condition_unlocks_on_attempt()
@@ -16,6 +17,59 @@ func run() -> Array[String]:
 	await _test_rebinding_dependency_disconnects_old_signals()
 	await _test_prompt_and_availability_follow_typed_condition()
 	return get_failures()
+
+func _test_interaction_result_signals_separate_success_failure_and_legacy_finish() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var object := ProbeInteractive.new()
+	var dependent := ProbeInteractive.new()
+	var results: Array[Dictionary] = []
+	var successes: Array[Dictionary] = []
+	var failures: Array[Dictionary] = []
+	var legacy_finish_count: Array[int] = [0]
+	root.add_child(object)
+	root.add_child(dependent)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	dependent.set_dependency_object(object)
+	dependent.set_dependency_condition(InteractiveObject.DependencyCondition.COMPLETED)
+	object.interaction_result.connect(func(result: Dictionary) -> void:
+		results.append(result)
+	)
+	object.interaction_succeeded.connect(func(result: Dictionary) -> void:
+		successes.append(result)
+	)
+	object.interaction_failed.connect(func(result: Dictionary) -> void:
+		failures.append(result)
+	)
+	object.interaction_finished.connect(func() -> void:
+		legacy_finish_count[0] += 1
+	)
+
+	object.fail_interaction("probe_failure")
+	assert_true(not object.is_completed, "Failed interaction result must not mark object completed")
+	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Failed result must not satisfy completed dependency")
+	assert_eq(failures.size(), 1, "Failed interaction must emit typed failure signal")
+	assert_eq(int(failures[0].get(InteractiveObject.RESULT_OUTCOME)), InteractiveObject.InteractionOutcome.FAILED, "Failure result must expose failed outcome")
+	assert_eq(str(failures[0].get(InteractiveObject.RESULT_REASON)), "probe_failure", "Failure result must preserve reason")
+	assert_eq(legacy_finish_count[0], 0, "Failed result must not emit legacy interaction_finished")
+
+	object.complete_interaction({"payload": "ok"})
+	assert_true(object.is_completed, "Successful interaction result must mark object completed")
+	assert_true(bool(dependent.call("_is_dependency_satisfied")), "Successful result must satisfy completed dependency")
+	assert_eq(successes.size(), 1, "Successful interaction must emit typed success signal")
+	assert_eq(int(successes[0].get(InteractiveObject.RESULT_OUTCOME)), InteractiveObject.InteractionOutcome.SUCCEEDED, "Success result must expose succeeded outcome")
+	assert_eq(str(successes[0].get("payload")), "ok", "Success result must preserve payload")
+	assert_eq(legacy_finish_count[0], 1, "Successful completion must keep legacy interaction_finished compatibility")
+	assert_eq(results.size(), 2, "Typed result stream must include failure and success outcomes")
+
+	root.queue_free()
+	await tree.process_frame
 
 func _test_default_condition_behaves_like_legacy_completion() -> void:
 	var tree := Engine.get_main_loop() as SceneTree

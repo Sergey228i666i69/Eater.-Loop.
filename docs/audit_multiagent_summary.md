@@ -8,7 +8,7 @@
 
 Первичная проблемность аудита: **7.3/10**. Текущая проблемность после ремонтных проходов: **5.6/10**.
 
-Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов и минимальные typed dependency conditions. Костыльность всё ещё заметна в поддержке: крупные singleton-и, NodePath/name contracts, неполная outcome-система и огромные сцены остаются главными источниками риска.
+Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов, typed dependency conditions и typed interaction outcomes. Костыльность всё ещё заметна в поддержке: крупные singleton-и, NodePath/name contracts и огромные сцены остаются главными источниками риска.
 
 ## Сводные Оценки
 
@@ -22,7 +22,7 @@
 
 ## Самые Важные P1
 
-1. **Outcome-система интерактивов всё ещё слишком минимальная.** Key-door цикл, one-shot fail-open, reversible trigger risk и два реальных dependency-смысла закрыты, но дальше `COMPLETED` / `INTERACTION_REQUESTED` слоя пока нет typed result/outcome model.
+1. **Scene contracts всё ещё слишком хрупкие.** Key-door цикл, one-shot fail-open, reversible trigger risk, typed dependency conditions и typed result/outcome model закрыты, но NodePath/group/child-name контракты пока держатся на точечных тестах.
 2. **God objects остаются крупными.** `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager` всё ещё смешивают много областей ответственности.
 3. **NodePath/name contracts ломкие.** Переименование дочернего узла может silently выключить поведение.
 4. **Огромные STU-сцены требуют DRY-разбора.** Scene instances и reusable contracts пока не доведены до системного уровня.

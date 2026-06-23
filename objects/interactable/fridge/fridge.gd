@@ -136,11 +136,13 @@ func _on_interact() -> void:
 	# 0. Проверка: лабораторная не завершена
 	if _requires_lab_gate() and not _has_required_lab_completion():
 		_show_locked_message()
+		fail_interaction("lab_required")
 		return
 
 	# 1. Проверка: уже ел?
 	if CycleState != null and CycleState.has_eaten_this_cycle():
 		UIMessage.show_notification("Я уже поел.")
+		fail_interaction("already_ate")
 		return
 	
 	# 2. Если замок закрыт — запускаем взлом
@@ -158,6 +160,7 @@ func _should_auto_complete_after_interact() -> bool:
 func _start_code_lock() -> void:
 	if code_lock_scene == null:
 		push_warning("Frizzer: Не назначена сцена Code Lock!")
+		fail_interaction("missing_code_lock_scene")
 		return
 	
 	# 1. Создаем экземпляр (Node) из PackedScene
@@ -176,9 +179,11 @@ func _start_code_lock() -> void:
 	
 	# Добавляем обработку закрытия (чтобы разблокировать игрока, если он нажал отмену)
 	lock_instance.tree_exited.connect(func():
+		var was_interacting := _is_interacting
 		_is_interacting = false
-		if require_access_code and not _code_unlocked:
+		if require_access_code and not _code_unlocked and was_interacting:
 			_show_access_code_failed_message()
+			cancel_interaction("code_lock_cancelled")
 	)
 
 	# 4. Добавляем замок на сцену (поверх всего, но внутри текущей сцены)
@@ -199,7 +204,10 @@ func _on_unlock_success() -> void:
 	# Давай заставим нажать Е еще раз, чтобы игрок увидел открытую дверь.
 
 func _on_unlock_cancel() -> void:
+	var was_interacting := _is_interacting
 	_is_interacting = false
+	if was_interacting:
+		cancel_interaction("code_lock_cancelled")
 
 # --- ЛОГИКА ЕДЫ ---
 func _start_feeding_process() -> void:
@@ -216,6 +224,7 @@ func _start_feeding_process() -> void:
 	if selected_scene == null or not has_food:
 		push_warning("Frizzer: Нет сцены мини-игры или еды!")
 		_is_interacting = false
+		fail_interaction("missing_feeding_scene_or_food")
 		if UIMessage:
 			UIMessage.show_notification("Холодильник пуст.")
 		return

@@ -95,6 +95,8 @@ func _on_interact() -> void:
 	# 1. Если работа уже сдана
 	if _is_lab_completed():
 		_handle_completed_interaction()
+		if not is_completed:
+			complete_interaction({"reason": "lab_already_completed"})
 		return
 
 	# 2. Запускаем мини-игру
@@ -102,9 +104,11 @@ func _on_interact() -> void:
 
 func _start_lab_minigame() -> void:
 	if _current_minigame != null:
+		fail_interaction("minigame_already_open")
 		return
 	if minigame_scene == null:
 		push_warning("Laptop: Не назначена сцена мини-игры!")
+		fail_interaction("missing_minigame_scene")
 		return
 	
 	var game = minigame_scene.instantiate()
@@ -141,6 +145,8 @@ func _on_minigame_closed() -> void:
 	if _is_lab_completed():
 		_handle_completed_interaction()
 		complete_interaction() # Помечаем ноутбук как "пройденный" (для других цепочек)
+	else:
+		fail_interaction("lab_not_completed")
 
 func _handle_completed_interaction() -> void:
 	if show_note_on_completed and completed_note_texture:

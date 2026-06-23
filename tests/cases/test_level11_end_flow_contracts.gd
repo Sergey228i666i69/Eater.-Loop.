@@ -6,6 +6,7 @@ class FakeInteractive:
 	extends Node
 
 	signal interaction_requested(player: Node)
+	signal interaction_succeeded(result: Dictionary)
 	signal interaction_finished
 	signal feeding_finished
 
@@ -65,6 +66,9 @@ func _test_success_signals_choose_ending_branch() -> void:
 	var laptop_fridge: FakeInteractive = laptop_fixture["fridge"]
 
 	laptop.interaction_finished.emit()
+	assert_eq(int(laptop_level.get("_branch")), 0, "Legacy laptop finish alone must not choose laptop ending branch when typed success exists")
+
+	laptop.interaction_succeeded.emit({"success": true})
 	assert_eq(int(laptop_level.get("_branch")), 1, "Laptop success must choose laptop ending branch")
 	assert_true(not laptop_fridge.is_enabled, "Laptop branch must disable fridge after successful laptop outcome")
 	await _free_fixture(tree, laptop_fixture)

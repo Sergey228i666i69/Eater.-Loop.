@@ -59,7 +59,9 @@
 
 - `InteractiveObject` является базовым публичным контрактом интеракции.
 - Зависимости между интерактивными объектами задаются через `set_dependency_object(...)` вместе с явным `set_dependency_condition(...)`.
-- Доступные dependency-смыслы: `COMPLETED` для успешного завершения dependency и `INTERACTION_REQUESTED` для unlock-а после попытки взаимодействия.
+- Доступные dependency-смыслы: `COMPLETED` для typed success outcome dependency и `INTERACTION_REQUESTED` для unlock-а после попытки взаимодействия.
+- Любой интерактив может эмитить `interaction_result(result)`, `interaction_succeeded(result)`, `interaction_failed(result)` и `interaction_cancelled(result)`.
+- `complete_interaction(...)` является success wrapper и сохраняет legacy `interaction_finished`; failed/cancelled outcomes не должны выставлять `is_completed`.
 - Включение/отключение объекта делается через `set_interaction_enabled(...)`, а не прямой раздельной правкой prompt/input флагов.
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
 - Если зависимость не выполнена, базовый `InteractiveObject` обязан показать `locked_message`, если наследник не переопределил это поведение явно.
@@ -113,3 +115,4 @@
 - Добавлена классификация ending-сцен в `SceneContext` и единое blocking-правило для pause menu поверх концовок.
 - Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup и fail-forward LLM glitch contract.
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
+- `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.

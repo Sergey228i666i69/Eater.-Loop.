@@ -59,6 +59,7 @@ func _ready() -> void:
 
 func _on_interact() -> void:
 	if _is_transitioning:
+		fail_interaction("transitioning")
 		return
 	_try_use_door()
 
@@ -68,6 +69,7 @@ func _should_auto_complete_after_interact() -> bool:
 func _try_use_door() -> void:
 	var player = get_interacting_player()
 	if player == null:
+		fail_interaction("no_player")
 		return
 	if is_locked:
 		if required_key_id != "":
@@ -89,10 +91,12 @@ func _try_use_door() -> void:
 					UIMessage.show_notification(door_locked_message)
 				
 				_play_sound(sfx_locked) # ЗВУК: Дверь заперта
+				fail_interaction("locked")
 				return
 
 		UIMessage.show_notification(door_locked_message)
 		_play_sound(sfx_locked) # ЗВУК: Дверь заперта (без ключа)
+		fail_interaction("locked")
 		return
 
 	_play_sound(sfx_open) # ЗВУК: Обычное открытие
@@ -104,6 +108,7 @@ func _perform_transition() -> void:
 	
 	var player = get_interacting_player()
 	if not is_instance_valid(player):
+		fail_interaction("no_player")
 		_is_transitioning = false
 		return
 
@@ -112,6 +117,7 @@ func _perform_transition() -> void:
 	
 	if target_marker.is_empty():
 		push_warning("Door: target_marker не задан.")
+		fail_interaction("missing_target_marker")
 		if is_instance_valid(player): player.set_physics_process(true)
 		_is_transitioning = false
 		return
@@ -119,11 +125,13 @@ func _perform_transition() -> void:
 	var marker := get_node_or_null(target_marker)
 	if marker == null:
 		push_warning("Door: target_marker не найден.")
+		fail_interaction("target_marker_not_found")
 		if is_instance_valid(player): player.set_physics_process(true)
 		_is_transitioning = false
 		return
 	if marker == self:
 		push_warning("Door: target_marker не может указывать на саму дверь.")
+		fail_interaction("self_target_marker")
 		if is_instance_valid(player): player.set_physics_process(true)
 		_is_transitioning = false
 		return
