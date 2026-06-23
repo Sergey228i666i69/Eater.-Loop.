@@ -67,6 +67,10 @@ signal flashlight_activation_denied(charge_ratio: float)
 @export var skeleton_light_run_animation: StringName = &"light_run"
 ## Длительность бленда между скелетными клипами.
 @export var skeleton_animation_blend_time: float = 0.08
+## Интервал шагов для skeleton-only ходьбы.
+@export var skeleton_walk_step_interval: float = 0.4
+## Интервал шагов для skeleton-only лёгкого бега.
+@export var skeleton_light_run_step_interval: float = 0.275
 
 var keys: Dictionary = {}
 
@@ -99,6 +103,8 @@ var _time_since_run: float = 0.0
 var _adjusting_frame: bool = false
 var _movement_blocked: bool = false
 var _current_skeleton_animation: StringName = StringName()
+var _skeleton_step_timer: float = 0.0
+var _skeleton_step_counter: int = 0
 
 # Переменные для аудио
 var _flashlight_player: AudioStreamPlayer
@@ -143,10 +149,11 @@ func _ready() -> void:
 		_sprite_under_pivot = pivot != null and pivot.is_ancestor_of(sprite)
 		_setup_animations()
 		sprite.frame_changed.connect(_on_sprite_frame_changed)
-		step_audio = _resolve_step_audio_component()
-		if step_audio:
-			step_audio.configure(step_sounds, step_volume, step_frame_indices, walk_animation)
-			step_audio.step_triggered.connect(_on_step_triggered)
+
+	step_audio = _resolve_step_audio_component()
+	if step_audio:
+		step_audio.configure(step_sounds, step_volume, step_frame_indices, walk_animation)
+		step_audio.step_triggered.connect(_on_step_triggered)
 	
 	if flashlight:
 		_flashlight_base_scale = flashlight.scale
@@ -466,6 +473,7 @@ func _update_walk_animation(_delta: float, direction: float) -> void:
 	if sprite == null or sprite.sprite_frames == null:
 		_is_walking = is_moving
 		_update_skeleton_motion_animation(is_moving)
+		_update_skeleton_step_audio(_delta, is_moving)
 		return
 	if is_moving:
 		if not _is_walking:
@@ -495,6 +503,23 @@ func _play_skeleton_animation(animation_name: StringName) -> void:
 		return
 	_current_skeleton_animation = animation_name
 	skeleton_animation_player.play(animation_name, skeleton_animation_blend_time)
+
+func _update_skeleton_step_audio(delta: float, is_moving: bool) -> void:
+	if step_audio == null:
+		return
+	if not is_moving:
+		_skeleton_step_timer = 0.0
+		_skeleton_step_counter = 0
+		return
+	var interval := skeleton_light_run_step_interval if _is_running else skeleton_walk_step_interval
+	if interval <= 0.0:
+		return
+	_skeleton_step_timer += delta
+	while _skeleton_step_timer >= interval:
+		_skeleton_step_timer -= interval
+		_skeleton_step_counter += 1
+		var source_animation := skeleton_light_run_animation if _is_running else skeleton_walk_animation
+		step_audio.trigger_step(_skeleton_step_counter, source_animation)
 
 func _update_walk_animation_speed() -> void:
 	if sprite == null or sprite.sprite_frames == null:

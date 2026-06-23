@@ -1354,6 +1354,7 @@
 │   ├── Andry.png.import
 │   ├── AndryWithFlashlight.png
 │   ├── AndryWithFlashlight.png.import
+│   ├── LEGASY-ANIMATIONS-CHARACTER.tscn
 │   ├── UI_Button_Sprite.png
 │   ├── UI_Button_Sprite.png.import
 │   ├── UI_Button_Sprite_Dualsense.png
@@ -1494,6 +1495,7 @@
 │   │   ├── test_pause_manager_tokens.gd
 │   │   ├── test_pause_manager_tokens.gd.uid
 │   │   ├── test_player_skeleton_rig_contract.gd
+│   │   ├── test_player_skeleton_rig_contract.gd.uid
 │   │   ├── test_project_config.gd
 │   │   ├── test_project_config.gd.uid
 │   │   ├── test_respawn_checkpoint_restore.gd
@@ -1546,4 +1548,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1423 files
+124 directories, 1425 files

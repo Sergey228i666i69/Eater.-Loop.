@@ -584,6 +584,98 @@ auto_calculate_length_and_angle = false
 length = 58.0
 bone_angle = 0.0
 
+[node name="VisualPelvis" type="Polygon2D" parent="Skeleton2D/Hips"]
+color = Color(0.43, 0.5, 0.66, 1)
+polygon = PackedVector2Array(-46, -4, 47, -5, 58, 42, 30, 70, -34, 68, -58, 40)
+
+[node name="VisualTorso" type="Polygon2D" parent="Skeleton2D/Hips/Spine/Chest"]
+color = Color(0.71, 0.69, 0.63, 1)
+polygon = PackedVector2Array(-92, -38, 82, -35, 70, 92, -54, 108)
+
+[node name="VisualNeck" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/Neck"]
+width = 30.0
+default_color = Color(0.78, 0.63, 0.53, 1)
+points = PackedVector2Array(0, 0, 12, -42)
+
+[node name="VisualHead" type="Polygon2D" parent="Skeleton2D/Hips/Spine/Chest/Neck/Head"]
+color = Color(0.78, 0.63, 0.53, 1)
+polygon = PackedVector2Array(-36, -82, 42, -78, 60, -22, 48, 38, 2, 62, -42, 42, -58, -18)
+
+[node name="VisualGlasses" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/Neck/Head"]
+width = 6.0
+default_color = Color(0.05, 0.05, 0.055, 1)
+points = PackedVector2Array(-38, -18, -18, -25, 6, -22, 18, -14, 43, -15)
+
+[node name="VisualBackUpperArm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
+width = 36.0
+default_color = Color(0.71, 0.69, 0.63, 1)
+points = PackedVector2Array(0, 0, 24, 100)
+
+[node name="VisualBackForearm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
+width = 31.0
+default_color = Color(0.78, 0.63, 0.53, 1)
+points = PackedVector2Array(0, 0, 9, 106)
+
+[node name="VisualBackHand" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand"]
+width = 25.0
+default_color = Color(0.78, 0.63, 0.53, 1)
+points = PackedVector2Array(0, 0, 0, 30)
+
+[node name="VisualFrontUpperArm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
+width = 38.0
+default_color = Color(0.71, 0.69, 0.63, 1)
+points = PackedVector2Array(0, 0, -18, 112)
+
+[node name="VisualFrontForearm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
+width = 31.0
+default_color = Color(0.78, 0.63, 0.53, 1)
+points = PackedVector2Array(0, 0, -6, 110)
+
+[node name="VisualFrontHand" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
+width = 25.0
+default_color = Color(0.78, 0.63, 0.53, 1)
+points = PackedVector2Array(0, 0, 0, 30)
+
+[node name="VisualFlashlight" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount"]
+width = 22.0
+default_color = Color(0.09, 0.095, 0.1, 1)
+points = PackedVector2Array(0, 0, -52, 0)
+
+[node name="VisualFlashlightHead" type="Polygon2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount"]
+position = Vector2(-56, 0)
+color = Color(0.045, 0.048, 0.052, 1)
+polygon = PackedVector2Array(-11, -16, 12, -12, 14, 12, -12, 16)
+
+[node name="VisualBackThigh" type="Line2D" parent="Skeleton2D/Hips/BackThigh"]
+width = 48.0
+default_color = Color(0.43, 0.5, 0.66, 1)
+points = PackedVector2Array(0, 0, 12, 138)
+
+[node name="VisualBackShin" type="Line2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
+width = 42.0
+default_color = Color(0.43, 0.5, 0.66, 1)
+points = PackedVector2Array(0, 0, -4, 138)
+
+[node name="VisualBackFoot" type="Line2D" parent="Skeleton2D/Hips/BackThigh/BackShin/BackFoot"]
+width = 29.0
+default_color = Color(0.74, 0.61, 0.5, 1)
+points = PackedVector2Array(0, 0, 58, 0)
+
+[node name="VisualFrontThigh" type="Line2D" parent="Skeleton2D/Hips/FrontThigh"]
+width = 48.0
+default_color = Color(0.5, 0.58, 0.74, 1)
+points = PackedVector2Array(0, 0, -11, 138)
+
+[node name="VisualFrontShin" type="Line2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
+width = 42.0
+default_color = Color(0.5, 0.58, 0.74, 1)
+points = PackedVector2Array(0, 0, 5, 138)
+
+[node name="VisualFrontFoot" type="Line2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot"]
+width = 29.0
+default_color = Color(0.74, 0.61, 0.5, 1)
+points = PackedVector2Array(0, 0, 58, 0)
+
 [node name="SkeletonAnimationPlayer" type="AnimationPlayer" parent="."]
 libraries/ = SubResource("AnimationLibrary_player_skeleton")
 autoplay = &"idle"

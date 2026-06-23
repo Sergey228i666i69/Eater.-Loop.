@@ -90,11 +90,12 @@
 
 ### 2.8 Контур визуального рига героя
 
-- `player/player.tscn` сохраняет текущий `AnimatedSprite2D` как runtime-визуал ходьбы.
-- `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и выровнен по позиции/масштабу текущего спрайта.
-- Имена костей рига считаются контрактом для будущих skeletal animation клипов: `Hips`, `Spine`, `Chest`, `Head`, `Front*`, `Back*` и `FlashlightMount`.
-- `player.gd` зеркалит риг вместе с направлением игрока, чтобы будущие bone-based skins не расходились с текущим разворотом героя.
+- `player/player.tscn` является активной skeleton-only сценой игрока; старый png/sequential-sprite вариант сохранён в `player/LEGASY-ANIMATIONS-CHARACTER.tscn`.
+- `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и держит видимые `Line2D`/`Polygon2D` части тела как детей костей.
+- Имена костей рига считаются контрактом для skeletal animation клипов: `Hips`, `Spine`, `Chest`, `Head`, `Front*`, `Back*` и `FlashlightMount`.
+- `player.gd` зеркалит риг вместе с направлением игрока, чтобы bone-based skin не расходился с текущим разворотом героя.
 - `SkeletonAnimationPlayer` внутри рига держит loop-клипы `idle`, `walk` и `light_run`; `player.gd` переключает их по фактическому движению.
+- Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 
 ## 3. Границы API (важно)
 
@@ -143,5 +144,6 @@
 - Добавлены scene-contract validators для critical NodePath/child contracts и отдельные STU path contracts.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
 - `UIMessage`, `MinigameController` и death-title часть `GameDirector` получили facade-preserving helper split-ы.
-- Добавлен скелетный `PlayerSkeletonRig` для будущих bone-анимаций героя без замены текущего `AnimatedSprite2D`.
+- Добавлен скелетный `PlayerSkeletonRig` и активный skeleton-only `player.tscn`.
 - `PlayerSkeletonRig` получил первые loop-клипы `idle`, `walk` и `light_run`, а `Player` начал переключать их вместе с текущей логикой движения.
+- Активный `player.tscn` переведён на skeleton-only визуал, старый png-вариант сохранён в `LEGASY-ANIMATIONS-CHARACTER.tscn`.

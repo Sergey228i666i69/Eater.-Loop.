@@ -58,7 +58,12 @@ func _resolve_sprite() -> void:
 		_sprite = owner_sprite
 		return
 
-	push_warning("StepAudioComponent: AnimatedSprite2D не найден.")
+func trigger_step(frame_index: int, source_animation_name: StringName) -> void:
+	_play_step_sound()
+	step_triggered.emit(frame_index, source_animation_name)
+
+func has_step_sounds() -> bool:
+	return not step_sounds.is_empty()
 
 func _update_step_frame_lookup() -> void:
 	_step_frame_lookup.clear()
