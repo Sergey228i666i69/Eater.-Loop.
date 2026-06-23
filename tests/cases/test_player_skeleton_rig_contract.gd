@@ -15,8 +15,10 @@ const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
 const LIGHT_RUN_SAMPLE_TIMES: Array[float] = [0.0, 0.06875, 0.1375, 0.20625, 0.275, 0.34375, 0.4125, 0.48125]
 const FOOT_CONTACT_GROUND_TOLERANCE := 12.0
-const WALK_MIN_LIMB_SWING_RANGE := 0.18
-const LIGHT_RUN_MIN_LIMB_SWING_RANGE := 0.3
+const WALK_MIN_LIMB_SWING_RANGE := 0.1
+const WALK_MAX_LIMB_SWING_RANGE := 0.16
+const LIGHT_RUN_MIN_LIMB_SWING_RANGE := 0.18
+const LIGHT_RUN_MAX_LIMB_SWING_RANGE := 0.24
 const FRONT_THIGH_ROTATION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh:rotation")
 const FRONT_UPPER_ARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm:rotation")
 const SOURCE_ANDRY_TEXTURE_SIZE := Vector2i(226, 774)
@@ -93,11 +95,11 @@ func _test_rig_scene_contract() -> void:
 				assert_true(animation.get_track_count() > 0, "Player skeleton animation must animate at least one bone: %s" % animation_name)
 				_assert_animation_tracks_use_cubic_interpolation(animation, String(animation_name))
 				if animation_name == &"walk":
-					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, String(animation_name))
-					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, WALK_MAX_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, WALK_MAX_LIMB_SWING_RANGE, String(animation_name))
 				elif animation_name == &"light_run":
-					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_LIMB_SWING_RANGE, String(animation_name))
-					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_LIMB_SWING_RANGE, LIGHT_RUN_MAX_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_LIMB_SWING_RANGE, LIGHT_RUN_MAX_LIMB_SWING_RANGE, String(animation_name))
 		if skeleton != null:
 			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"walk", WALK_CONTACT_TIMES, WALK_SAMPLE_TIMES)
 			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"light_run", LIGHT_RUN_CONTACT_TIMES, LIGHT_RUN_SAMPLE_TIMES)
@@ -205,7 +207,7 @@ func _assert_animation_tracks_use_cubic_interpolation(animation: Animation, anim
 			"Player skeleton animation %s track %d must use cubic interpolation for smoother bone motion" % [animation_name, track_index]
 		)
 
-func _assert_animation_track_value_range(animation: Animation, track_path: NodePath, min_range: float, animation_name: String) -> void:
+func _assert_animation_track_value_range(animation: Animation, track_path: NodePath, min_range: float, max_range: float, animation_name: String) -> void:
 	var track_index := -1
 	for candidate_index in range(animation.get_track_count()):
 		if animation.track_get_path(candidate_index) == track_path:
@@ -220,7 +222,9 @@ func _assert_animation_track_value_range(animation: Animation, track_path: NodeP
 		var value := float(animation.track_get_key_value(track_index, key_index))
 		min_value = minf(min_value, value)
 		max_value = maxf(max_value, value)
-	assert_true(max_value - min_value >= min_range, "Player skeleton animation %s track %s must keep visible limb swing" % [animation_name, track_path])
+	var value_range := max_value - min_value
+	assert_true(value_range >= min_range, "Player skeleton animation %s track %s must keep visible limb swing" % [animation_name, track_path])
+	assert_true(value_range <= max_range, "Player skeleton animation %s track %s must avoid excessive cutout-breaking swing" % [animation_name, track_path])
 
 func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player: AnimationPlayer, animation_name: String, start_position: float, before_contact: float, after_contact: float) -> void:
 	var step_audio := player.get_node_or_null("StepAudioComponent") as StepAudioComponent
