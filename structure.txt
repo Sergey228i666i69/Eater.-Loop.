@@ -1340,6 +1340,23 @@
 │   │   ├── HeartBeat_1.wav
 │   │   └── HeartBeat_1.wav.import
 │   ├── skeleton
+│   │   ├── covers
+│   │   │   ├── back_ankle.png
+│   │   │   ├── back_ankle.png.import
+│   │   │   ├── back_elbow.png
+│   │   │   ├── back_elbow.png.import
+│   │   │   ├── back_knee.png
+│   │   │   ├── back_knee.png.import
+│   │   │   ├── back_shoulder.png
+│   │   │   ├── back_shoulder.png.import
+│   │   │   ├── front_ankle.png
+│   │   │   ├── front_ankle.png.import
+│   │   │   ├── front_elbow.png
+│   │   │   ├── front_elbow.png.import
+│   │   │   ├── front_knee.png
+│   │   │   ├── front_knee.png.import
+│   │   │   ├── front_shoulder.png
+│   │   │   └── front_shoulder.png.import
 │   │   └── cutouts
 │   │       ├── back_foot.png
 │   │       ├── back_foot.png.import
@@ -1586,4 +1603,4 @@
 ├── project.godot
 └── structure.txt
 
-127 directories, 1460 files
+128 directories, 1476 files

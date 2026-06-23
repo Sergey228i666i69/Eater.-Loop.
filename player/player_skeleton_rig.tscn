@@ -17,6 +17,14 @@
 [ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_thigh.png" id="14_front_thigh"]
 [ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_shin.png" id="15_front_shin"]
 [ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_foot.png" id="16_front_foot"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/back_shoulder.png" id="17_back_shoulder"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/back_elbow.png" id="18_back_elbow"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/back_knee.png" id="19_back_knee"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/back_ankle.png" id="20_back_ankle"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/front_shoulder.png" id="21_front_shoulder"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/front_elbow.png" id="22_front_elbow"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/front_knee.png" id="23_front_knee"]
+[ext_resource type="Texture2D" path="res://player/skeleton/covers/front_ankle.png" id="24_front_ankle"]
 
 [sub_resource type="Animation" id="Animation_player_skeleton_idle"]
 resource_name = "idle"
@@ -614,11 +622,23 @@ z_index = -5
 texture = ExtResource("4_back_upper_arm")
 position = Vector2(0, 57.5)
 
+[node name="VisualBackShoulderCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
+light_mask = 2
+z_index = -4
+texture = ExtResource("17_back_shoulder")
+position = Vector2(0, 14)
+
 [node name="VisualBackForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
 light_mask = 2
 z_index = -5
 texture = ExtResource("5_back_forearm")
 position = Vector2(0, 57)
+
+[node name="VisualBackElbowCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
+light_mask = 2
+z_index = -4
+texture = ExtResource("18_back_elbow")
+position = Vector2(0.5, 0)
 
 [node name="VisualBackHand" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand"]
 light_mask = 2
@@ -638,11 +658,21 @@ z_index = -4
 texture = ExtResource("12_back_shin")
 position = Vector2(0, 89)
 
+[node name="VisualBackKneeCover" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
+light_mask = 2
+z_index = -3
+texture = ExtResource("19_back_knee")
+
 [node name="VisualBackFoot" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin/BackFoot"]
 light_mask = 2
 z_index = -4
 texture = ExtResource("13_back_foot")
 position = Vector2(4.5, 11)
+
+[node name="VisualBackAnkleCover" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin/BackFoot"]
+light_mask = 2
+z_index = -3
+texture = ExtResource("20_back_ankle")
 
 [node name="VisualTorso" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest"]
 light_mask = 2
@@ -674,11 +704,21 @@ z_index = 3
 texture = ExtResource("15_front_shin")
 position = Vector2(5.5, 93.5)
 
+[node name="VisualFrontKneeCover" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("23_front_knee")
+
 [node name="VisualFrontFoot" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot"]
 light_mask = 2
 z_index = 3
 texture = ExtResource("16_front_foot")
 position = Vector2(-2, 18.5)
+
+[node name="VisualFrontAnkleCover" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("24_front_ankle")
 
 [node name="VisualFrontUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
 light_mask = 2
@@ -686,11 +726,22 @@ z_index = 4
 texture = ExtResource("7_front_upper_arm")
 position = Vector2(0, 57)
 
+[node name="VisualFrontShoulderCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
+light_mask = 2
+z_index = 5
+texture = ExtResource("21_front_shoulder")
+position = Vector2(-3, 13)
+
 [node name="VisualFrontForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
 light_mask = 2
 z_index = 4
 texture = ExtResource("8_front_forearm")
 position = Vector2(0, 71.5)
+
+[node name="VisualFrontElbowCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
+light_mask = 2
+z_index = 5
+texture = ExtResource("22_front_elbow")
 
 [node name="VisualFrontHand" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
 light_mask = 2
