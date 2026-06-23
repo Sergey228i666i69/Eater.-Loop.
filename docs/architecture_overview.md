@@ -20,6 +20,9 @@
   Жизненный цикл мини-игр (пауза, музыка, cancel, таймер, gamepad-схемы).
 - `UIMessage`, `InteractionPrompts`, `CursorManager`, `StaminaBar`, `FlashlightBar`
   UI-слой, системные подсказки, курсор и индикаторы игрока.
+- `InputDeviceUtils` (`res://global/input_device_utils.gd`)
+  Общий helper определения keyboard/mouse/gamepad/Sony input-событий для UI prompt-ов,
+  меню и директорского input-mode state.
 
 ## 2. Ключевые контуры
 
@@ -60,6 +63,13 @@
 - Включение/отключение объекта делается через `set_interaction_enabled(...)`, а не прямой раздельной правкой prompt/input флагов.
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
 - Если зависимость не выполнена, базовый `InteractiveObject` обязан показать `locked_message`, если наследник не переопределил это поведение явно.
+
+### 2.6 Контур input-device detection
+
+- Определение keyboard/mouse/gamepad input-kind должно идти через `InputDeviceUtils`.
+- `InteractionPrompts` может отличать Sony gamepad для player-facing button prompt-ов.
+- `GameDirector` и `MainMenu` используют тот же helper для переключения input mode и navigation mode.
+- Новые проверки устройств не должны дублировать local deadzone/name/GUID эвристики в сценовых скриптах.
 
 ## 3. Границы API (важно)
 
@@ -102,3 +112,4 @@
 - Эти изменения не меняют игровой процесс и затрагивают только подкапотную часть.
 - Добавлена классификация ending-сцен в `SceneContext` и единое blocking-правило для pause menu поверх концовок.
 - Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup и fail-forward LLM glitch contract.
+- Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.

@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После P3 hygiene pass parser-only и полный suite проходили, полный suite содержит 59 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После input-device pass parser-only и полный suite проходили, полный suite содержит 60 тестов.
 
 Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
 
@@ -42,12 +42,13 @@
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
 - Ending-сцены классифицируются через `SceneContext`, и pause menu не открывается поверх концовок.
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
-- Stale current-state docs обновлены под `level_14_end.*` и suite из 59 тестов.
+- Stale current-state docs обновлены под `level_14_end.*` и suite из 60 тестов.
 - Obstacle special-case покрыт контрактным тестом.
 - Export presets проверяются static contract-тестом в suite; локальный macOS export smoke прошёл с templates.
 - Удалены `.gitignore.save`, ignored `global/export_presets.cfg`, legacy icon copies и неиспользуемый `Projector2`.
 - Убран dead `CursorManager._in_game` state и пустая `laptop_money.gd` specialization-wrapper.
 - Legacy-комментарии из runtime-кода очищены в `InteractiveObject`, `fridge.gd` и `laptop.gd`.
+- Input-device detection централизован в `global/input_device_utils.gd` и переиспользуется `GameDirector`, `InteractionPrompts` и `MainMenu`.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -201,7 +202,7 @@ Evidence:
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (59)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (60)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 
@@ -267,14 +268,11 @@ Evidence:
 
 ### 30. Дедуплицировать input-device detection
 
-Evidence:
+Статус: закрыто.
 
-- похожая логика есть в `GameDirector`, `InteractionPrompts`, `MainMenu`.
-
-Что сделать:
-
-- вынести общий helper/service для keyboard/gamepad/Sony/Xbox detection;
-- особенно полезно перед исправлением prompt-клавиш.
+- Общая логика keyboard/mouse/gamepad/Sony detection вынесена в `global/input_device_utils.gd`.
+- `levels/game_director.gd`, `levels/interaction_prompts.gd` и `levels/menu/main_menu.gd` используют один helper вместо локальных копий.
+- Контракт покрыт `tests/cases/test_input_device_utils.gd`.
 
 ### 31. Проверить пустые specialization wrappers
 

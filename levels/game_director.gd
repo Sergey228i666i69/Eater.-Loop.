@@ -113,10 +113,10 @@ var _death_title_sequence_index: int = 0
 const STALKER_SPAWN_GROUP := "stalker_spawn"
 const STALKER_ENEMY_GROUP := "stalker_enemy"
 const STALKER_NODE_NAME := "GameDirectorStalker"
-const INPUT_KIND_KEYBOARD := 0
-const INPUT_KIND_GAMEPAD := 1
-const INPUT_KIND_UNKNOWN := -1
-const JOYPAD_MOTION_DEADZONE := 0.45
+const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
+const INPUT_KIND_KEYBOARD := InputDeviceUtilsClass.InputKind.KEYBOARD
+const INPUT_KIND_GAMEPAD := InputDeviceUtilsClass.InputKind.GAMEPAD
+const INPUT_KIND_UNKNOWN := InputDeviceUtilsClass.InputKind.UNKNOWN
 const CycleLevelBase = preload("res://levels/cycles/level.gd")
 const DEATH_TITLE_GLITCH_SHADER: Shader = preload("res://shaders/death_text_glitch.gdshader")
 const LIGHT_ONLY_JUMP_SHADER: Shader = preload("res://shaders/light_only_jump_overlay.gdshader")
@@ -909,34 +909,7 @@ func _release_death_cursor_request() -> void:
 		CursorManager.release_visible(self)
 
 func _resolve_input_kind(event: InputEvent) -> int:
-	if event == null or event.is_echo():
-		return INPUT_KIND_UNKNOWN
-	if event is InputEventJoypadButton:
-		var joy_button := event as InputEventJoypadButton
-		if not joy_button.pressed:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_GAMEPAD
-	if event is InputEventJoypadMotion:
-		var joy_motion := event as InputEventJoypadMotion
-		if absf(joy_motion.axis_value) < JOYPAD_MOTION_DEADZONE:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_GAMEPAD
-	if event is InputEventKey:
-		var key_event := event as InputEventKey
-		if not key_event.pressed:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_KEYBOARD
-	if event is InputEventMouseButton:
-		var mouse_button := event as InputEventMouseButton
-		if not mouse_button.pressed:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_KEYBOARD
-	if event is InputEventMouseMotion:
-		var mouse_motion := event as InputEventMouseMotion
-		if mouse_motion.relative.length_squared() <= 0.0:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_KEYBOARD
-	return INPUT_KIND_UNKNOWN
+	return InputDeviceUtilsClass.resolve_input_kind(event)
 
 func _apply_distortion_progress(progress: float) -> void:
 	var value: float = float(clamp(progress, 0.0, 1.0))

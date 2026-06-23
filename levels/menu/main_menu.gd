@@ -1,5 +1,7 @@
 extends "res://levels/menu/menu_base.gd"
 
+const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
+
 @export_group("Сцены")
 ## Сцена, которая запускается при новой игре.
 @export var new_game_scene: PackedScene
@@ -210,7 +212,7 @@ func _hide_credits() -> void:
 func _update_navigation_input_mode(event: InputEvent) -> void:
 	if event == null:
 		return
-	if event is InputEventMouseButton or event is InputEventMouseMotion:
+	if InputDeviceUtilsClass.is_pointer_event(event):
 		_set_navigation_input_active(false)
 		return
 	if _is_navigation_activation_event(event):
@@ -220,20 +222,7 @@ func _update_navigation_input_mode(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 
 func _is_navigation_activation_event(event: InputEvent) -> bool:
-	if event == null or event.is_echo():
-		return false
-	if event is InputEventKey:
-		return event.is_action_pressed("ui_up") \
-			or event.is_action_pressed("ui_down") \
-			or event.is_action_pressed("ui_left") \
-			or event.is_action_pressed("ui_right")
-	if event is InputEventJoypadButton:
-		var joy_button := event as InputEventJoypadButton
-		return joy_button.pressed
-	if event is InputEventJoypadMotion:
-		var joy_motion := event as InputEventJoypadMotion
-		return absf(joy_motion.axis_value) >= 0.5
-	return false
+	return InputDeviceUtilsClass.is_navigation_activation_event(event)
 
 func _set_navigation_input_active(active: bool) -> void:
 	if _navigation_input_active == active:

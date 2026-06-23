@@ -286,6 +286,7 @@
 │   ├── checkpoint_state_utils.gd.uid
 │   ├── iconofgame.png
 │   ├── iconofgame.png.import
+│   ├── input_device_utils.gd
 │   ├── interaction_manager.gd
 │   ├── itchio.jpg
 │   ├── itchio.jpg.import
@@ -1419,6 +1420,7 @@
 │   │   ├── test_generator_activates_required_lamps.gd.uid
 │   │   ├── test_input_actions.gd
 │   │   ├── test_input_actions.gd.uid
+│   │   ├── test_input_device_utils.gd
 │   │   ├── test_interaction_architecture_contracts.gd
 │   │   ├── test_interaction_architecture_contracts.gd.uid
 │   │   ├── test_interaction_completion_contracts.gd
@@ -1514,4 +1516,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1391 files
+124 directories, 1393 files

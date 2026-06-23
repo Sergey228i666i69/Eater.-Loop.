@@ -2,26 +2,15 @@ extends Node2D
 
 const CHANNEL_INTERACT := "interact"
 const CHANNEL_LAMP := "lamp"
+const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
 
 const DEFAULT_INTERACT_TEXT := "E — взаимодействовать"
 const DEFAULT_LAMP_ON_TEXT := "E — включить свет"
 const DEFAULT_LAMP_OFF_TEXT := "E — выключить свет"
-const INPUT_KIND_KEYBOARD := 0
-const INPUT_KIND_GAMEPAD_SONY := 1
-const INPUT_KIND_GAMEPAD_OTHER := 2
-const INPUT_KIND_UNKNOWN := -1
-const JOYPAD_MOTION_DEADZONE := 0.45
-const SONY_JOYPAD_GUID_VENDOR_HINT := "054c"
-const SONY_JOYPAD_NAME_HINTS := [
-	"sony",
-	"dualsense",
-	"dualshock",
-	"playstation",
-	"wireless controller",
-	"ps3",
-	"ps4",
-	"ps5"
-]
+const INPUT_KIND_KEYBOARD := InputDeviceUtilsClass.InputKind.KEYBOARD
+const INPUT_KIND_GAMEPAD_SONY := InputDeviceUtilsClass.InputKind.GAMEPAD_SONY
+const INPUT_KIND_GAMEPAD_OTHER := InputDeviceUtilsClass.InputKind.GAMEPAD_OTHER
+const INPUT_KIND_UNKNOWN := InputDeviceUtilsClass.InputKind.UNKNOWN
 
 @export_group("Indicator")
 @export var button_texture: Texture2D = preload("res://player/UI_Button_Sprite.png")
@@ -225,44 +214,7 @@ func _refresh_all() -> void:
 		_refresh_prompt(data)
 
 func _resolve_input_kind(event: InputEvent) -> int:
-	if event == null or event.is_echo():
-		return INPUT_KIND_UNKNOWN
-	if event is InputEventJoypadButton:
-		var joy_button := event as InputEventJoypadButton
-		if not joy_button.pressed:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_GAMEPAD_SONY if _is_sony_gamepad(joy_button.device) else INPUT_KIND_GAMEPAD_OTHER
-	if event is InputEventJoypadMotion:
-		var joy_motion := event as InputEventJoypadMotion
-		if absf(joy_motion.axis_value) < JOYPAD_MOTION_DEADZONE:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_GAMEPAD_SONY if _is_sony_gamepad(joy_motion.device) else INPUT_KIND_GAMEPAD_OTHER
-	if event is InputEventKey:
-		var key_event := event as InputEventKey
-		if not key_event.pressed:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_KEYBOARD
-	if event is InputEventMouseButton:
-		var mouse_button := event as InputEventMouseButton
-		if not mouse_button.pressed:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_KEYBOARD
-	if event is InputEventMouseMotion:
-		var mouse_motion := event as InputEventMouseMotion
-		if mouse_motion.relative.length_squared() <= 0.0:
-			return INPUT_KIND_UNKNOWN
-		return INPUT_KIND_KEYBOARD
-	return INPUT_KIND_UNKNOWN
-
-func _is_sony_gamepad(device_id: int) -> bool:
-	if device_id < 0:
-		return false
-	var joy_name := Input.get_joy_name(device_id).to_lower()
-	for hint in SONY_JOYPAD_NAME_HINTS:
-		if joy_name.find(hint) >= 0:
-			return true
-	var joy_guid := Input.get_joy_guid(device_id).to_lower()
-	return joy_guid.find(SONY_JOYPAD_GUID_VENDOR_HINT) >= 0
+	return InputDeviceUtilsClass.resolve_input_kind(event, true)
 
 func _resolve_active_texture() -> Texture2D:
 	if _input_kind == INPUT_KIND_GAMEPAD_SONY and button_texture_dualsense != null:
