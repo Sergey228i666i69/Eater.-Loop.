@@ -15,6 +15,7 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Optional
 
 try:
     from PIL import Image, ImageDraw
@@ -104,7 +105,12 @@ def main() -> int:
             cwd=repo_root,
             check=True,
         )
-        pose_images = [_render_pose(repo_root, temp_dir / f"pose_{index}.json", label, args.scale) for index, (label, _, _) in enumerate(poses)]
+        pose_data = [json.loads((temp_dir / f"pose_{index}.json").read_text(encoding="utf-8")) for index in range(len(poses))]
+        shared_bounds = _calculate_shared_bounds(repo_root, pose_data) if args.sequence_animation else None
+        pose_images = [
+            _render_pose(repo_root, pose_data[index], label, args.scale, shared_bounds)
+            for index, (label, _, _) in enumerate(poses)
+        ]
         if args.sequence_animation and output_path.suffix.lower() == ".gif":
             _save_sequence_gif(pose_images, output_path, args.fps)
         else:
@@ -188,16 +194,32 @@ func _collect_visuals(node: Node) -> Array:
 '''
 
 
-def _render_pose(repo_root: Path, json_path: Path, label: str, scale: float) -> Image.Image:
-    data = json.loads(json_path.read_text(encoding="utf-8"))
+def _calculate_shared_bounds(repo_root: Path, pose_data: list[dict]) -> tuple[float, float, float, float]:
     texture_cache: dict[str, Image.Image] = {}
-    visuals = [visual for visual in data["visuals"] if visual["visible"]]
     points: list[tuple[float, float]] = []
-    for visual in visuals:
-        texture = _load_texture(repo_root, texture_cache, visual["texture"])
-        points.extend(_transformed_corners(texture, visual))
+    for data in pose_data:
+        for visual in data["visuals"]:
+            if not visual["visible"]:
+                continue
+            texture = _load_texture(repo_root, texture_cache, visual["texture"])
+            points.extend(_transformed_corners(texture, visual))
     min_x, max_x = min(x for x, _ in points), max(x for x, _ in points)
     min_y, max_y = min(y for _, y in points), max(y for _, y in points)
+    return min_x, min_y, max_x, max_y
+
+
+def _render_pose(repo_root: Path, data: dict, label: str, scale: float, bounds: Optional[tuple[float, float, float, float]] = None) -> Image.Image:
+    texture_cache: dict[str, Image.Image] = {}
+    visuals = [visual for visual in data["visuals"] if visual["visible"]]
+    if bounds:
+        min_x, min_y, max_x, max_y = bounds
+    else:
+        points: list[tuple[float, float]] = []
+        for visual in visuals:
+            texture = _load_texture(repo_root, texture_cache, visual["texture"])
+            points.extend(_transformed_corners(texture, visual))
+        min_x, max_x = min(x for x, _ in points), max(x for x, _ in points)
+        min_y, max_y = min(y for _, y in points), max(y for _, y in points)
     padding = 18
     width = int((max_x - min_x + padding * 2) * scale)
     height = int((max_y - min_y + padding * 2) * scale) + 24
