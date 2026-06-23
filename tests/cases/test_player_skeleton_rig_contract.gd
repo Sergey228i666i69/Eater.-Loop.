@@ -62,6 +62,10 @@ const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
 const FLASHLIGHT_MIN_FILLED_GAP_COLUMNS := 32
+const FLASHLIGHT_GRIP_MIN_LOCAL_X := -4.0
+const FLASHLIGHT_GRIP_MAX_LOCAL_X := 2.0
+const FLASHLIGHT_GRIP_MIN_LOCAL_Y_OFFSET := 6.0
+const FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET := 12.0
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -268,6 +272,7 @@ func _test_rig_scene_contract() -> void:
 		assert_true(front_forearm_visual != null, "Player skeleton must keep front forearm visual for photo-cutout layering")
 		if front_hand_visual != null and flashlight_visual != null:
 			assert_true(flashlight_visual.z_index < front_hand_visual.z_index, "Player skeleton flashlight must render behind the gripping hand")
+			_assert_flashlight_visual_sits_inside_front_grip(front_hand_visual, flashlight_visual)
 		if torso_visual != null and front_upper_arm_visual != null:
 			assert_true(torso_visual.z_index > front_upper_arm_visual.z_index, "Player skeleton torso must hide the front upper-arm photo seam")
 		if torso_visual != null and front_forearm_visual != null:
@@ -514,6 +519,19 @@ func _assert_flashlight_cutout_has_completed_handle(texture: Texture2D, visual_p
 	assert_true(
 			filled_columns >= FLASHLIGHT_MIN_FILLED_GAP_COLUMNS,
 			"Player skeleton flashlight cutout must complete the handle hidden under the front hand: %s" % visual_path
+	)
+
+func _assert_flashlight_visual_sits_inside_front_grip(front_hand_visual: Sprite2D, flashlight_visual: Sprite2D) -> void:
+	assert_true(
+			flashlight_visual.position.x >= FLASHLIGHT_GRIP_MIN_LOCAL_X
+					and flashlight_visual.position.x <= FLASHLIGHT_GRIP_MAX_LOCAL_X,
+			"Player skeleton flashlight must stay horizontally tucked under the front-hand grip"
+	)
+	var y_offset := front_hand_visual.position.y - flashlight_visual.position.y
+	assert_true(
+			y_offset >= FLASHLIGHT_GRIP_MIN_LOCAL_Y_OFFSET
+					and y_offset <= FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET,
+			"Player skeleton flashlight must sit high enough through the front-hand grip without floating above it"
 	)
 
 func _assert_animation_tracks_use_cubic_interpolation(animation: Animation, animation_name: String) -> void:
