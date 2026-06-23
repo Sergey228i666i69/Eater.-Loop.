@@ -53,6 +53,11 @@ def main() -> int:
         default=os.environ.get("GODOT_BIN", "godot"),
         help="Godot executable. Defaults to GODOT_BIN or 'godot'.",
     )
+    parser.add_argument(
+        "--flashlight",
+        action="store_true",
+        help="Force the flashlight cutout visible in the preview montage.",
+    )
     parser.add_argument("--scale", type=float, default=0.9, help="Montage cell scale.")
     args = parser.parse_args()
 
@@ -63,7 +68,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="andry-rig-preview-") as temp_dir_name:
         temp_dir = Path(temp_dir_name)
         dump_script = temp_dir / "dump_player_rig_pose.gd"
-        dump_script.write_text(_build_godot_dump_script(temp_dir), encoding="utf-8")
+        dump_script.write_text(_build_godot_dump_script(temp_dir, args.flashlight), encoding="utf-8")
         subprocess.run(
             [args.godot, "--headless", "--path", str(repo_root), "-s", str(dump_script)],
             cwd=repo_root,
@@ -76,7 +81,7 @@ def main() -> int:
     return 0
 
 
-def _build_godot_dump_script(temp_dir: Path) -> str:
+def _build_godot_dump_script(temp_dir: Path, show_flashlight: bool) -> str:
     pose_rows = ",\n\t".join(
         '{"animation": "%s", "time": %.8f, "path": "%s"}'
         % (animation, time, str((temp_dir / f"pose_{index}.json").as_posix()))
@@ -85,6 +90,7 @@ def _build_godot_dump_script(temp_dir: Path) -> str:
     return f'''extends SceneTree
 
 const RIG_PATH := "res://player/player_skeleton_rig.tscn"
+const SHOW_FLASHLIGHT := {str(show_flashlight).lower()}
 const POSES := [
 \t{pose_rows}
 ]
@@ -99,6 +105,9 @@ func _deferred_dump() -> void:
 \troot.add_child(rig)
 \tawait process_frame
 \tvar animation_player := rig.get_node("SkeletonAnimationPlayer") as AnimationPlayer
+\tvar flashlight := rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount/VisualFlashlight") as CanvasItem
+\tif flashlight != null:
+\t\tflashlight.visible = SHOW_FLASHLIGHT
 \tvar visuals := _collect_visuals(rig)
 \tfor pose in POSES:
 \t\tanimation_player.play(StringName(pose["animation"]))
