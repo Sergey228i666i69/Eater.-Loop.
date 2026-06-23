@@ -97,6 +97,7 @@
 - `SkeletonAnimationPlayer` внутри рига держит loop-клипы `idle`, `walk` и `light_run` с cubic-интерполяцией bone-tracks; `player.gd` переключает их по фактическому движению.
 - Фонарик является отдельным cutout-слоем из `AndryWithFlashlight.png` на `FlashlightMount`; те же кости и анимации используются для варианта с фонариком и без него.
 - Skeleton-only звуки шагов привязаны к contact-time внутри `walk`/`light_run`, а не к независимому таймеру; тест рига сверяет эти таймкоды с нижним краем alpha-пикселей стоп.
+- Для визуального QA рига использовать `python3 tools/player_rig_preview/export_player_rig_montage.py --output /tmp/andry_player_rig_montage.png`; инструмент снимает реальные Godot transforms и собирает монтаж поз.
 - Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 
 ## 3. Границы API (важно)

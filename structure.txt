@@ -1569,10 +1569,12 @@
 │   ├── test_utils.gd
 │   └── test_utils.gd.uid
 ├── tools
-│   └── macos_dmg_fix
-│       ├── export_macos_dmg.sh
-│       ├── hdiutil
-│       └── run_godot_with_dmg_fix.sh
+│   ├── macos_dmg_fix
+│   │   ├── export_macos_dmg.sh
+│   │   ├── hdiutil
+│   │   └── run_godot_with_dmg_fix.sh
+│   └── player_rig_preview
+│       └── export_player_rig_montage.py
 ├── AGENTS.md
 ├── ToFix.md
 ├── default_bus_layout.tres
@@ -1582,4 +1584,4 @@
 ├── project.godot
 └── structure.txt
 
-126 directories, 1457 files
+127 directories, 1458 files
