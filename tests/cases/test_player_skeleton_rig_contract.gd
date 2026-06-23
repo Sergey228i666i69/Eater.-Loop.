@@ -18,11 +18,17 @@ const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
 ]
 const CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/VisualPelvis",
+	"Hips/BackThigh/VisualBackThigh",
+	"Hips/BackThigh/BackShin/VisualBackShin",
 	"Hips/FrontThigh/VisualFrontThigh",
+	"Hips/FrontThigh/FrontShin/VisualFrontShin",
 ]
 const CLEANED_SEAM_FILL_VISUAL_PATH := "Hips/VisualSeamFill"
 const CLEANED_PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
 const CLEANED_FRONT_THIGH_VISUAL_PATH := "Hips/FrontThigh/VisualFrontThigh"
+const CLEANED_BACK_THIGH_VISUAL_PATH := "Hips/BackThigh/VisualBackThigh"
+const CLEANED_FRONT_SHIN_VISUAL_PATH := "Hips/FrontThigh/FrontShin/VisualFrontShin"
+const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -185,6 +191,12 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
 					elif visual_path == CLEANED_FRONT_THIGH_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.30)
+					elif visual_path == CLEANED_BACK_THIGH_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
+					elif visual_path == CLEANED_FRONT_SHIN_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.32)
+					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.24)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
