@@ -749,8 +749,8 @@ length = 48.0
 bone_angle = 3.1415927
 
 [node name="BackThigh" type="Bone2D" parent="Skeleton2D/Hips"]
-position = Vector2(28, -67)
-rest = Transform2D(1, 0, 0, 1, 28, -67)
+position = Vector2(18, -67)
+rest = Transform2D(1, 0, 0, 1, 18, -67)
 auto_calculate_length_and_angle = false
 length = 168.29736
 bone_angle = 1.5113531
