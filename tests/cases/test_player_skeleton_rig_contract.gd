@@ -5,6 +5,7 @@ const LEGACY_PLAYER_SCENE_PATH := "res://player/LEGASY-ANIMATIONS-CHARACTER.tscn
 const PLAYER_RIG_SCENE_PATH := "res://player/player_skeleton_rig.tscn"
 const LEVEL_DIR := "res://levels/cycles"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
+const HEAD_VISUAL_PATH := "Hips/Spine/Chest/Neck/Head/VisualHead"
 const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
 const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
 const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
@@ -37,7 +38,7 @@ const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
 const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
 const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand"
 const SAFE_ALPHA_MARGIN_VISUAL_PATHS: Array[String] = [
-	"Hips/Spine/Chest/Neck/Head/VisualHead",
+	HEAD_VISUAL_PATH,
 	CLEANED_FRONT_HAND_VISUAL_PATH,
 	CLEANED_BACK_HAND_VISUAL_PATH,
 ]
@@ -55,6 +56,8 @@ const SEAM_FILL_MAX_INTERNAL_WIDTH := 52
 const SEAM_FILL_MIN_INTERNAL_X := 88
 const SEAM_FILL_MAX_INTERNAL_X := 136
 const CUTOUT_MIN_SAFE_ALPHA_MARGIN := 6
+const HEAD_MAX_LOWER_LEFT_SHOULDER_PIXELS := 20
+const HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS := 680
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
@@ -124,7 +127,7 @@ const EXPECTED_BONE_PATHS: Array[String] = [
 	"Hips/FrontThigh/FrontShin/FrontFoot",
 ]
 const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
-	"Hips/Spine/Chest/Neck/Head/VisualHead",
+	HEAD_VISUAL_PATH,
 	"Hips/Spine/Chest/VisualTorso",
 	"Hips/VisualPelvis",
 	"Hips/VisualSeamFill",
@@ -222,6 +225,8 @@ func _test_rig_scene_contract() -> void:
 					assert_true(_is_tight_cutout_texture(visual.texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
 					if SAFE_ALPHA_MARGIN_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_safe_alpha_margin(visual.texture, visual_path, CUTOUT_MIN_SAFE_ALPHA_MARGIN)
+					if visual_path == HEAD_VISUAL_PATH:
+						_assert_head_cutout_keeps_source_head_shape(visual.texture, visual_path)
 					if SINGLE_ALPHA_COMPONENT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_single_alpha_component(visual.texture, visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
@@ -402,6 +407,31 @@ func _assert_cutout_has_safe_alpha_margin(texture: Texture2D, visual_path: Strin
 	assert_true(min_y >= min_margin, "Player skeleton cutout must keep top transparent margin: %s" % visual_path)
 	assert_true(image.get_width() - max_x - 1 >= min_margin, "Player skeleton cutout must keep right transparent margin: %s" % visual_path)
 	assert_true(image.get_height() - max_y - 1 >= min_margin, "Player skeleton cutout must keep bottom transparent margin: %s" % visual_path)
+
+func _assert_head_cutout_keeps_source_head_shape(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton head cutout texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var lower_left_shoulder_pixels := 0
+	for y in range(mini(100, image.get_height()), image.get_height()):
+		for x in range(mini(35, image.get_width())):
+			if image.get_pixel(x, y).a > 0.1:
+				lower_left_shoulder_pixels += 1
+	assert_true(
+			lower_left_shoulder_pixels <= HEAD_MAX_LOWER_LEFT_SHOULDER_PIXELS,
+			"Player skeleton head cutout must not carry the left shoulder/shirt corner: %s" % visual_path
+	)
+
+	var upper_right_hair_pixels := 0
+	for y in range(mini(18, image.get_height()), mini(80, image.get_height())):
+		for x in range(mini(112, image.get_width()), mini(141, image.get_width())):
+			if image.get_pixel(x, y).a > 0.1:
+				upper_right_hair_pixels += 1
+	assert_true(
+			upper_right_hair_pixels >= HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS,
+			"Player skeleton head cutout must keep Andry's rounded upper head instead of a diagonal crop: %s" % visual_path
+	)
 
 func _assert_cutout_has_single_alpha_component(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
