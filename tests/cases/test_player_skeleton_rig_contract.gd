@@ -20,6 +20,9 @@ const CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/VisualPelvis",
 	"Hips/FrontThigh/VisualFrontThigh",
 ]
+const CLEANED_SEAM_FILL_VISUAL_PATH := "Hips/VisualSeamFill"
+const CLEANED_PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
+const CLEANED_FRONT_THIGH_VISUAL_PATH := "Hips/FrontThigh/VisualFrontThigh"
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -41,6 +44,10 @@ const WALK_MIN_FOOT_LIFT_RANGE := 6.0
 const WALK_MAX_FOOT_LIFT_RANGE := 10.0
 const LIGHT_RUN_MIN_FOOT_LIFT_RANGE := 9.0
 const LIGHT_RUN_MAX_FOOT_LIFT_RANGE := 12.0
+const LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE := 8.0
+const LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE := 11.0
+const LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE := 6.0
+const LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE := 9.0
 const WALK_MIN_WRIST_SWING_RANGE := 0.03
 const WALK_MAX_WRIST_SWING_RANGE := 0.05
 const LIGHT_RUN_MIN_WRIST_SWING_RANGE := 0.05
@@ -156,6 +163,8 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_LIMB_SWING_RANGE, LIGHT_RUN_MAX_LIMB_SWING_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
+					_assert_animation_vector2_x_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE, String(animation_name))
+					_assert_animation_vector2_x_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 		if skeleton != null:
@@ -170,7 +179,13 @@ func _test_rig_scene_contract() -> void:
 				if visual.texture != null:
 					assert_true(_is_player_skeleton_texture_path(String(visual.texture.resource_path)), "Player skeleton visual must use Andry cutout/cover texture: %s" % visual_path)
 					assert_true(_is_tight_cutout_texture(visual.texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
-					if CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
+					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.70)
+					elif visual_path == CLEANED_PELVIS_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
+					elif visual_path == CLEANED_FRONT_THIGH_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.30)
+					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.23)
@@ -328,6 +343,25 @@ func _assert_animation_vector2_y_range(animation: Animation, track_path: NodePat
 	var value_range := max_value - min_value
 	assert_true(value_range >= min_range, "Player skeleton animation %s track %s must keep visible foot lift" % [animation_name, track_path])
 	assert_true(value_range <= max_range, "Player skeleton animation %s track %s must avoid excessive foot lift" % [animation_name, track_path])
+
+func _assert_animation_vector2_x_range(animation: Animation, track_path: NodePath, min_range: float, max_range: float, animation_name: String) -> void:
+	var track_index := -1
+	for candidate_index in range(animation.get_track_count()):
+		if animation.track_get_path(candidate_index) == track_path:
+			track_index = candidate_index
+			break
+	assert_true(track_index >= 0, "Player skeleton animation %s must animate track %s" % [animation_name, track_path])
+	if track_index < 0:
+		return
+	var min_value := INF
+	var max_value := -INF
+	for key_index in range(animation.track_get_key_count(track_index)):
+		var value := animation.track_get_key_value(track_index, key_index) as Vector2
+		min_value = minf(min_value, value.x)
+		max_value = maxf(max_value, value.x)
+	var value_range := max_value - min_value
+	assert_true(value_range >= min_range, "Player skeleton animation %s track %s must keep visible stride" % [animation_name, track_path])
+	assert_true(value_range <= max_range, "Player skeleton animation %s track %s must avoid excessive stride" % [animation_name, track_path])
 
 func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player: AnimationPlayer, animation_name: String, start_position: float, before_contact: float, after_contact: float) -> void:
 	var step_audio := player.get_node_or_null("StepAudioComponent") as StepAudioComponent
