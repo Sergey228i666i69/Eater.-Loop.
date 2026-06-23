@@ -5,6 +5,10 @@ const LEGACY_PLAYER_SCENE_PATH := "res://player/LEGASY-ANIMATIONS-CHARACTER.tscn
 const PLAYER_RIG_SCENE_PATH := "res://player/player_skeleton_rig.tscn"
 const LEVEL_DIR := "res://levels/cycles"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
+const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
+const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
+const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
+const FRONT_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm"
 const FRONT_HAND_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHand"
 const FLASHLIGHT_VISUAL_PATH := FRONT_HAND_PATH + "/FlashlightMount/VisualFlashlight"
 const FOOT_VISUAL_PATHS: Array[String] = [
@@ -38,11 +42,11 @@ const SAFE_ALPHA_MARGIN_VISUAL_PATHS: Array[String] = [
 	CLEANED_BACK_HAND_VISUAL_PATH,
 ]
 const SINGLE_ALPHA_COMPONENT_VISUAL_PATHS: Array[String] = [
-	"Hips/Spine/Chest/VisualTorso",
+	TORSO_VISUAL_PATH,
 	CLEANED_PELVIS_VISUAL_PATH,
 	CLEANED_SEAM_FILL_VISUAL_PATH,
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
-	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
+	FRONT_FOREARM_VISUAL_PATH,
 	CLEANED_FRONT_THIGH_VISUAL_PATH,
 	CLEANED_FRONT_SHIN_VISUAL_PATH,
 	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
@@ -247,10 +251,24 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.23)
 		var front_hand_visual := skeleton.get_node_or_null(FRONT_HAND_VISUAL_PATH) as Sprite2D
 		var flashlight_visual := skeleton.get_node_or_null(FLASHLIGHT_VISUAL_PATH) as Sprite2D
+		var torso_visual := skeleton.get_node_or_null(TORSO_VISUAL_PATH) as Sprite2D
+		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
+		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
+		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as Sprite2D
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
 		assert_true(flashlight_visual != null, "Player skeleton must keep flashlight visual for layering")
+		assert_true(torso_visual != null, "Player skeleton must keep torso visual for photo-cutout layering")
+		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
+		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
+		assert_true(front_forearm_visual != null, "Player skeleton must keep front forearm visual for photo-cutout layering")
 		if front_hand_visual != null and flashlight_visual != null:
 			assert_true(flashlight_visual.z_index < front_hand_visual.z_index, "Player skeleton flashlight must render behind the gripping hand")
+		if torso_visual != null and front_upper_arm_visual != null:
+			assert_true(torso_visual.z_index > front_upper_arm_visual.z_index, "Player skeleton torso must hide the front upper-arm photo seam")
+		if torso_visual != null and front_forearm_visual != null:
+			assert_true(front_forearm_visual.z_index > torso_visual.z_index, "Player skeleton front forearm must remain visible over the torso")
+		if pelvis_visual != null and torso_visual != null:
+			assert_true(pelvis_visual.z_index >= torso_visual.z_index, "Player skeleton pelvis must cover torso/lower-body seams")
 	rig.free()
 
 func _test_legacy_player_keeps_sprite_sequence() -> void:

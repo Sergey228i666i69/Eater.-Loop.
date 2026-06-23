@@ -856,13 +856,13 @@ texture = ExtResource("20_back_ankle")
 
 [node name="VisualTorso" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest"]
 light_mask = 2
-z_index = 0
+z_index = 2
 texture = ExtResource("2_torso")
 position = Vector2(-7.5, 13.5)
 
 [node name="VisualPelvis" type="Sprite2D" parent="Skeleton2D/Hips"]
 light_mask = 2
-z_index = 1
+z_index = 2
 texture = ExtResource("3_pelvis")
 position = Vector2(-1.5, -35)
 
@@ -902,7 +902,7 @@ texture = ExtResource("24_front_ankle")
 
 [node name="VisualFrontUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
 light_mask = 2
-z_index = 4
+z_index = 1
 texture = ExtResource("7_front_upper_arm")
 position = Vector2(0, 57)
 
