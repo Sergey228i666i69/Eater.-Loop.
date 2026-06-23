@@ -44,6 +44,7 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/Spine/Chest/Neck/Head/VisualHead",
 	"Hips/Spine/Chest/VisualTorso",
 	"Hips/VisualPelvis",
+	"Hips/VisualSeamFill",
 	"Hips/Spine/Chest/BackUpperArm/VisualBackUpperArm",
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",

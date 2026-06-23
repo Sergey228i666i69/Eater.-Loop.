@@ -1371,6 +1371,8 @@
 │   │       ├── head.png.import
 │   │       ├── pelvis.png
 │   │       ├── pelvis.png.import
+│   │       ├── seam_fill.png
+│   │       ├── seam_fill.png.import
 │   │       ├── torso.png
 │   │       └── torso.png.import
 │   ├── ui
@@ -1584,4 +1586,4 @@
 ├── project.godot
 └── structure.txt
 
-127 directories, 1458 files
+127 directories, 1460 files

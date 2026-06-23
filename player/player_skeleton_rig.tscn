@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/seam_fill.png" id="0_seam_fill"]
 [ext_resource type="Texture2D" path="res://player/skeleton/cutouts/head.png" id="1_head"]
 [ext_resource type="Texture2D" path="res://player/skeleton/cutouts/torso.png" id="2_torso"]
 [ext_resource type="Texture2D" path="res://player/skeleton/cutouts/pelvis.png" id="3_pelvis"]
@@ -511,131 +512,137 @@ length = 86.0
 bone_angle = -1.5707964
 
 [node name="BackUpperArm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest"]
-position = Vector2(66, -20)
-rest = Transform2D(1, 0, 0, 1, 66, -20)
+position = Vector2(69, -56)
+rest = Transform2D(1, 0, 0, 1, 69, -56)
 auto_calculate_length_and_angle = false
-length = 104.0
-bone_angle = 1.3089969
+length = 120.76009
+bone_angle = 1.4029862
 
 [node name="BackForearm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
-position = Vector2(24, 100)
-rest = Transform2D(1, 0, 0, 1, 24, 100)
+position = Vector2(20.5, 119)
+rest = Transform2D(1, 0, 0, 1, 20.5, 119)
 auto_calculate_length_and_angle = false
-length = 108.0
-bone_angle = 1.4835298
+length = 99.00127
+bone_angle = 1.5657464
 
 [node name="BackHand" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
-position = Vector2(9, 106)
-rest = Transform2D(1, 0, 0, 1, 9, 106)
+position = Vector2(0.5, 99)
+rest = Transform2D(1, 0, 0, 1, 0.5, 99)
 auto_calculate_length_and_angle = false
 length = 30.0
 bone_angle = 1.5707964
 
 [node name="FrontUpperArm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest"]
-position = Vector2(-69, -18)
-rest = Transform2D(1, 0, 0, 1, -69, -18)
+position = Vector2(-68, -55)
+rest = Transform2D(1, 0, 0, 1, -68, -55)
 auto_calculate_length_and_angle = false
-length = 113.0
-bone_angle = 1.7453293
+length = 106.733315
+bone_angle = 1.344606
 
 [node name="FrontForearm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
-position = Vector2(-18, 112)
-rest = Transform2D(1, 0, 0, 1, -18, 112)
+position = Vector2(24, 104)
+rest = Transform2D(1, 0, 0, 1, 24, 104)
 auto_calculate_length_and_angle = false
-length = 112.0
-bone_angle = 1.6580628
+length = 115.62439
+bone_angle = 1.4667994
 
 [node name="FrontHand" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
-position = Vector2(-6, 110)
-rest = Transform2D(1, 0, 0, 1, -6, 110)
+position = Vector2(12, 115)
+rest = Transform2D(1, 0, 0, 1, 12, 115)
 auto_calculate_length_and_angle = false
 length = 30.0
 bone_angle = 1.5707964
 
 [node name="FlashlightMount" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
-position = Vector2(-28, 18)
-rest = Transform2D(1, 0, 0, 1, -28, 18)
+position = Vector2(0, 0)
+rest = Transform2D(1, 0, 0, 1, 0, 0)
 auto_calculate_length_and_angle = false
 length = 48.0
 bone_angle = 3.1415927
 
 [node name="BackThigh" type="Bone2D" parent="Skeleton2D/Hips"]
-position = Vector2(30, 10)
-rest = Transform2D(1, 0, 0, 1, 30, 10)
+position = Vector2(28, -67)
+rest = Transform2D(1, 0, 0, 1, 28, -67)
 auto_calculate_length_and_angle = false
-length = 142.0
-bone_angle = 1.4835298
+length = 168.29736
+bone_angle = 1.5113531
 
 [node name="BackShin" type="Bone2D" parent="Skeleton2D/Hips/BackThigh"]
-position = Vector2(12, 138)
-rest = Transform2D(1, 0, 0, 1, 12, 138)
+position = Vector2(10, 168)
+rest = Transform2D(1, 0, 0, 1, 10, 168)
 auto_calculate_length_and_angle = false
-length = 142.0
-bone_angle = 1.6580628
+length = 175.28548
+bone_angle = 1.5137278
 
 [node name="BackFoot" type="Bone2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
-position = Vector2(-4, 138)
-rest = Transform2D(1, 0, 0, 1, -4, 138)
+position = Vector2(10, 175)
+rest = Transform2D(1, 0, 0, 1, 10, 175)
 auto_calculate_length_and_angle = false
 length = 58.0
 bone_angle = 0.0
 
 [node name="FrontThigh" type="Bone2D" parent="Skeleton2D/Hips"]
-position = Vector2(-28, 10)
-rest = Transform2D(1, 0, 0, 1, -28, 10)
+position = Vector2(-28, -67)
+rest = Transform2D(1, 0, 0, 1, -28, -67)
 auto_calculate_length_and_angle = false
-length = 142.0
-bone_angle = 1.6580628
+length = 168.35973
+bone_angle = 1.6361632
 
 [node name="FrontShin" type="Bone2D" parent="Skeleton2D/Hips/FrontThigh"]
-position = Vector2(-11, 138)
-rest = Transform2D(1, 0, 0, 1, -11, 138)
+position = Vector2(-11, 168)
+rest = Transform2D(1, 0, 0, 1, -11, 168)
 auto_calculate_length_and_angle = false
-length = 142.0
-bone_angle = 1.4835298
+length = 176.04545
+bone_angle = 1.5480715
 
 [node name="FrontFoot" type="Bone2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
-position = Vector2(5, 138)
-rest = Transform2D(1, 0, 0, 1, 5, 138)
+position = Vector2(4, 176)
+rest = Transform2D(1, 0, 0, 1, 4, 176)
 auto_calculate_length_and_angle = false
 length = 58.0
 bone_angle = 0.0
+
+[node name="VisualSeamFill" type="Sprite2D" parent="Skeleton2D/Hips"]
+light_mask = 2
+z_index = -8
+texture = ExtResource("0_seam_fill")
+position = Vector2(8, 117)
 
 [node name="VisualBackUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
 light_mask = 2
 z_index = -5
 texture = ExtResource("4_back_upper_arm")
-position = Vector2(3, 21.5)
+position = Vector2(0, 57.5)
 
 [node name="VisualBackForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
 light_mask = 2
 z_index = -5
 texture = ExtResource("5_back_forearm")
-position = Vector2(-0.5, 40)
+position = Vector2(0, 57)
 
 [node name="VisualBackHand" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand"]
 light_mask = 2
 z_index = -5
 texture = ExtResource("6_back_hand")
-position = Vector2(-9, 8)
+position = Vector2(0, 32)
 
 [node name="VisualBackThigh" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh"]
 light_mask = 2
 z_index = -4
 texture = ExtResource("11_back_thigh")
-position = Vector2(-1, 20.5)
+position = Vector2(1, 97.5)
 
 [node name="VisualBackShin" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
 light_mask = 2
 z_index = -4
 texture = ExtResource("12_back_shin")
-position = Vector2(-4, 42)
+position = Vector2(0, 89)
 
 [node name="VisualBackFoot" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin/BackFoot"]
 light_mask = 2
 z_index = -4
 texture = ExtResource("13_back_foot")
-position = Vector2(14.5, 1)
+position = Vector2(4.5, 11)
 
 [node name="VisualTorso" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest"]
 light_mask = 2
@@ -659,43 +666,44 @@ position = Vector2(-26.5, -27)
 light_mask = 2
 z_index = 3
 texture = ExtResource("14_front_thigh")
-position = Vector2(-9.5, 22.5)
+position = Vector2(-9.5, 99.5)
 
 [node name="VisualFrontShin" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
 light_mask = 2
 z_index = 3
 texture = ExtResource("15_front_shin")
-position = Vector2(5.5, 46.5)
+position = Vector2(5.5, 93.5)
 
 [node name="VisualFrontFoot" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot"]
 light_mask = 2
 z_index = 3
 texture = ExtResource("16_front_foot")
-position = Vector2(-3, 9.5)
+position = Vector2(-2, 18.5)
 
 [node name="VisualFrontUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
 light_mask = 2
 z_index = 4
 texture = ExtResource("7_front_upper_arm")
-position = Vector2(1, 20)
+position = Vector2(0, 57)
 
 [node name="VisualFrontForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
 light_mask = 2
 z_index = 4
 texture = ExtResource("8_front_forearm")
-position = Vector2(43, 26.5)
+position = Vector2(0, 71.5)
 
 [node name="VisualFrontHand" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
 light_mask = 2
 z_index = 4
 texture = ExtResource("9_front_hand")
-position = Vector2(61, -6)
+position = Vector2(0, 34)
 
 [node name="VisualFlashlight" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount"]
+visible = false
 light_mask = 2
 z_index = 5
 texture = ExtResource("10_flashlight")
-position = Vector2(78.5, -39.5)
+position = Vector2(-8, 32.5)
 
 [node name="SkeletonAnimationPlayer" type="AnimationPlayer" parent="."]
 libraries/ = SubResource("AnimationLibrary_player_skeleton")
