@@ -16,6 +16,10 @@ const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
 	FRONT_HAND_PATH + "/VisualFrontHand",
 ]
+const CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS: Array[String] = [
+	"Hips/VisualPelvis",
+	"Hips/FrontThigh/VisualFrontThigh",
+]
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -127,7 +131,9 @@ func _test_rig_scene_contract() -> void:
 					assert_true(_is_player_skeleton_texture_path(String(visual.texture.resource_path)), "Player skeleton visual must use Andry cutout/cover texture: %s" % visual_path)
 					assert_true(_is_tight_cutout_texture(visual.texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
 					if CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
+					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.23)
 	rig.free()
 
 func _test_legacy_player_keeps_sprite_sequence() -> void:
@@ -221,7 +227,7 @@ func _is_player_skeleton_texture_path(resource_path: String) -> bool:
 			or resource_path.begins_with("res://player/skeleton/covers/")
 	)
 
-func _assert_cutout_has_alpha_negative_space(texture: Texture2D, visual_path: String) -> void:
+func _assert_cutout_has_alpha_negative_space(texture: Texture2D, visual_path: String, min_transparent_ratio: float) -> void:
 	var image := texture.get_image()
 	assert_true(image != null, "Player skeleton cleaned cutout texture must expose alpha pixels: %s" % visual_path)
 	if image == null:
@@ -233,7 +239,7 @@ func _assert_cutout_has_alpha_negative_space(texture: Texture2D, visual_path: St
 			if image.get_pixel(x, y).a <= 0.05:
 				transparent_pixels += 1
 	assert_true(
-			float(transparent_pixels) / float(total_pixels) >= 0.25,
+			float(transparent_pixels) / float(total_pixels) >= min_transparent_ratio,
 			"Player skeleton cleaned cutout must not keep a full opaque source rectangle: %s" % visual_path
 	)
 

@@ -91,7 +91,7 @@
 ### 2.8 Контур визуального рига героя
 
 - `player/player.tscn` является активной skeleton-only сценой игрока; старый png/sequential-sprite вариант сохранён в sprite-only `player/LEGASY-ANIMATIONS-CHARACTER.tscn`.
-- `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и держит видимые tight-crop `Sprite2D` cutout-части из `Andry.png` как детей костей; cutout-ы кистей/предплечий очищены от фрагментов закрывающих их штанов/тела, а нижний `VisualSeamFill` и малые `covers/`-слои на плечах, локтях, коленях и лодыжках прикрывают просветы между сегментами при движении.
+- `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и держит видимые tight-crop `Sprite2D` cutout-части из `Andry.png` как детей костей; cutout-ы кистей/предплечий, таза и переднего бедра очищены от фрагментов закрывающих их штанов/тела/руки, а нижний `VisualSeamFill` и малые `covers/`-слои на плечах, локтях, коленях и лодыжках прикрывают просветы между сегментами при движении.
 - Имена костей рига считаются контрактом для skeletal animation клипов: `Hips`, `Spine`, `Chest`, `Head`, `Front*`, `Back*` и `FlashlightMount`.
 - `player.gd` зеркалит риг вместе с направлением игрока, чтобы bone-based skin не расходился с текущим разворотом героя.
 - `SkeletonAnimationPlayer` внутри рига держит loop-клипы `idle`, `walk` и `light_run` с cubic-интерполяцией bone-tracks; `player.gd` переключает их по фактическому движению.
