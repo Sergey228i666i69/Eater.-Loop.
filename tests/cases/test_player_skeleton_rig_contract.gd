@@ -85,6 +85,7 @@ func _test_rig_scene_contract() -> void:
 			if animation != null:
 				assert_true(animation.loop_mode == Animation.LOOP_LINEAR, "Player skeleton animation must loop: %s" % animation_name)
 				assert_true(animation.get_track_count() > 0, "Player skeleton animation must animate at least one bone: %s" % animation_name)
+				_assert_animation_tracks_use_cubic_interpolation(animation, String(animation_name))
 		if skeleton != null:
 			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"walk", WALK_CONTACT_TIMES, WALK_SAMPLE_TIMES)
 			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"light_run", LIGHT_RUN_CONTACT_TIMES, LIGHT_RUN_SAMPLE_TIMES)
@@ -105,6 +106,7 @@ func _test_legacy_player_keeps_sprite_sequence() -> void:
 		return
 	var legacy_player := legacy_scene.instantiate()
 	assert_true(legacy_player.get_node_or_null("AnimatedSprite2D") is AnimatedSprite2D, "Legacy player must keep old AnimatedSprite2D sequence")
+	assert_true(legacy_player.get_node_or_null("PlayerSkeletonRig") == null, "Legacy player must stay sprite-only and must not mount the new skeleton rig")
 	legacy_player.free()
 
 func _test_levels_keep_active_player_scene() -> void:
@@ -178,6 +180,14 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 
 func _almost_eq(left: float, right: float, epsilon: float = 0.0001) -> bool:
 	return absf(left - right) <= epsilon
+
+func _assert_animation_tracks_use_cubic_interpolation(animation: Animation, animation_name: String) -> void:
+	for track_index in range(animation.get_track_count()):
+		assert_eq(
+			animation.track_get_interpolation_type(track_index),
+			Animation.INTERPOLATION_CUBIC,
+			"Player skeleton animation %s track %d must use cubic interpolation for smoother bone motion" % [animation_name, track_index]
+		)
 
 func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player: AnimationPlayer, animation_name: String, start_position: float, before_contact: float, after_contact: float) -> void:
 	var step_audio := player.get_node_or_null("StepAudioComponent") as StepAudioComponent
