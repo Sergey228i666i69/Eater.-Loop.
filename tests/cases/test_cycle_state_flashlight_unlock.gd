@@ -35,6 +35,19 @@ func run() -> Array[String]:
 	await tree.physics_frame
 	assert_true(bool(player.call("is_flashlight_enabled")), "Player flashlight must turn on after pickup")
 
+	player.set("_movement_blocked", true)
+	player.call("_toggle_flashlight")
+	await tree.physics_frame
+	assert_true(bool(player.call("is_flashlight_enabled")), "Movement-blocked transitions must not toggle the flashlight off")
+	player.set("_movement_blocked", false)
+
+	if UIMessage != null and UIMessage.has_method("set_screen_dark"):
+		UIMessage.set_screen_dark(true)
+		player.call("_toggle_flashlight")
+		await tree.physics_frame
+		assert_true(bool(player.call("is_flashlight_enabled")), "Black-screen transitions must not toggle the flashlight off")
+		UIMessage.set_screen_dark(false)
+
 	CycleState.reset_cycle_state()
 	await tree.physics_frame
 	assert_true(not bool(player.call("has_flashlight_available")), "Cycle reset must revoke uncommitted flashlight access")

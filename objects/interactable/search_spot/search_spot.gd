@@ -83,6 +83,7 @@ func _on_minigame_finished(minigame: Node, success: bool) -> void:
 	if success and has_key:
 		has_key = false
 		is_searched_empty = true
+		complete_interaction()
 		_mark_all_spots_searched_empty()
 
 func _mark_all_spots_searched_empty() -> void:

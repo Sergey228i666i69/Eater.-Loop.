@@ -16,7 +16,7 @@ From the project root:
 godot --headless -s res://tests/run_tests.gd
 ```
 
-Or use the helper script (respects `GODOT_BIN`):
+Or use the helper script from any working directory (respects `GODOT_BIN`):
 
 ```bash
 GODOT_BIN=/path/to/Godot bash tests/run_tests.sh

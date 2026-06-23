@@ -8,6 +8,9 @@ extends "res://levels/minigames/labs/timed_lab_minigame_base.gd"
 @export_range(0.0, 5.0) var click_cooldown_min: float = 0.7
 @export_range(0.0, 5.0) var click_cooldown_max: float = 1.6
 
+const INTENTIONAL_FAIL_FORWARD_MAX_PROGRESS := 0.96
+const SUCCESS_PROGRESS_THRESHOLD := 1.0
+
 var _progress: float = 0.0
 var _is_finished: bool = false
 var _cooldown_remaining: float = 0.0
@@ -39,6 +42,8 @@ const TEXT_DONE = "   Отчёт готов! (невероятно)"
 @onready var interaction_area: Control = $CenterContainer/InteractionArea
 
 func _ready() -> void:
+	# Broken generator is intentionally fail-forward: timeout is the expected completion path.
+	complete_lab_on_failure = true
 	start_timed_lab_session(Callable(self, "_on_time_updated"), Callable(self, "_on_time_expired"))
 
 	_rng.randomize()
@@ -90,7 +95,7 @@ func _on_generate_pressed() -> void:
 	if _rng.randf() < 0.22:
 		chaotic_gain = -progress_per_click * _rng.randf_range(0.25, 0.6)
 
-	_progress = clamp(_progress + chaotic_gain, 0.0, 0.96)
+	_progress = clamp(_progress + chaotic_gain, 0.0, INTENTIONAL_FAIL_FORWARD_MAX_PROGRESS)
 
 	# Иногда показывает фейковый "почти успех" и резко откатывает
 	if _progress > 0.8 and _rng.randf() < 0.7:
@@ -102,7 +107,7 @@ func _on_generate_pressed() -> void:
 	var tween = create_tween()
 	tween.tween_property(progress_bar, "value", _progress * 100.0, 0.08).set_trans(Tween.TRANS_SINE)
 
-	if _progress >= 1.0:
+	if _progress >= SUCCESS_PROGRESS_THRESHOLD:
 		finish_game(true)
 		return
 

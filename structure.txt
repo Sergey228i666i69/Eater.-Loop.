@@ -1460,6 +1460,7 @@
 │   │   ├── test_level_default_flashlight.gd.uid
 │   │   ├── test_light_adds_directional_contract.gd
 │   │   ├── test_light_adds_directional_contract.gd.uid
+│   │   ├── test_llm_glitch_fail_forward_contract.gd
 │   │   ├── test_main_menu_startup_disclaimer_runtime.gd
 │   │   ├── test_main_menu_startup_disclaimer_runtime.gd.uid
 │   │   ├── test_minigame_backdrop_dedup_runtime.gd
@@ -1482,6 +1483,7 @@
 │   │   ├── test_respawn_checkpoint_restore.gd.uid
 │   │   ├── test_save_state_split.gd
 │   │   ├── test_save_state_split.gd.uid
+│   │   ├── test_scene_context_pause_classification.gd
 │   │   ├── test_scene_dependency_contracts.gd
 │   │   ├── test_scenes_load.gd
 │   │   ├── test_scenes_load.gd.uid
@@ -1519,4 +1521,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1395 files
+125 directories, 1397 files

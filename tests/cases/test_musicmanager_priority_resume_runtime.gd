@@ -20,6 +20,7 @@ func run() -> Array[String]:
 		return get_failures()
 
 	await _test_pending_ambient_does_not_override_distortion(ambient_stream, distortion_stream)
+	await _test_event_and_distortion_music_start_are_idempotent(ambient_stream, distortion_stream)
 	_test_pause_resume_restores_playback_position()
 	_test_chase_pause_reasons_do_not_resume_while_minigame_paused()
 	_cleanup_music_manager()
@@ -53,6 +54,41 @@ func _test_pending_ambient_does_not_override_distortion(ambient_stream: AudioStr
 	await tree.process_frame
 	assert_eq(MusicManager.get_current_stream(), ambient_stream, "Pending ambient must resume after distortion music stops")
 	assert_eq(String(MusicManager.get("_current_source_kind")), MusicManager.SOURCE_KIND_AMBIENT, "Ambient source kind must restore after distortion music stops")
+
+func _test_event_and_distortion_music_start_are_idempotent(event_stream: AudioStream, distortion_stream: AudioStream) -> void:
+	_cleanup_music_manager()
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	if tree == null:
+		return
+
+	var source := Node.new()
+	tree.root.add_child(source)
+	await tree.process_frame
+
+	MusicManager.start_event_music(source, event_stream, 0.0, 999.0, 0.25)
+	await tree.process_frame
+	var stack_after_first_event: int = MusicManager.get("_stack").size()
+	MusicManager.start_event_music(source, event_stream, 0.0, 999.0, 0.5)
+	await tree.process_frame
+	assert_eq(MusicManager.get("_stack").size(), stack_after_first_event, "Repeated start_event_music for the same source must not push duplicate stack entries")
+	MusicManager.stop_event_music(source, 0.0)
+	await tree.process_frame
+	assert_true(not MusicManager.get("_event_sources").has(source.get_instance_id()), "Event source must unregister after stop_event_music")
+
+	MusicManager.start_distortion_music(source, distortion_stream, 0.0)
+	await tree.process_frame
+	var stack_after_first_distortion: int = MusicManager.get("_stack").size()
+	MusicManager.start_distortion_music(source, distortion_stream, 0.0)
+	await tree.process_frame
+	assert_eq(MusicManager.get("_stack").size(), stack_after_first_distortion, "Repeated start_distortion_music for the same source must not push duplicate stack entries")
+	MusicManager.stop_distortion_music(source, 0.0)
+	await tree.process_frame
+	assert_true(not MusicManager.get("_distortion_sources").has(source.get_instance_id()), "Distortion source must unregister after stop_distortion_music")
+
+	source.queue_free()
+	await tree.process_frame
+	_cleanup_music_manager()
 
 func _test_pause_resume_restores_playback_position() -> void:
 	var script_text := FileAccess.get_file_as_string(MUSIC_MANAGER_PATH)

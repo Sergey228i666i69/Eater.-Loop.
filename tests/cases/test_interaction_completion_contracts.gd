@@ -4,6 +4,7 @@ const DoorScript := preload("res://objects/interactable/door/door.gd")
 const FridgeScript := preload("res://objects/interactable/fridge/fridge.gd")
 const LaptopScript := preload("res://objects/interactable/notebook/laptop.gd")
 const BlockpostScript := preload("res://objects/interactable/level12/blockpost/blockpost.gd")
+const SearchSpotScript := preload("res://objects/interactable/search_spot/search_spot.gd")
 
 class DummyPlayer:
 	extends CharacterBody2D
@@ -47,6 +48,7 @@ func run() -> Array[String]:
 	await _test_fridge_locked_gates_do_not_complete_one_shot_contract()
 	await _test_laptop_dependency_attempt_unlock_does_not_complete_laptop()
 	await _test_blockpost_completes_only_after_successful_payment()
+	await _test_search_spot_key_success_completes_interaction()
 	return get_failures()
 
 func _test_locked_door_attempt_does_not_complete_one_shot_contract() -> void:
@@ -72,6 +74,33 @@ func _test_locked_door_attempt_does_not_complete_one_shot_contract() -> void:
 
 	assert_true(not door.is_completed, "Locked door must not complete after a failed one-shot interaction attempt")
 	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Failed locked door attempt must not satisfy completed dependencies")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_search_spot_key_success_completes_interaction() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var search_spot := SearchSpotScript.new()
+	search_spot.name = "SearchSpot"
+	search_spot.one_shot = false
+	search_spot.has_key = true
+	root.add_child(search_spot)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	var dependent := _attach_completed_dependent(root, search_spot)
+	search_spot.call("_on_minigame_finished", null, true)
+
+	assert_true(search_spot.is_completed, "SearchSpot must complete after successful key discovery")
+	assert_true(search_spot.is_searched_empty, "SearchSpot must become searched-empty after successful key discovery")
+	assert_true(not search_spot.has_key, "SearchSpot must consume its key after successful discovery")
+	assert_true(bool(dependent.call("_is_dependency_satisfied")), "Successful key discovery must satisfy completed dependencies")
 
 	InteractionManager.clear_candidates()
 	root.queue_free()

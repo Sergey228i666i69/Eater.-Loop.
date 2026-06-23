@@ -11,6 +11,8 @@ func run() -> Array[String]:
 
 	if GameState != null and GameState.has_method("reset_run"):
 		GameState.reset_run()
+	if UIMessage != null and UIMessage.has_method("set_screen_dark"):
+		UIMessage.set_screen_dark(false)
 
 	var player_scene := assert_loads(PLAYER_SCENE_PATH) as PackedScene
 	var enemy_scene := assert_loads(ENEMY_SCENE_PATH) as PackedScene

@@ -12,6 +12,8 @@ func run() -> Array[String]:
 
 	if GameState != null and GameState.has_method("reset_run"):
 		GameState.reset_run()
+	if UIMessage != null and UIMessage.has_method("set_screen_dark"):
+		UIMessage.set_screen_dark(false)
 	if MusicManager != null and MusicManager.has_method("clear_chase_music_sources"):
 		MusicManager.clear_chase_music_sources(0.0)
 

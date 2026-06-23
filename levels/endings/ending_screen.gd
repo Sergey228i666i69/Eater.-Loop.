@@ -10,6 +10,8 @@ extends Control
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if SceneContext != null and SceneContext.has_method("mark_ending_scene"):
+		SceneContext.mark_ending_scene(self)
 	_reset_music_for_ending()
 	_apply_title_font()
 	_title.text = tr(ending_text)

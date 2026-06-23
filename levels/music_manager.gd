@@ -290,6 +290,8 @@ func reset_base_music_state() -> void:
 	_runner_global_pause_reasons.clear()
 	_runner_global_paused = false
 	_chase_base_muted = false
+	_event_sources.clear()
+	_distortion_sources.clear()
 	_clear_pending_ambient_request()
 
 func get_current_stream() -> AudioStream:
@@ -350,6 +352,8 @@ func start_distortion_music(source: Object, stream: AudioStream, fade_time: floa
 	if source == null or stream == null:
 		return
 	var source_id := source.get_instance_id()
+	if _distortion_sources.has(source_id):
+		return
 	_distortion_sources[source_id] = true
 	var target_volume := resolve_mix_volume_db(MIX_DISTORTION, volume_db)
 	push_music(stream, fade_time, target_volume, source_id, SOURCE_KIND_DISTORTION)
@@ -368,6 +372,9 @@ func start_event_music(source: Object, stream: AudioStream, fade_in_time: float 
 	if source == null or stream == null:
 		return
 	var source_id := source.get_instance_id()
+	if _event_sources.has(source_id):
+		_event_sources[source_id] = {"fade_out_time": fade_out_time}
+		return
 	_event_sources[source_id] = {"fade_out_time": fade_out_time}
 	var target_volume := resolve_mix_volume_db(MIX_EVENT, volume_db)
 	push_music(stream, fade_in_time, target_volume, source_id, SOURCE_KIND_EVENT)

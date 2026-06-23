@@ -28,6 +28,8 @@
 - Меню/интеракции переключают сцену через `UIMessage.change_scene_with_fade*`.
 - При переходе в игровую сцену `GameDirector` перенастраивает фазу/таймер.
 - `GameState` обновляет путь текущей сцены для продолжения забега.
+- Тип сцены определяется через `SceneContext`: gameplay, menu и ending имеют отдельные группы/path-классификацию.
+- `PauseManager` не открывает pause menu поверх menu/ending scenes.
 
 ### 2.2 Музыкальный контур
 
@@ -78,6 +80,8 @@
   должен быть подавлен до выхода из зоны.
 - При кроссфейде базовой музыки команды синхронизации громкости должны
   применяться к фактическому целевому плееру, чтобы не возникало «протекания» звука.
+- Повторный `start_event_music(...)` или `start_distortion_music(...)` для того же source не должен добавлять дубликаты в music stack.
+- Включение/выключение фонарика блокируется во время black-screen/fade transitions и при заблокированном движении.
 
 ## 5. Практика тестирования
 
@@ -96,3 +100,5 @@
 - Лабораторные мини-игры сведены к общему timed-lab base/helper без изменения геймплейной семантики.
 - Добавлены архитектурные тесты на запрет private-coupling к `InteractiveObject` и stringly custom death handler.
 - Эти изменения не меняют игровой процесс и затрагивают только подкапотную часть.
+- Добавлена классификация ending-сцен в `SceneContext` и единое blocking-правило для pause menu поверх концовок.
+- Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup и fail-forward LLM glitch contract.

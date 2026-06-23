@@ -318,6 +318,8 @@ func _toggle_flashlight() -> void:
 		return
 	if _is_minigame_active():
 		return
+	if _is_movement_blocked() or _is_screen_dark():
+		return
 	if flashlight.enabled:
 		_set_flashlight_enabled(false)
 		return

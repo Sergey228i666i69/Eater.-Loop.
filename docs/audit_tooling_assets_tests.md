@@ -6,8 +6,9 @@
 
 - Godot: `4.6.1.stable`.
 - `godot --headless --check-only -s res://tests/run_tests.gd` прошёл.
-- Финальный прогон `bash tests/run_tests.sh` завершился с exit code `1`.
-- Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизвёлся 1 failure. Поэтому bedroom ambient suppression ниже отмечен как ранее замеченный, но не подтверждённый финальным прогоном.
+- Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
+- После ремонтных проходов 2026-06-23 parser-only и полный suite проходят; текущий полный suite содержит 57 тестов.
+- Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
 - Полный export/build не запускался, чтобы не писать в output paths и импорт-кэш.
 
 ## Resolved: Fresh Clone/CI Почти Наверняка Не Воспроизводит Игру
@@ -40,9 +41,9 @@
 
 Этот блок закрыт: projector direction исправлен, bedroom ambient failure не воспроизводится, а `ObjectDB instances leaked at exit` ушёл после ожидания async transition states в runtime-тестах и короткого drain в `tests/run_tests.gd`.
 
-Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Финальный прогон после документации это не воспроизвёл, поэтому пункт нужно расследовать как возможный flaky/state-order bug, а не считать текущим единственным подтверждённым падением.
+Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Последующие полные прогоны это не воспроизводят, поэтому пункт остался историческим наблюдением, а не текущим known failure.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (51)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (57)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -75,7 +76,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 53 теста.
+- 57 тестов.
 
 Добавлено:
 
@@ -84,9 +85,8 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 Ограничения:
 
 - discovery тестов нерекурсивный только по `tests/cases`;
-- shell helper требует запуск из корня, потому что не задаёт `--path`.
+- shell helper вычисляет project root относительно себя и запускает Godot с `--path`, поэтому может запускаться не из корня.
 
 Оставшийся ремонт:
 
-1. добавить optional export dry run;
-2. сделать runner независимым от cwd, если тесты нужно запускать не из корня проекта.
+1. добавить optional export dry run.

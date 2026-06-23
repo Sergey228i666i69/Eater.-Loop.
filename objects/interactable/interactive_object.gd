@@ -55,6 +55,14 @@ func _ready() -> void:
 	_setup_interaction_area()
 	set_dependency_object(dependency_object)
 
+func _exit_tree() -> void:
+	_disconnect_dependency_listener()
+	if _uses_interaction_manager():
+		InteractionManager.unregister_candidate(self)
+	_player_in_range = null
+	_interaction_focused = false
+	_hide_prompt()
+
 func capture_checkpoint_state() -> Dictionary:
 	return {
 		"is_completed": is_completed,

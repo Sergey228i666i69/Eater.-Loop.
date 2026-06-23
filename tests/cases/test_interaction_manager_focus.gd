@@ -12,6 +12,7 @@ func run() -> Array[String]:
 	await _test_only_focused_interactive_consumes_input()
 	await _test_locked_high_priority_candidate_yields_to_available_low_priority_candidate()
 	await _test_active_minigame_blocks_world_interactions()
+	await _test_focused_interactive_unregisters_on_exit_tree()
 	return get_failures()
 
 func _test_only_focused_interactive_consumes_input() -> void:
@@ -54,6 +55,44 @@ func _test_only_focused_interactive_consumes_input() -> void:
 	high.call("_on_interact_area_body_exited", player)
 	InteractionManager.call("_unhandled_input", event)
 	assert_eq(low.interactions, 1, "Remaining interactive should become focused after higher-priority object exits")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_focused_interactive_unregisters_on_exit_tree() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	assert_true(InteractionManager != null, "InteractionManager autoload is missing")
+	if tree == null or InteractionManager == null:
+		return
+
+	InteractionManager.clear_candidates()
+	var root := Node2D.new()
+	tree.root.add_child(root)
+
+	var player := Node2D.new()
+	player.add_to_group("player")
+	root.add_child(player)
+
+	var interactive := ProbeInteractive.new()
+	interactive.name = "FreedInteractive"
+	root.add_child(interactive)
+	await tree.process_frame
+
+	interactive.call("_on_interact_area_body_entered", player)
+	assert_eq(InteractionManager.get_focused_object(), interactive, "Interactive must become focused after player enters")
+
+	var interactive_id := interactive.get_instance_id()
+	var candidates: Dictionary = InteractionManager.get("_candidates")
+	assert_true(candidates.has(interactive_id), "InteractionManager must register the focused interactive before cleanup")
+
+	interactive.queue_free()
+	await tree.process_frame
+
+	candidates = InteractionManager.get("_candidates")
+	assert_true(not candidates.has(interactive_id), "InteractiveObject must unregister itself from InteractionManager on _exit_tree")
+	assert_true(InteractionManager.get_focused_object() == null, "Freed focused interactive must not remain selected")
 
 	InteractionManager.clear_candidates()
 	root.queue_free()

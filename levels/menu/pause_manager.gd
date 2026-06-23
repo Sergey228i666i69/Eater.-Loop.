@@ -27,7 +27,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if keyboard_escape_requested and _should_defer_to_minigame_cancel(event):
 		return
-	if _is_menu_scene():
+	if _is_scene_pause_blocked():
 		return
 	if _is_minigame_pause_blocked():
 		return
@@ -80,6 +80,14 @@ func _is_menu_scene() -> bool:
 	if current == null:
 		return true
 	return SceneContext != null and SceneContext.is_menu_scene(current)
+
+func _is_scene_pause_blocked() -> bool:
+	var current := get_tree().current_scene
+	if current == null:
+		return true
+	if SceneContext == null:
+		return false
+	return SceneContext.is_menu_scene(current) or SceneContext.is_ending_scene(current)
 
 func _is_minigame_active() -> bool:
 	var nodes := get_tree().get_nodes_in_group("minigame_ui")

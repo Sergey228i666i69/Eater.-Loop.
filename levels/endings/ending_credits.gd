@@ -29,6 +29,8 @@ var _return_transition_started: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if SceneContext != null and SceneContext.has_method("mark_ending_scene"):
+		SceneContext.mark_ending_scene(self)
 	_apply_label_fonts()
 	_play_credits_music()
 	_set_pause_block(true)

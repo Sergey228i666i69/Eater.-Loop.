@@ -6,14 +6,14 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После P1-remediation pass parser-only и полный suite проходили, полный suite содержит 55 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После P2 contract/tooling pass parser-only и полный suite проходили, полный suite содержит 57 тестов.
 
 Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
 
 - несколько singleton-ов одновременно владеют pause/fade/music состояниями;
 - интерактивы всё ещё различают только "попытку" и "завершено", но не полноценный outcome/result;
 - STU-уровни и крупные сцены сильно завязаны на `NodePath`, имена детей и serialized overrides;
-- часть документации и файловой гигиены отстала от текущего состояния;
+- часть файловой гигиены и naming debt всё ещё отстала от текущего состояния;
 - крупные классы остаются дорогими для ревью и регрессий.
 
 Оценка проблемности после текущего аудита: примерно 5.5-6/10. Это поддерживаемый проект с рабочими тестами; исходные P1-регрессии закрыты, открытыми остаются P2/P3-долги.
@@ -35,6 +35,14 @@
 - `UIMessage.show_hint()` больше не перезаписывает исходную pause-state при повторном pausing hint, добавлен regression test.
 - Fade в `UIMessage` унифицирован через один token/tween path; cancelled fade больше не может позже перезаписать экран.
 - Chase music pause получил reason-map для menu/global/minigame, и закрытие pause menu больше не снимает minigame pause.
+- LLM glitch minigame теперь явно оформлена как intentionally fail-forward, а не случайно невыигрываемая.
+- Фонарик больше не переключается во время black-screen/fade transitions и blocked movement.
+- Event/distortion music больше не push-ит дубликаты в stack при повторном старте того же source.
+- `InteractiveObject` явно unregister-ится из `InteractionManager` при `_exit_tree`.
+- `SearchSpot` завершает interaction после успешного нахождения ключа.
+- Ending-сцены классифицируются через `SceneContext`, и pause menu не открывается поверх концовок.
+- `tests/run_tests.sh` стал независим от cwd через `--path`.
+- Stale current-state docs обновлены под `level_14_end.*` и suite из 57 тестов.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -117,68 +125,41 @@ Evidence:
 
 ### 13. LLM glitch minigame выглядит намеренно или случайно невыигрываемой
 
-Evidence:
+Статус: закрыто.
 
-- `levels/minigames/labs/LLM/llm_minigame_glitch.gd`: `_progress` clamp до `0.96`.
-- Успех требует `_progress >= 1.0`.
-- timeout завершает failure.
-- `TimedLabMinigameBase.complete_lab_on_failure` по умолчанию `true`.
-
-Что сделать:
-
-- решить дизайн: minigame intentionally unwinnable или должна иметь редкий win path;
-- если intentionally unwinnable, покрыть fail-forward тестом и явно задокументировать;
-- если должна быть выигрываемой, исправить progress/success threshold.
+- Дизайн зафиксирован как intentionally fail-forward: `levels/minigames/labs/LLM/llm_minigame_glitch.gd` использует named constants для max progress и success threshold.
+- `_ready()` явно держит `complete_lab_on_failure = true`.
+- Контракт покрыт `tests/cases/test_llm_glitch_fail_forward_contract.gd`.
 
 ### 14. Фонарик можно переключать во время black screen / door fade
 
-Evidence:
+Статус: закрыто.
 
-- `player/player.gd`: движение блокируется при dark screen.
-- `_toggle_flashlight()` проверяет minigame/charge, но не dark screen/transition.
-- `objects/interactable/door/door.gd`: дверь выключает physics, но не input.
-
-Что сделать:
-
-- заблокировать `toggle_flashlight` при dark screen, door transition или movement blocked;
-- добавить regression test.
+- `player/player.gd` блокирует `_toggle_flashlight()` при `_is_movement_blocked()` или `_is_screen_dark()`.
+- Regression покрыт в `tests/cases/test_cycle_state_flashlight_unlock.gd`.
+- Light-sensitive runtime tests теперь явно сбрасывают black-screen state в setup, чтобы не зависеть от предыдущих fade-сцен.
 
 ### 15. `MusicManager.start_event_music()` / `start_distortion_music()` могут push-ить один source повторно
 
-Evidence:
+Статус: закрыто.
 
-- `levels/music_manager.gd`: event/distortion start вызывают `push_music`.
-- Явной защиты от повторного старта того же source не видно.
-
-Что сделать:
-
-- добавить idempotency guard для active event/distortion source;
-- покрыть тестом повторный start/stop, чтобы stack не восстанавливал тот же event как previous.
+- `levels/music_manager.gd` теперь не делает повторный `push_music` для уже активного event/distortion source.
+- `reset_base_music_state()` чистит event/distortion source registry.
+- Regression покрыт в `tests/cases/test_musicmanager_priority_resume_runtime.gd`.
 
 ### 16. `InteractiveObject` нет явно unregister-ится из `InteractionManager` при `_exit_tree`
 
-Evidence:
+Статус: закрыто.
 
-- registration/unregistration идёт через body enter/exit.
-- При удалении объекта в зоне prompt/focus чистится лениво prune-логикой.
-
-Что сделать:
-
-- добавить `_exit_tree` cleanup;
-- покрыть тестом удаление focused interactable while player in range.
+- `objects/interactable/interactive_object.gd` получил `_exit_tree()` cleanup: dependency disconnect, unregister из `InteractionManager`, сброс player/focus/prompt.
+- Regression покрыт в `tests/cases/test_interaction_manager_focus.gd`.
 
 ### 17. `SearchSpot` не выставляет `complete_interaction()` после найденного ключа
 
-Evidence:
+Статус: закрыто.
 
-- `objects/interactable/search_spot/search_spot.gd`: при success + `has_key` меняет `has_key`/`is_searched_empty`, но не вызывает `complete_interaction()`.
-
-Сейчас прямой зависимости на search spot не найдено, поэтому это P2, а не P1.
-
-Что сделать:
-
-- определить outcome: `complete_interaction()` на успешном ключе или отдельный `key_found`;
-- зафиксировать контракт тестом до появления новых dependencies.
+- `objects/interactable/search_spot/search_spot.gd` вызывает `complete_interaction()` после успешного key discovery.
+- Контракт зависимостей покрыт в `tests/cases/test_interaction_completion_contracts.gd`.
 
 ### 18. `Obstacle` обходит нормальную InteractiveObject-архитектуру
 
@@ -193,16 +174,12 @@ Evidence:
 
 ### 19. Ending scenes и pause classification непоследовательны
 
-Evidence:
+Статус: закрыто.
 
-- `ending_credits` вручную блокирует pause.
-- `ending_screen` похожего блока не имеет.
-- `SceneContext` классифицирует gameplay/menu, но endings требуют явного решения.
-
-Что сделать:
-
-- решить, endings это отдельный scene type или menu-like scenes;
-- добавить тест, что pause menu не открывается поверх всех ending-сцен.
+- Ending-сцены оформлены как отдельный `SceneContext` type (`ending_scene`, `res://levels/endings/`).
+- `levels/menu/pause_manager.gd` блокирует pause menu поверх menu/ending scenes.
+- `ending_screen.gd` и `ending_credits.gd` маркируют себя как ending scenes; локальный blocker в credits оставлен как страховка.
+- Regression покрыт в `tests/cases/test_scene_context_pause_classification.gd`.
 
 ### 20. CI не проверяет export presets dry-run
 
@@ -218,27 +195,18 @@ Evidence:
 
 ### 21. `tests/run_tests.sh` зависит от запуска из root
 
-Evidence:
+Статус: закрыто.
 
-- `tests/run_tests.sh` вызывает `godot --headless -s res://tests/run_tests.gd` без `--path`.
-
-Что сделать:
-
-- вычислять project root относительно скрипта;
-- запускать Godot с `--path "$PROJECT_ROOT"`;
-- обновить `tests/README.md`.
+- `tests/run_tests.sh` вычисляет project root относительно себя и запускает Godot с `--path "$PROJECT_ROOT"`.
+- `tests/README.md` обновлён: helper можно запускать из любого cwd.
 
 ### 22. Документация местами stale
 
-Evidence:
+Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md`: expected suite всё ещё `OK: all tests passed (51)`, сейчас 53.
-- `docs/level_end_endings.md`: ссылается на `res://levels/cycles/level_end.tscn` и `level_end.gd`, текущие файлы называются иначе.
-
-Что сделать:
-
-- обновить docs после первых фактических исправлений;
-- не править старые audit docs как "историю", если их смысл именно historical snapshot, но current-state docs должны быть точными.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (57)`.
+- `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
+- `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 
 ## P3 - Гигиена, Legacy И Мусор
 
