@@ -10,6 +10,7 @@ func run() -> Array[String]:
 	_test_key_search_spots_do_not_depend_on_the_door_they_unlock()
 	_test_scene_dependencies_declare_typed_conditions()
 	_test_laptop_attempt_dependencies_use_requested_condition()
+	_test_self_target_doors_are_locked()
 	_test_level_scripts_set_dependency_condition_with_dependency_object()
 	_test_target_monster_spawners_declare_spawn_condition()
 	_test_reversible_triggers_are_not_one_shot()
@@ -59,6 +60,16 @@ func _test_laptop_attempt_dependencies_use_requested_condition() -> void:
 			assert_true(
 				block.find("dependency_condition = 1") != -1,
 				"Laptop legacy attempt-unlock flag must use INTERACTION_REQUESTED dependency_condition: %s" % path
+			)
+
+func _test_self_target_doors_are_locked() -> void:
+	for path in _list_active_scenes():
+		for block in _scene_node_blocks(path):
+			if block.find("target_marker = NodePath(\".\")") == -1:
+				continue
+			assert_true(
+				block.find("is_locked = true") != -1,
+				"Self-target scene doors must be locked so players cannot trigger fade-to-self transitions: %s" % path
 			)
 
 func _test_level_scripts_set_dependency_condition_with_dependency_object() -> void:

@@ -30,6 +30,10 @@ func run() -> Array[String]:
 
 	default_lamp.call("_toggle")
 	assert_true(not _is_lit(default_lamp), "Default lamp must toggle off")
+	assert_eq(String(default_lamp.call("_get_lamp_prompt_text")), "E — включить свет", "Lamp prompt must show the real interact key instead of legacy Q")
+	if InteractionPrompts != null:
+		assert_eq(String(InteractionPrompts.get_default_lamp_text(false)), "E — включить свет", "Default lamp-on prompt must use interact key")
+		assert_true(String(InteractionPrompts.get_default_lamp_text(true)).find("Q") == -1, "Default lamp-off prompt must not mention removed Q input")
 
 	var required_lamp := lamp_scene.instantiate()
 	required_lamp.set("requires_generator", true)

@@ -21,6 +21,7 @@ func run() -> Array[String]:
 
 	await _test_pending_ambient_does_not_override_distortion(ambient_stream, distortion_stream)
 	_test_pause_resume_restores_playback_position()
+	_test_chase_pause_reasons_do_not_resume_while_minigame_paused()
 	_cleanup_music_manager()
 	return get_failures()
 
@@ -61,6 +62,21 @@ func _test_pause_resume_restores_playback_position() -> void:
 	assert_true(script_text.find("_base_pause_position = resume_position_override if resume_position_override >= 0.0 else _get_playback_position(player)") != -1, "Pause path must store an explicit playback position before stopping the base player")
 	assert_true(script_text.find("player.play()\n\t_seek_if_possible(player, resume_position)") != -1, "Resume path must restart the base player and seek back to the stored position")
 	assert_true(script_text.find("_base_pause_position = 0.0") != -1, "Resume path must clear the stored paused position after restoring playback")
+
+func _test_chase_pause_reasons_do_not_resume_while_minigame_paused() -> void:
+	_cleanup_music_manager()
+	MusicManager.pause_chase_music(0.0, MusicManager.CHASE_PAUSE_REASON_MENU)
+	MusicManager.pause_chase_music(0.0, MusicManager.CHASE_PAUSE_REASON_MINIGAME)
+
+	assert_true(bool(MusicManager.get("_runner_global_paused")), "Chase music must be globally paused while any pause reason is active")
+
+	MusicManager.resume_chase_music(0.0, MusicManager.CHASE_PAUSE_REASON_MENU)
+	var reasons: Dictionary = MusicManager.get("_runner_global_pause_reasons")
+	assert_true(bool(MusicManager.get("_runner_global_paused")), "Closing pause menu must not resume chase music while minigame pause remains active")
+	assert_true(reasons.has(MusicManager.CHASE_PAUSE_REASON_MINIGAME), "Minigame chase pause reason must remain after menu pause resumes")
+
+	MusicManager.resume_chase_music(0.0, MusicManager.CHASE_PAUSE_REASON_MINIGAME)
+	assert_true(not bool(MusicManager.get("_runner_global_paused")), "Chase music may resume only after the final pause reason is cleared")
 
 func _cleanup_music_manager() -> void:
 	if MusicManager == null:

@@ -42,6 +42,7 @@ func _attach_completed_dependent(root: Node, dependency: InteractiveObject) -> I
 func run() -> Array[String]:
 	await _test_locked_door_attempt_does_not_complete_one_shot_contract()
 	await _test_broken_door_transition_does_not_complete_one_shot_contract()
+	await _test_self_target_door_transition_does_not_complete_one_shot_contract()
 	await _test_successful_door_transition_completes_interaction()
 	await _test_fridge_locked_gates_do_not_complete_one_shot_contract()
 	await _test_laptop_dependency_attempt_unlock_does_not_complete_laptop()
@@ -98,6 +99,35 @@ func _test_broken_door_transition_does_not_complete_one_shot_contract() -> void:
 	await tree.process_frame
 
 	assert_true(not door.is_completed, "Door with missing target marker must not complete after a failed transition")
+
+	InteractionManager.clear_candidates()
+	root.queue_free()
+	await tree.process_frame
+
+func _test_self_target_door_transition_does_not_complete_one_shot_contract() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var player := DummyPlayer.new()
+	player.global_position = Vector2(10.0, 20.0)
+	var door := DoorScript.new()
+	door.one_shot = true
+	door.is_locked = false
+	door.target_marker = NodePath(".")
+	root.add_child(door)
+	root.add_child(player)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	door.call("_on_interact_area_body_entered", player)
+	door.request_interact()
+	await tree.process_frame
+
+	assert_true(not door.is_completed, "Door with self target marker must not complete after a failed transition")
+	assert_eq(player.global_position, Vector2(10.0, 20.0), "Self-target door must not move the player")
 
 	InteractionManager.clear_candidates()
 	root.queue_free()

@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. На момент аудита parser-only и полный suite проходили, полный suite содержит 53 теста.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После P1-remediation pass parser-only и полный suite проходили, полный suite содержит 55 тестов.
 
 Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
 
@@ -16,123 +16,25 @@
 - часть документации и файловой гигиены отстала от текущего состояния;
 - крупные классы остаются дорогими для ревью и регрессий.
 
-Оценка проблемности после текущего аудита: примерно 5.5-6/10. Это поддерживаемый проект с рабочими тестами, но с несколькими P1/P2-рисками, которые лучше закрывать до новых больших фич.
+Оценка проблемности после текущего аудита: примерно 5.5-6/10. Это поддерживаемый проект с рабочими тестами; исходные P1-регрессии закрыты, открытыми остаются P2/P3-долги.
 
 ## P0
 
 Подтверждённых P0-блокеров не найдено.
 
-## P1 - Вероятные Игровые Баги И Пользовательские Регрессии
+## P1
 
-### 1. Лампа показывает старую клавишу `Q`, хотя реально слушает `interact`
+Открытых P1 после remediation pass не осталось.
 
-Evidence:
+Закрыто:
 
-- `objects/interactable/lamp/lamp.gd`: `_get_interact_action()` возвращает `"interact"`.
-- `project.godot`: `interact` назначен на `E`, `Space` и gamepad confirm.
-- `levels/interaction_prompts.gd`: `DEFAULT_LAMP_ON_TEXT` / `DEFAULT_LAMP_OFF_TEXT` всё ещё говорят `Q`.
-- `objects/interactable/lamp/lamp.gd`: fallback prompt тоже говорит `Q`.
-
-Что сделать:
-
-- заменить lamp prompt на текущий `interact`-текст или общий prompt-renderer;
-- добавить тест, что light interactables не показывают несуществующий action;
-- проверить старый `projector`/`projector2`, чтобы не осталось похожей рассинхронизации.
-
-### 2. В STU-сценах есть player-facing doors с `target_marker = NodePath(".")`
-
-Evidence:
-
-- `levels/cycles/level_11_STU_1.tscn`
-- `levels/cycles/level_12_STU_2.tscn`
-- `levels/cycles/level_13_STU_3.tscn`
-- `objects/interactable/door/door.gd`: дверь берёт `marker.global_position` без self-target guard.
-- `enemies/stalker/enemy_stalker.gd` уже считает self-reference невалидным для своей логики.
-
-Риск: игрок может получить fade-to-self/no-op переход или placeholder-интерактив вместо осмысленной двери.
-
-Что сделать:
-
-- решить, что это должно быть: locked door, non-interactive blocker или реальный marker;
-- добавить validator/test: player door не может иметь `target_marker = "."`;
-- отдельно проверить, что такие двери не участвуют в подсказках как обычные проходы.
-
-### 3. Финальная развилка выбирает ветку на `interaction_requested`, а не на успешный outcome
-
-Evidence:
-
-- `levels/cycles/level_11_end.gd`: laptop/fridge branch выбирается в `_on_laptop_interaction_requested` / `_on_fridge_interaction_requested`.
-- `objects/interactable/interactive_object.gd`: `interaction_requested` испускается до `_on_interact()`.
-- fridge/laptop outcomes асинхронные и могут завершиться позже, failed/cancelled или вообще не дойти до success.
-
-Риск: первый клик по холодильнику или ноутбуку может зафиксировать ending branch до реального успеха.
-
-Что сделать:
-
-- перевести выбор ветки на успешный сигнал: `feeding_finished`, lab completion или новый outcome/result;
-- добавить regression test: failed/cancelled attempt не фиксирует финальную ветку;
-- после исправления проверить зависимости bed/fridge/laptop в `level_11_end`.
-
-### 4. Ending branch state в `level_11_end` не checkpointed
-
-Evidence:
-
-- `levels/cycles/level_11_end.gd`: `_branch`, `_ending_started`, `_bad_ending_queued` живут только в runtime-полях.
-- В файле нет `capture_checkpoint_state()` / `apply_checkpoint_state()`.
-
-Риск: retry/checkpoint/death window внутри финального flow может потерять выбранную ветку или очередь bad ending.
-
-Что сделать:
-
-- либо запретить checkpoint/death window в этом flow;
-- либо добавить checkpoint state для branch/ending flags;
-- покрыть тестом восстановление после выбора laptop/fridge ветки.
-
-### 5. `UIMessage.show_hint()` может оставить игру на паузе при повторном hint
-
-Evidence:
-
-- `player/ui_message.gd`: `show_hint()` каждый раз перезаписывает `_hint_prev_paused = get_tree().paused`.
-- Если второй pausing hint показан поверх первого, previous state станет `true`.
-- `hide_hint()` восстановит `get_tree().paused = true`, хотя до первого hint игра могла быть unpaused.
-
-Что сделать:
-
-- сделать hint ownership/token или не перезаписывать previous pause state при уже открытом hint;
-- добавить тест на два последовательных `show_hint(..., pause_game=true)` и один `hide_hint()`;
-- проверить похожие паттерны в notes/death/minigame modal flow.
-
-### 6. Fade в `UIMessage` управляется разными tween-моделями
-
-Evidence:
-
-- `player/ui_message.gd`: `fade_out()` / `fade_in()` создают локальные tweens.
-- `play_fade_sequence()` / `set_screen_dark()` управляют только `_fade_tween`.
-
-Риск: старый локальный tween может позже перезаписать alpha/mouse_filter нового перехода.
-
-Что сделать:
-
-- унифицировать fade API через один текущий tween/token;
-- все public fade methods должны предсказуемо отменять предыдущий fade;
-- добавить тест на overlapping fade transitions.
-
-### 7. Chase music pause не имеет reason-map, в отличие от base music
-
-Evidence:
-
-- `levels/music_manager.gd`: base music имеет `_base_pause_reasons`.
-- Chase music держит pause в одном `_runner_global_paused`.
-- `start_pause_menu_music()` и `MinigameController.start_minigame()` оба вызывают `pause_chase_music()`.
-- `stop_pause_menu_music()` вызывает `resume_chase_music()` без проверки, что minigame ещё активна.
-
-Риск: при пересечении pause menu и minigame chase music может возобновиться слишком рано.
-
-Что сделать:
-
-- сделать для chase music reason-map/token model;
-- добавить тест "minigame active + pause menu close не возобновляет chase";
-- синхронизировать это с будущим общим Pause API.
+- Лампа больше не показывает legacy `Q`: prompt переведён на текущий `interact`, добавлена проверка в `test_lamp_generator_requirement.gd`.
+- STU `Door(To204)` больше не даёт player-facing fade-to-self: hall-двери явно locked, `Door` fail-closed на self-target, добавлены runtime и scene-contract тесты.
+- Финальная развилка `level_11_end` больше не выбирается на raw attempt: laptop/fridge ветки выбираются на success-сигналы, добавлен `test_level11_end_flow_contracts.gd`.
+- `level_11_end` получил checkpoint state для `_branch`, `_ending_started`, `_bad_ending_queued`, а `GameState` умеет сохранять scene root participant `"."`.
+- `UIMessage.show_hint()` больше не перезаписывает исходную pause-state при повторном pausing hint, добавлен regression test.
+- Fade в `UIMessage` унифицирован через один token/tween path; cancelled fade больше не может позже перезаписать экран.
+- Chase music pause получил reason-map для menu/global/minigame, и закрытие pause menu больше не снимает minigame pause.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 

@@ -122,6 +122,11 @@ func _perform_transition() -> void:
 		if is_instance_valid(player): player.set_physics_process(true)
 		_is_transitioning = false
 		return
+	if marker == self:
+		push_warning("Door: target_marker не может указывать на саму дверь.")
+		if is_instance_valid(player): player.set_physics_process(true)
+		_is_transitioning = false
+		return
 	
 	await UIMessage.fade_out(0.4)
 	

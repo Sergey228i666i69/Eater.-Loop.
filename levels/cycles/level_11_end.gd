@@ -27,8 +27,11 @@ var _fridge: Node = null
 var _bed: Node = null
 
 func _ready() -> void:
+	if not is_in_group(CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP):
+		add_to_group(CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP)
 	super._ready()
 	_resolve_nodes()
+	_apply_branch_side_effects()
 	_connect_level_flow()
 
 func handle_custom_death_screen() -> bool:
@@ -45,39 +48,44 @@ func _resolve_nodes() -> void:
 	_bed = get_node_or_null(bed_path)
 
 func _connect_level_flow() -> void:
-	if _laptop != null and _laptop.has_signal("interaction_requested") and not _laptop.interaction_requested.is_connected(_on_laptop_interaction_requested):
-		_laptop.interaction_requested.connect(_on_laptop_interaction_requested)
-	if _fridge != null and _fridge.has_signal("interaction_requested") and not _fridge.interaction_requested.is_connected(_on_fridge_interaction_requested):
-		_fridge.interaction_requested.connect(_on_fridge_interaction_requested)
+	if _laptop != null and _laptop.has_signal("interaction_finished") and not _laptop.interaction_finished.is_connected(_on_laptop_interaction_finished):
+		_laptop.interaction_finished.connect(_on_laptop_interaction_finished)
 	if CycleState != null and CycleState.has_signal("lab_completed") and not CycleState.lab_completed.is_connected(_on_lab_completed):
 		CycleState.lab_completed.connect(_on_lab_completed)
 	if _fridge != null and _fridge.has_signal("feeding_finished") and not _fridge.feeding_finished.is_connected(_on_fridge_feeding_finished):
 		_fridge.feeding_finished.connect(_on_fridge_feeding_finished)
 
-func _on_laptop_interaction_requested(_player: Node = null) -> void:
+func _on_laptop_interaction_finished() -> void:
 	if _branch == EndingBranch.NONE:
 		_choose_branch(EndingBranch.LAPTOP)
-
-func _on_fridge_interaction_requested(_player: Node = null) -> void:
-	if _branch == EndingBranch.NONE:
-		_choose_branch(EndingBranch.FRIDGE)
+	if _branch == EndingBranch.LAPTOP and _has_completed_any_lab():
+		_complete_laptop_branch()
 
 func _choose_branch(branch: EndingBranch) -> void:
+	if branch == EndingBranch.NONE:
+		return
+	if _branch != EndingBranch.NONE and _branch != branch:
+		return
 	_branch = branch
+	_apply_branch_side_effects()
+
+func _apply_branch_side_effects() -> void:
 	match _branch:
 		EndingBranch.LAPTOP:
 			_set_fridge_enabled(false)
-			var has_lab := false
-			if CycleState != null and CycleState.has_method("has_completed_any_lab"):
-				has_lab = bool(CycleState.has_completed_any_lab())
-			if has_lab:
-				_on_lab_completed()
+			_set_bed_enabled(_has_completed_any_lab())
 		EndingBranch.FRIDGE:
 			_set_laptop_enabled(false)
+			_set_bed_enabled(false)
 
 func _on_lab_completed() -> void:
+	if _branch == EndingBranch.NONE:
+		_choose_branch(EndingBranch.LAPTOP)
 	if _branch != EndingBranch.LAPTOP:
 		return
+	_complete_laptop_branch()
+
+func _complete_laptop_branch() -> void:
 	if CycleState != null and CycleState.has_method("mark_ate"):
 		CycleState.mark_ate()
 	_set_bed_enabled(true)
@@ -85,6 +93,8 @@ func _on_lab_completed() -> void:
 		UIMessage.show_notification(laptop_sleep_prompt)
 
 func _on_fridge_feeding_finished() -> void:
+	if _branch == EndingBranch.NONE:
+		_choose_branch(EndingBranch.FRIDGE)
 	if _branch != EndingBranch.FRIDGE:
 		return
 	_queue_bad_ending_after_fridge()
@@ -139,3 +149,28 @@ func _set_fridge_locked_visual(locked: bool) -> void:
 		_fridge.call("set_interaction_enabled", not locked)
 	if _fridge.has_method("refresh_visual_state"):
 		_fridge.call("refresh_visual_state")
+
+func _has_completed_any_lab() -> bool:
+	if CycleState == null or not CycleState.has_method("has_completed_any_lab"):
+		return false
+	return bool(CycleState.has_completed_any_lab())
+
+func capture_checkpoint_state() -> Dictionary:
+	return {
+		"branch": int(_branch),
+		"ending_started": _ending_started,
+		"bad_ending_queued": _bad_ending_queued,
+	}
+
+func apply_checkpoint_state(state: Dictionary) -> void:
+	_branch = _normalize_branch(int(state.get("branch", int(_branch))))
+	_ending_started = bool(state.get("ending_started", _ending_started))
+	_bad_ending_queued = bool(state.get("bad_ending_queued", _bad_ending_queued))
+	_apply_branch_side_effects()
+
+func _normalize_branch(value: int) -> int:
+	match value:
+		EndingBranch.LAPTOP, EndingBranch.FRIDGE:
+			return value
+		_:
+			return EndingBranch.NONE

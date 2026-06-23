@@ -49,6 +49,10 @@ const MIX_PAUSE := "pause"
 const MIX_MENU := "menu"
 const PAUSE_REASON_MENU := "pause_menu"
 const PAUSE_REASON_GLOBAL := "global"
+const CHASE_PAUSE_REASON_GENERIC := "generic"
+const CHASE_PAUSE_REASON_MENU := "pause_menu"
+const CHASE_PAUSE_REASON_GLOBAL := "global"
+const CHASE_PAUSE_REASON_MINIGAME := "minigame"
 const SOURCE_MINIGAME := -10
 const SOURCE_KIND_GENERIC := "generic"
 const SOURCE_KIND_AMBIENT := "ambient"
@@ -87,6 +91,7 @@ var _runner_active_fade_out_time: float = -1.0
 var _runner_pause_position: float = 0.0
 var _runner_paused: bool = false
 var _runner_global_paused: bool = false
+var _runner_global_pause_reasons: Dictionary = {}
 var _chase_base_muted: bool = false
 var _event_sources: Dictionary = {}
 var _distortion_sources: Dictionary = {}
@@ -282,6 +287,8 @@ func reset_base_music_state() -> void:
 	_base_pause_was_playing = false
 	_base_pause_reasons.clear()
 	_base_pause_active = false
+	_runner_global_pause_reasons.clear()
+	_runner_global_paused = false
 	_chase_base_muted = false
 	_clear_pending_ambient_request()
 
@@ -421,7 +428,7 @@ func start_pause_menu_music(stream: AudioStream, fade_out_time: float = -1.0, vo
 	_pause_menu_active = true
 	var target_fade := _resolve_fade_time(fade_out_time)
 	_request_base_pause(PAUSE_REASON_MENU, target_fade)
-	pause_chase_music(target_fade)
+	pause_chase_music(target_fade, CHASE_PAUSE_REASON_MENU)
 	if stream == null:
 		return
 	if _pause_player == null:
@@ -443,17 +450,17 @@ func stop_pause_menu_music(resume_fade_time: float = -1.0) -> void:
 		_pause_player.stop()
 	var target_fade := _resolve_fade_time(resume_fade_time)
 	_request_base_resume(PAUSE_REASON_MENU, target_fade)
-	resume_chase_music(target_fade)
+	resume_chase_music(target_fade, CHASE_PAUSE_REASON_MENU)
 
 func pause_all_music(fade_time: float = -1.0) -> void:
 	var target_fade := _resolve_fade_time(fade_time)
 	_request_base_pause(PAUSE_REASON_GLOBAL, target_fade)
-	pause_chase_music(target_fade)
+	pause_chase_music(target_fade, CHASE_PAUSE_REASON_GLOBAL)
 
 func resume_all_music(fade_time: float = -1.0) -> void:
 	var target_fade := _resolve_fade_time(fade_time)
 	_request_base_resume(PAUSE_REASON_GLOBAL, target_fade)
-	resume_chase_music(target_fade)
+	resume_chase_music(target_fade, CHASE_PAUSE_REASON_GLOBAL)
 
 func set_ambient_music_suppressed(source: Object, suppressed: bool, fade_time: float = -1.0) -> void:
 	if source == null:
@@ -621,7 +628,9 @@ func set_chase_music_suppressed(source: Object, suppressed: bool) -> void:
 func is_chase_active() -> bool:
 	return _runner_active and not _runner_global_paused and not _runner_paused
 
-func pause_chase_music(fade_time: float = -1.0) -> void:
+func pause_chase_music(fade_time: float = -1.0, reason: String = CHASE_PAUSE_REASON_GENERIC) -> void:
+	var pause_reason := _normalize_chase_pause_reason(reason)
+	_runner_global_pause_reasons[pause_reason] = true
 	if _runner_global_paused:
 		return
 	_runner_global_paused = true
@@ -629,7 +638,14 @@ func pause_chase_music(fade_time: float = -1.0) -> void:
 	_pause_runner_music(target_fade, true)
 	_sync_chase_base_mute()
 
-func resume_chase_music(fade_time: float = -1.0) -> void:
+func resume_chase_music(fade_time: float = -1.0, reason: String = CHASE_PAUSE_REASON_GENERIC) -> void:
+	var pause_reason := _normalize_chase_pause_reason(reason)
+	if not _runner_global_pause_reasons.has(pause_reason):
+		return
+	_runner_global_pause_reasons.erase(pause_reason)
+	if not _runner_global_pause_reasons.is_empty():
+		_runner_global_paused = true
+		return
 	if not _runner_global_paused:
 		return
 	_runner_global_paused = false
@@ -651,6 +667,7 @@ func clear_chase_music_sources(fade_time: float = -1.0) -> void:
 	_runner_paused = false
 	_runner_pause_position = 0.0
 	_runner_global_paused = false
+	_runner_global_pause_reasons.clear()
 	_runner_active_fade_out_time = -1.0
 	var target_fade := _resolve_fade_time(fade_time)
 	if _runner_player != null and _runner_player.playing:
@@ -832,6 +849,10 @@ func _resolve_runner_stream() -> AudioStream:
 		return runner_music_stream
 	var loaded: Resource = load(RUNNER_MUSIC_PATH)
 	return loaded as AudioStream
+
+func _normalize_chase_pause_reason(reason: String) -> String:
+	var normalized := reason.strip_edges()
+	return normalized if normalized != "" else CHASE_PAUSE_REASON_GENERIC
 
 func _on_runner_music_finished() -> void:
 	if _runner_active:

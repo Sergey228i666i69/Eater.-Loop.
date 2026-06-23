@@ -1440,6 +1440,7 @@
 │   │   ├── test_laptop_lab_music_runtime.gd.uid
 │   │   ├── test_laptop_multi_lab_ids.gd
 │   │   ├── test_laptop_multi_lab_ids.gd.uid
+│   │   ├── test_level11_end_flow_contracts.gd
 │   │   ├── test_level11_stu1_wiring_runtime.gd
 │   │   ├── test_level12_laptop_money_reward.gd
 │   │   ├── test_level12_laptop_money_reward.gd.uid
@@ -1491,7 +1492,8 @@
 │   │   ├── test_stalker_motion_audio_component.gd
 │   │   ├── test_stalker_motion_audio_component.gd.uid
 │   │   ├── test_ui_message_dialogue_channels.gd
-│   │   └── test_ui_message_dialogue_channels.gd.uid
+│   │   ├── test_ui_message_dialogue_channels.gd.uid
+│   │   └── test_ui_message_modal_state.gd
 │   ├── fixtures
 │   │   ├── dynamic_checkpoint_enemy.gd
 │   │   └── dynamic_checkpoint_enemy.tscn
@@ -1517,4 +1519,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1393 files
+125 directories, 1395 files

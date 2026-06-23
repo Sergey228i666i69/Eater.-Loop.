@@ -4,8 +4,8 @@ const CHANNEL_INTERACT := "interact"
 const CHANNEL_LAMP := "lamp"
 
 const DEFAULT_INTERACT_TEXT := "E — взаимодействовать"
-const DEFAULT_LAMP_ON_TEXT := "Q — включить свет"
-const DEFAULT_LAMP_OFF_TEXT := "Q — выключить свет"
+const DEFAULT_LAMP_ON_TEXT := "E — включить свет"
+const DEFAULT_LAMP_OFF_TEXT := "E — выключить свет"
 const INPUT_KIND_KEYBOARD := 0
 const INPUT_KIND_GAMEPAD_SONY := 1
 const INPUT_KIND_GAMEPAD_OTHER := 2

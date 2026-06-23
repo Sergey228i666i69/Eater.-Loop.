@@ -319,9 +319,7 @@ func _collect_checkpoint_participant_paths(scene: Node) -> Array[String]:
 	for node in tree.get_nodes_in_group(CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP):
 		if node == null or not is_instance_valid(node):
 			continue
-		if node == scene:
-			continue
-		if not scene.is_ancestor_of(node):
+		if node != scene and not scene.is_ancestor_of(node):
 			continue
 		var path := CheckpointStateUtils.get_scene_relative_path(scene, node)
 		if path == "" or seen.has(path):

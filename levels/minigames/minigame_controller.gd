@@ -261,7 +261,7 @@ func start_minigame(minigame: Node, config: Variant = null) -> void:
 		settings.suspend_music
 	)
 	if MusicManager:
-		MusicManager.pause_chase_music(CHASE_MUSIC_PAUSE_FADE_TIME)
+		MusicManager.pause_chase_music(CHASE_MUSIC_PAUSE_FADE_TIME, MusicManager.CHASE_PAUSE_REASON_MINIGAME)
 	_apply_registered_gamepad_scheme(minigame)
 
 	minigame_started.emit(minigame)
@@ -537,7 +537,7 @@ func _finalize_minigame_finish(minigame: Node, success: bool) -> void:
 	_active_minigame = null
 	_restore_music()
 	if MusicManager:
-		MusicManager.resume_chase_music(CHASE_MUSIC_PAUSE_FADE_TIME)
+		MusicManager.resume_chase_music(CHASE_MUSIC_PAUSE_FADE_TIME, MusicManager.CHASE_PAUSE_REASON_MINIGAME)
 	if _gamepad_runtime:
 		_gamepad_runtime.clear()
 	_restore_mouse_cursor()

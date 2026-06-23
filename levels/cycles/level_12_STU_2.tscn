@@ -7152,6 +7152,7 @@ target_marker = NodePath("../../../203/InteractableObjects/Door(In203Left)")
 
 [node name="Door(To204)" parent="2thLevel/2thHall/InteractableObjects" unique_id=1838630446 instance=ExtResource("55_3tps2")]
 position = Vector2(14598, 83)
+is_locked = true
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
 number_texture = ExtResource("108_6r356")
 target_marker = NodePath(".")
