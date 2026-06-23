@@ -22,7 +22,13 @@ except ImportError as exc:  # pragma: no cover - local developer tool guard.
     raise SystemExit("Pillow is required: python3 -m pip install pillow") from exc
 
 
-POSES: list[tuple[str, str, float]] = [
+ANIMATION_LENGTHS: dict[str, float] = {
+    "idle": 1.6,
+    "walk": 0.8,
+    "light_run": 0.55,
+}
+
+DEFAULT_MONTAGE_POSES: list[tuple[str, str, float]] = [
     ("idle 0.0", "idle", 0.0),
     ("idle 0.8", "idle", 0.8),
     ("walk 0.0", "walk", 0.0),
@@ -59,34 +65,70 @@ def main() -> int:
         action="store_true",
         help="Force the flashlight cutout visible in the preview montage.",
     )
+    parser.add_argument(
+        "--sequence-animation",
+        choices=sorted(ANIMATION_LENGTHS),
+        help="Export evenly sampled frames for one animation instead of the default pose montage.",
+    )
+    parser.add_argument(
+        "--sequence-frames",
+        type=int,
+        default=12,
+        help="Frame count for --sequence-animation. Defaults to 12.",
+    )
+    parser.add_argument(
+        "--fps",
+        type=int,
+        default=12,
+        help="Animated GIF playback speed for --sequence-animation outputs ending in .gif. Defaults to 12.",
+    )
     parser.add_argument("--scale", type=float, default=0.9, help="Montage cell scale.")
     args = parser.parse_args()
+
+    if args.sequence_frames <= 0:
+        raise SystemExit("--sequence-frames must be greater than 0")
+    if args.fps <= 0:
+        raise SystemExit("--fps must be greater than 0")
 
     repo_root = Path(__file__).resolve().parents[2]
     output_path = Path(args.output).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    poses = _resolve_poses(args.sequence_animation, args.sequence_frames)
 
     with tempfile.TemporaryDirectory(prefix="andry-rig-preview-") as temp_dir_name:
         temp_dir = Path(temp_dir_name)
         dump_script = temp_dir / "dump_player_rig_pose.gd"
-        dump_script.write_text(_build_godot_dump_script(temp_dir, args.flashlight), encoding="utf-8")
+        dump_script.write_text(_build_godot_dump_script(temp_dir, args.flashlight, poses), encoding="utf-8")
         subprocess.run(
             [args.godot, "--headless", "--path", str(repo_root), "-s", str(dump_script)],
             cwd=repo_root,
             check=True,
         )
-        pose_images = [_render_pose(repo_root, temp_dir / f"pose_{index}.json", label, args.scale) for index, (label, _, _) in enumerate(POSES)]
-        _save_montage(pose_images, output_path)
+        pose_images = [_render_pose(repo_root, temp_dir / f"pose_{index}.json", label, args.scale) for index, (label, _, _) in enumerate(poses)]
+        if args.sequence_animation and output_path.suffix.lower() == ".gif":
+            _save_sequence_gif(pose_images, output_path, args.fps)
+        else:
+            _save_montage(pose_images, output_path)
 
     print(output_path)
     return 0
 
 
-def _build_godot_dump_script(temp_dir: Path, show_flashlight: bool) -> str:
+def _resolve_poses(sequence_animation: str | None, sequence_frames: int) -> list[tuple[str, str, float]]:
+    if not sequence_animation:
+        return DEFAULT_MONTAGE_POSES
+    animation_length = ANIMATION_LENGTHS[sequence_animation]
+    return [
+        (f"{sequence_animation} {index:02d}", sequence_animation, animation_length * index / sequence_frames)
+        for index in range(sequence_frames)
+    ]
+
+
+def _build_godot_dump_script(temp_dir: Path, show_flashlight: bool, poses: list[tuple[str, str, float]]) -> str:
     pose_rows = ",\n\t".join(
         '{"animation": "%s", "time": %.8f, "path": "%s"}'
         % (animation, time, str((temp_dir / f"pose_{index}.json").as_posix()))
-        for index, (_, animation, time) in enumerate(POSES)
+        for index, (_, animation, time) in enumerate(poses)
     )
     return f'''extends SceneTree
 
@@ -223,6 +265,26 @@ def _save_montage(images: list[Image.Image], output_path: Path) -> None:
         y = (index // columns) * cell_height + (cell_height - image.height) // 2
         montage.alpha_composite(image, (x, y))
     montage.save(output_path)
+
+
+def _save_sequence_gif(images: list[Image.Image], output_path: Path, fps: int) -> None:
+    cell_width = max(image.width for image in images)
+    cell_height = max(image.height for image in images)
+    frames: list[Image.Image] = []
+    for image in images:
+        frame = Image.new("RGBA", (cell_width, cell_height), (8, 8, 11, 255))
+        x = (cell_width - image.width) // 2
+        y = (cell_height - image.height) // 2
+        frame.alpha_composite(image, (x, y))
+        frames.append(frame.convert("P", palette=Image.Palette.ADAPTIVE))
+    frames[0].save(
+        output_path,
+        save_all=True,
+        append_images=frames[1:],
+        duration=int(1000 / fps),
+        loop=0,
+        disposal=2,
+    )
 
 
 if __name__ == "__main__":
