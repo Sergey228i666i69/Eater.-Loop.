@@ -25,6 +25,8 @@ const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
 const LIGHT_RUN_SAMPLE_TIMES: Array[float] = [0.0, 0.06875, 0.1375, 0.20625, 0.275, 0.34375, 0.4125, 0.48125]
 const FOOT_CONTACT_GROUND_TOLERANCE := 12.0
+const IDLE_MIN_HAND_BREATH_RANGE := 0.009
+const IDLE_MAX_HAND_BREATH_RANGE := 0.02
 const WALK_MIN_LIMB_SWING_RANGE := 0.1
 const WALK_MAX_LIMB_SWING_RANGE := 0.16
 const LIGHT_RUN_MIN_LIMB_SWING_RANGE := 0.18
@@ -39,6 +41,8 @@ const LIGHT_RUN_MIN_WRIST_SWING_RANGE := 0.05
 const LIGHT_RUN_MAX_WRIST_SWING_RANGE := 0.07
 const FRONT_THIGH_ROTATION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh:rotation")
 const FRONT_UPPER_ARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm:rotation")
+const FRONT_FOREARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm:rotation")
+const BACK_FOREARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm:rotation")
 const FRONT_FOOT_POSITION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot:position")
 const BACK_FOOT_POSITION_TRACK := NodePath("Skeleton2D/Hips/BackThigh/BackShin/BackFoot:position")
 const FRONT_HAND_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand:rotation")
@@ -124,7 +128,12 @@ func _test_rig_scene_contract() -> void:
 				assert_true(animation.loop_mode == Animation.LOOP_LINEAR, "Player skeleton animation must loop: %s" % animation_name)
 				assert_true(animation.get_track_count() > 0, "Player skeleton animation must animate at least one bone: %s" % animation_name)
 				_assert_animation_tracks_use_cubic_interpolation(animation, String(animation_name))
-				if animation_name == &"walk":
+				if animation_name == &"idle":
+					_assert_animation_track_value_range(animation, FRONT_FOREARM_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_FOREARM_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
+				elif animation_name == &"walk":
 					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, WALK_MAX_LIMB_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, WALK_MAX_LIMB_SWING_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))

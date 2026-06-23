@@ -23,7 +23,8 @@ except ImportError as exc:  # pragma: no cover - local developer tool guard.
 
 
 POSES: list[tuple[str, str, float]] = [
-    ("idle", "idle", 0.0),
+    ("idle 0.0", "idle", 0.0),
+    ("idle 0.8", "idle", 0.8),
     ("walk 0.0", "walk", 0.0),
     ("walk 0.1", "walk", 0.1),
     ("walk 0.2", "walk", 0.2),
