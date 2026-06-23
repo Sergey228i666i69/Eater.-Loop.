@@ -104,6 +104,7 @@
 - Skeleton-only звуки шагов привязаны к contact-time внутри `walk`/`light_run`, а не к независимому таймеру; тест рига сверяет эти таймкоды с нижним краем alpha-пикселей стоп.
 - Для дорисовки скрытых частей cutout-ов использовать контролируемый image-edit/inpaint пакет, а не blind text-to-image: `python3 tools/player_cutout_inpaint/build_player_cutout_inpaint_package.py --target front_thigh --out-dir /tmp/andry-cutout-inpaint`. Инструмент кладёт `edit_canvas`, `mask`, `reference_sheet`, `prompt` и `metadata`; существующие visible pixels заперты чёрной частью маски, а белая область даётся только рядом с прозрачным недостающим фрагментом.
 - Для визуального QA рига использовать `python3 tools/player_rig_preview/export_player_rig_montage.py --output /tmp/andry_player_rig_montage.png`; для варианта с фонариком добавить `--flashlight`. Инструмент снимает реальные Godot transforms и собирает монтаж поз, включая обе фазы `idle`; для проверки loop-плавности можно экспортировать последовательность на общем canvas: `--sequence-animation walk --output /tmp/andry_walk.gif`.
+- Для проверки сценного z-order использовать `python3 tools/player_rig_preview/export_player_rig_scene_context.py --flashlight --output /tmp/andry_player_rig_scene_context.png`. Этот preview сортирует отдельные `Visual*` части по effective z-index, кладёт настоящую дверь за игроком и foreground-стул перед ним, чтобы ловить регрессии, где рука или нога снова уходят за объект позади персонажа.
 - Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 
 ## 3. Границы API (важно)
@@ -167,6 +168,7 @@
 - Head-cutout пересобран из исходной фотографии с узкой source-based маской и прозрачным padding: голова больше не выглядит диагонально обрезанной, но плечо/угол футболки не вращаются вместе с костью головы.
 - `VisualFlashlight` сдвинут внутрь front-hand grip: фонарик остаётся под кистью по z-index, но видимая ручка больше не проваливается ниже ладони из-за верхнего прозрачного padding в cutout texture.
 - Нижний alpha-хвост `seam_fill.png` укорочен плавным fade, чтобы internal fill закрывал верхний зазор между ногами, но не превращался в длинную вертикальную штанину у лодыжек на walk-кадрах.
+- Добавлен scene-context preview для рига с реальными room/door/chair ассетами и effective z-order сортировкой отдельных `Visual*` слоёв.
 - Передняя верхняя рука переложена под torso-слой, а forearm/hand остаются поверх корпуса, чтобы уменьшить двойные плечи без обруба кисти.
 - BackThigh anchor сдвинут ближе к центру таза, чтобы крайние walk/light_run фазы не показывали заднюю штанину как отдельный боковой прямоугольник.
 - Внешний alpha-край `back_thigh.png` смягчён, чтобы второй шаг меньше выглядел как прямоугольный фото-фрагмент.

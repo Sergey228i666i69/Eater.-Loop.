@@ -1549,6 +1549,7 @@
 │   │   ├── test_pause_manager_tokens.gd.uid
 │   │   ├── test_player_cutout_inpaint_tool_contract.gd
 │   │   ├── test_player_cutout_inpaint_tool_contract.gd.uid
+│   │   ├── test_player_rig_preview_tool_contract.gd
 │   │   ├── test_player_skeleton_rig_contract.gd
 │   │   ├── test_player_skeleton_rig_contract.gd.uid
 │   │   ├── test_project_config.gd
@@ -1597,7 +1598,8 @@
 │   ├── player_cutout_inpaint
 │   │   └── build_player_cutout_inpaint_package.py
 │   └── player_rig_preview
-│       └── export_player_rig_montage.py
+│       ├── export_player_rig_montage.py
+│       └── export_player_rig_scene_context.py
 ├── AGENTS.md
 ├── ToFix.md
 ├── default_bus_layout.tres
@@ -1607,4 +1609,4 @@
 ├── project.godot
 └── structure.txt
 
-129 directories, 1479 files
+129 directories, 1481 files
