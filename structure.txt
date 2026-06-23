@@ -1548,6 +1548,7 @@
 │   │   ├── test_pause_manager_tokens.gd
 │   │   ├── test_pause_manager_tokens.gd.uid
 │   │   ├── test_player_cutout_inpaint_tool_contract.gd
+│   │   ├── test_player_cutout_inpaint_tool_contract.gd.uid
 │   │   ├── test_player_skeleton_rig_contract.gd
 │   │   ├── test_player_skeleton_rig_contract.gd.uid
 │   │   ├── test_project_config.gd
@@ -1606,4 +1607,4 @@
 ├── project.godot
 └── structure.txt
 
-129 directories, 1478 files
+129 directories, 1479 files

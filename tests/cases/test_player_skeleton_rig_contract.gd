@@ -32,6 +32,9 @@ const CLEANED_FRONT_SHIN_VISUAL_PATH := "Hips/FrontThigh/FrontShin/VisualFrontSh
 const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
 const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
 const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand"
+const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
+const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
+const FLASHLIGHT_MIN_FILLED_GAP_COLUMNS := 32
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -204,6 +207,8 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.62)
 					elif visual_path == CLEANED_BACK_HAND_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.68)
+					elif visual_path == FLASHLIGHT_VISUAL_PATH:
+						_assert_flashlight_cutout_has_completed_handle(visual.texture, visual_path)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
@@ -321,6 +326,27 @@ func _assert_cutout_has_alpha_negative_space(texture: Texture2D, visual_path: St
 	assert_true(
 			float(transparent_pixels) / float(total_pixels) >= min_transparent_ratio,
 			"Player skeleton cleaned cutout must not keep a full opaque source rectangle: %s" % visual_path
+	)
+
+func _assert_flashlight_cutout_has_completed_handle(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton flashlight texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var filled_columns := 0
+	for x in range(FLASHLIGHT_HANDLE_GAP_X_RANGE.x, FLASHLIGHT_HANDLE_GAP_X_RANGE.y + 1):
+		var column_has_handle := false
+		for y in range(FLASHLIGHT_HANDLE_GAP_Y_RANGE.x, FLASHLIGHT_HANDLE_GAP_Y_RANGE.y + 1):
+			if x >= image.get_width() or y >= image.get_height():
+				continue
+			if image.get_pixel(x, y).a > 0.2:
+				column_has_handle = true
+				break
+		if column_has_handle:
+			filled_columns += 1
+	assert_true(
+			filled_columns >= FLASHLIGHT_MIN_FILLED_GAP_COLUMNS,
+			"Player skeleton flashlight cutout must complete the handle hidden under the front hand: %s" % visual_path
 	)
 
 func _assert_animation_tracks_use_cubic_interpolation(animation: Animation, animation_name: String) -> void:
