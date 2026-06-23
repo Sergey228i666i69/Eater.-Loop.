@@ -847,6 +847,8 @@ texture = ExtResource("60_3ulto")
 
 [node name="Door(StairsRight)" parent="9thLevel/9thHall/InteractableObjects" unique_id=1956809106 instance=ExtResource("28_vkruc")]
 position = Vector2(13843, 81)
+is_locked = true
+door_locked_message = "Дверь заперта."
 door_texture = null
 metadata/_edit_group_ = true
 
@@ -8159,6 +8161,7 @@ texture = ExtResource("65_l4jk8")
 
 [node name="Door(In104)" parent="1thLevel/104/InteractableObjects" unique_id=1209052870 instance=ExtResource("55_3tps2")]
 position = Vector2(14571, 83)
+is_locked = true
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
 
 [node name="102" type="Node2D" parent="1thLevel" unique_id=510214678]
@@ -8251,6 +8254,7 @@ texture = ExtResource("65_l4jk8")
 
 [node name="Door(In102)" parent="1thLevel/102/InteractableObjects" unique_id=2088562067 instance=ExtResource("55_3tps2")]
 position = Vector2(14571, 83)
+is_locked = true
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
 
 [node name="101" type="Node2D" parent="1thLevel" unique_id=1107587954]

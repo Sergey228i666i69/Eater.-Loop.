@@ -62,13 +62,13 @@ Definition of done: overlapping Area2D больше не вызывает нес
 
 Цель: ловить сломанные NodePath/group/method contracts до runtime.
 
-1. Добавить validators для required child nodes.
+1. ~~Добавить validators для required child nodes.~~ Закрыто для critical interactables через `test_scene_nodepath_contracts.gd`.
 2. Проверять groups/methods вроде `reactive_light_source`, `turn_on`, `is_point_lit`.
-3. Проверять missing/broken NodePath.
-4. ~~Проверять checkpoint participants: capture/apply, stable id, dynamic restore.~~ Базовый и dynamic restore покрыты; validators для scene contracts остаются следующим шагом.
+3. ~~Проверять missing/broken NodePath.~~ Закрыто для active level/interactable scenes and STU hardcoded paths.
+4. ~~Проверять checkpoint participants: capture/apply, stable id, dynamic restore.~~ Базовый и dynamic restore покрыты.
 5. Проверять localization keys для player-facing строк.
 
-Definition of done: типовые ошибки сцен падают тестом, а не silently no-op.
+Definition of done: типовые ошибки сцен падают тестом, а не silently no-op. Крупный visual/DRY-разбор STU-сцен теперь можно делать отдельным scene-authoring refactor поверх этих validators.
 
 ## Фаза 5: Разрезать God Objects
 

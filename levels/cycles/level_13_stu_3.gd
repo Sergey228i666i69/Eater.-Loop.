@@ -4,7 +4,7 @@ const TO_BATHROOM_DEFAULT_TARGET := NodePath("../../../1thBathroom/InteractableO
 const TO_BEDROOM_TARGET := NodePath("../../../../Bedroom/InteractableObjects/Door(InBedroom)")
 
 @export var door_to_bathroom_path: NodePath = NodePath("1thLevel/1thHall/InteractableObjects/Door(ToBathroom)")
-@export var primary_fridge_path: NodePath = NodePath("6thLevel/604/InteractableObjects/Fridge")
+@export var primary_fridge_path: NodePath = NodePath("")
 @export var secondary_fridge_path: NodePath = NodePath("Stolovaya/InteractableObjects/Fridge")
 
 var _door_to_bathroom: Node = null

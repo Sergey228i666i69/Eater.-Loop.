@@ -4,7 +4,7 @@
 
 ## Диагноз
 
-База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт completion, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Самые опасные fail-open случаи уже закрыты, dependency-контракт typed, а result/outcome слой теперь явно различает success, failure и cancel. Оставшийся риск смещён к scene contracts: система всё ещё держится на дисциплине NodePath, групп и имён детей.
+База `InteractiveObject` полезная, но вокруг неё выросла сеть неявных контрактов: кто-то ждёт completion, кто-то слушает сигнал, кто-то ищет ребёнка по имени, кто-то требует группу или метод `turn_on`. Самые опасные fail-open случаи уже закрыты, dependency-контракт typed, result/outcome слой явно различает success/failure/cancel, а ключевые scene contracts теперь прикрыты валидаторами. Оставшийся риск смещён к стоимости scene-authoring: крупные сцены всё ещё тяжело ревьюить вручную.
 
 ## Resolved Minimally: Dependency-Система Стала Typed
 
@@ -74,7 +74,9 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 Похожий паттерн встречается у дверей, ламп, ноутбуков, холодильника и прожекторов.
 
-Ремонт: продолжать переводить такие места на exported `NodePath`, required-node validation tests, typed child references или composition components.
+Статус: закрыто на уровне runtime contracts. `test_scene_nodepath_contracts.gd` проверяет unlocked/key door targets, blockpost child contracts, money-system paths, light/sprite/audio exported paths and teleport targets. `test_stu_level_path_contracts.gd` отдельно фиксирует STU floor/room paths и dynamic redirect targets.
+
+Оставшийся authoring-долг: если сцены будут визуально дробиться на reusable instances, делать это отдельным scene-refactor после этих validators.
 
 ## Resolved: `TriggerSetProperty` Слишком Универсален
 
@@ -99,7 +101,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 Практический риск: строка группы или имя метода меняется - контракт ломается без явной ошибки.
 
-Ремонт: light/power interface component, validator на groups/methods, единый input contract для родственных источников света.
+Статус: частично закрыто validators. `test_scene_nodepath_contracts.gd` проверяет exported `light_node` у лампы, прожектора и pickup flashlight; group/method interface component остаётся возможным будущим refactor-улучшением, но текущие scene paths больше не остаются без проверки.
 
 ## Resolved: `TargetMonsterSpawner` Конфигурируется Слишком Неявно
 

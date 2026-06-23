@@ -167,7 +167,6 @@ size = Vector2(339.5, 406.78906)
 [node name="Level2" type="Node2D" unique_id=2066288641]
 position = Vector2(16, 0)
 script = ExtResource("1_8gqb3")
-primary_fridge_path = NodePath("")
 cycle_number = 2
 timer_duration = 600.0
 unlock_flashlight_on_ready = true
@@ -846,6 +845,8 @@ texture = ExtResource("60_ryyea")
 
 [node name="Door(StairsRight)" parent="9thLevel/9thHall/InteractableObjects" unique_id=1956809106 instance=ExtResource("28_xtfbx")]
 position = Vector2(13843, 81)
+is_locked = true
+door_locked_message = "Дверь заперта."
 door_texture = null
 metadata/_edit_group_ = true
 
@@ -7963,10 +7964,12 @@ texture = ExtResource("53_pru2q")
 
 [node name="Door(To103Right)" parent="1thLevel/1thHall/InteractableObjects" unique_id=877736083 instance=ExtResource("55_ie8g8")]
 position = Vector2(12888, 83)
+is_locked = true
 door_locked_message = "Сначала нужно сделать что-то другое..."
 
 [node name="Door(To103Left)" parent="1thLevel/1thHall/InteractableObjects" unique_id=373427051 instance=ExtResource("55_ie8g8")]
 position = Vector2(11467, 83)
+is_locked = true
 door_locked_message = "Сначала нужно сделать что-то другое..."
 
 [node name="Door(To101)" parent="1thLevel/1thHall/InteractableObjects" unique_id=821554351 instance=ExtResource("55_ie8g8")]
@@ -8034,6 +8037,7 @@ texture = ExtResource("117_c3xe5")
 
 [node name="Door(To204)2" parent="1thLevel/1thHall/InteractableObjects" unique_id=441992275 instance=ExtResource("55_ie8g8")]
 position = Vector2(14598, 83)
+is_locked = true
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
 
 [node name="EnemyLightSensitive" parent="1thLevel/1thHall/InteractableObjects" unique_id=307833949 instance=ExtResource("110_2n4m5")]
@@ -8136,6 +8140,7 @@ texture = ExtResource("65_vit6f")
 
 [node name="Door(In104)" parent="1thLevel/104/InteractableObjects" unique_id=1209052870 instance=ExtResource("55_ie8g8")]
 position = Vector2(14571, 83)
+is_locked = true
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
 
 [node name="102" type="Node2D" parent="1thLevel" unique_id=510214678]
@@ -8228,6 +8233,7 @@ texture = ExtResource("65_vit6f")
 
 [node name="Door(In102)" parent="1thLevel/102/InteractableObjects" unique_id=2088562067 instance=ExtResource("55_ie8g8")]
 position = Vector2(14571, 83)
+is_locked = true
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
 
 [node name="101" type="Node2D" parent="1thLevel" unique_id=1107587954]

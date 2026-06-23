@@ -6,12 +6,12 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После pause-token pass parser-only и полный suite проходили, полный suite содержит 61 тест.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После scene-contract pass parser-only и полный suite проходили, полный suite содержит 63 теста.
 
 Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
 
 - pause ownership и typed interaction outcomes уже централизованы, но fade/music/transition responsibilities всё ещё частично живут в крупных singleton-ах;
-- STU-уровни и крупные сцены сильно завязаны на `NodePath`, имена детей и serialized overrides;
+- STU/scene NodePath contracts теперь покрыты валидаторами, но крупные сцены всё ещё дороги для ручного ревью;
 - часть файловой гигиены и naming debt всё ещё отстала от текущего состояния;
 - крупные классы остаются дорогими для ревью и регрессий.
 
@@ -41,7 +41,7 @@
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
 - Ending-сцены классифицируются через `SceneContext`, и pause menu не открывается поверх концовок.
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
-- Stale current-state docs обновлены под `level_14_end.*` и suite из 61 теста.
+- Stale current-state docs обновлены под `level_14_end.*` и suite из 63 тестов.
 - Obstacle special-case покрыт контрактным тестом.
 - Export presets проверяются static contract-тестом в suite; локальный macOS export smoke прошёл с templates.
 - Удалены `.gitignore.save`, ignored `global/export_presets.cfg`, legacy icon copies и неиспользуемый `Projector2`.
@@ -50,6 +50,8 @@
 - Input-device detection централизован в `global/input_device_utils.gd` и переиспользуется `GameDirector`, `InteractionPrompts` и `MainMenu`.
 - `InteractiveObject` получил typed `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`; final branch и completed dependencies переведены на success outcome.
 - `PauseManager` получил owner-token API; pause menu, UI notes/hints, minigames и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
+- Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`; STU hardcoded paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`.
+- Пустые target marker STU-двери, которые должны быть недоступны, явно locked; `level_13_stu_3.gd` сделал отсутствующий primary fridge path явным optional default.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -93,34 +95,21 @@ Evidence:
 
 ### 11. Scene validators нужно расширить на NodePath/child-name contracts
 
-Evidence:
+Статус: закрыто.
 
-- Level scripts и interactables держатся на exported/hardcoded `NodePath`.
-- `Door` ждёт `target_marker`, `Sprite2D`, `Number`.
-- `Blockpost` ждёт `TouchArea` и `PassageBlocker/CollisionShape2D`.
-- Fridge/laptop/lamp/projector ждут конкретные дочерние имена или exported paths.
-- В `.tscn` много serialized `target_marker = null`, `one_shot = null`, `interact_area_node = null`.
-
-Что сделать:
-
-- добавить validators для обязательных paths/groups/methods;
-- отдельно валидировать STU doors, level end paths, checkpoint participants;
-- null overrides чистить только после проверки, что Godot не вернёт их автоматически.
+- `tests/cases/test_scene_nodepath_contracts.gd` валидирует active level/interactable scenes: unlocked/key doors require resolving targets, blockpost keeps `TouchArea` and `PassageBlocker/CollisionShape2D`, money interactables resolve money systems, and key exported visual/light/audio paths resolve.
+- `tests/cases/test_stu_level_path_contracts.gd` валидирует STU exported/hardcoded paths and dynamic door target constants.
+- STU doors with intentionally empty targets are now explicitly locked.
+- Null override cleanup intentionally left out: tests now guard behavior first, and bulk Godot reserialization remains separate from gameplay fixes.
 
 ### 12. STU-уровни слишком завязаны на имена этажей и детей
 
-Evidence:
+Статус: закрыто на уровне runtime contracts.
 
-- `levels/cycles/level_11_stu_1.gd`
-- `levels/cycles/level_12_stu_2.gd`
-- `levels/cycles/level_13_stu_3.gd`
-- большие сцены `level_11_STU_1.tscn`, `level_12_STU_2.tscn`, `level_13_STU_3.tscn` по 8500-9200 строк.
-
-Что сделать:
-
-- постепенно выносить повторяющиеся блоки в reusable scene instances;
-- заменить `1thLevel`/`2thLevel`/`6thLevel`/`7thLevel`-style paths на data-driven resolver или группы;
-- не делать массовый scene rewrite без validator-подушки.
+- `tests/cases/test_stu_level_path_contracts.gd` фиксирует STU floor/room paths, fridge paths and dynamic redirect targets before future scene edits.
+- `level_13_stu_3.gd` no longer advertises a nonexistent `6thLevel/604/InteractableObjects/Fridge` as default; `primary_fridge_path` is explicit optional and `secondary_fridge_path` remains required.
+- Empty-target STU doors that are not traversal doors are locked in `level_11_STU_1.tscn`, `level_12_STU_2.tscn` and `level_13_STU_3.tscn`.
+- Large STU scene decomposition was deliberately not done in this pass: with validators in place, it can now be a separate visual/scene-authoring refactor instead of a hidden runtime correctness risk.
 
 ### 13. LLM glitch minigame выглядит намеренно или случайно невыигрываемой
 
@@ -195,7 +184,7 @@ Evidence:
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (61)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (63)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 

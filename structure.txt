@@ -1481,6 +1481,7 @@
 │   │   ├── test_save_state_split.gd.uid
 │   │   ├── test_scene_context_pause_classification.gd
 │   │   ├── test_scene_dependency_contracts.gd
+│   │   ├── test_scene_nodepath_contracts.gd
 │   │   ├── test_scenes_load.gd
 │   │   ├── test_scenes_load.gd.uid
 │   │   ├── test_scripts_compile.gd
@@ -1489,6 +1490,7 @@
 │   │   ├── test_stalker_behavior.gd.uid
 │   │   ├── test_stalker_motion_audio_component.gd
 │   │   ├── test_stalker_motion_audio_component.gd.uid
+│   │   ├── test_stu_level_path_contracts.gd
 │   │   ├── test_ui_message_dialogue_channels.gd
 │   │   ├── test_ui_message_dialogue_channels.gd.uid
 │   │   └── test_ui_message_modal_state.gd
@@ -1517,4 +1519,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1394 files
+124 directories, 1396 files
