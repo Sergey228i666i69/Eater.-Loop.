@@ -5,6 +5,7 @@ const LEGACY_PLAYER_SCENE_PATH := "res://player/LEGASY-ANIMATIONS-CHARACTER.tscn
 const PLAYER_RIG_SCENE_PATH := "res://player/player_skeleton_rig.tscn"
 const LEVEL_DIR := "res://levels/cycles"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
+const FRONT_HAND_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHand"
 const FLASHLIGHT_VISUAL_PATH := FRONT_HAND_PATH + "/FlashlightMount/VisualFlashlight"
 const FOOT_VISUAL_PATHS: Array[String] = [
 	"Hips/BackThigh/BackShin/BackFoot/VisualBackFoot",
@@ -14,7 +15,7 @@ const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",
 	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
-	FRONT_HAND_PATH + "/VisualFrontHand",
+	FRONT_HAND_VISUAL_PATH,
 ]
 const CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/VisualPelvis",
@@ -29,6 +30,8 @@ const CLEANED_FRONT_THIGH_VISUAL_PATH := "Hips/FrontThigh/VisualFrontThigh"
 const CLEANED_BACK_THIGH_VISUAL_PATH := "Hips/BackThigh/VisualBackThigh"
 const CLEANED_FRONT_SHIN_VISUAL_PATH := "Hips/FrontThigh/FrontShin/VisualFrontShin"
 const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
+const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
+const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand"
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -197,10 +200,20 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.32)
 					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.24)
+					elif visual_path == CLEANED_FRONT_HAND_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.62)
+					elif visual_path == CLEANED_BACK_HAND_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.68)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.23)
+		var front_hand_visual := skeleton.get_node_or_null(FRONT_HAND_VISUAL_PATH) as Sprite2D
+		var flashlight_visual := skeleton.get_node_or_null(FLASHLIGHT_VISUAL_PATH) as Sprite2D
+		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
+		assert_true(flashlight_visual != null, "Player skeleton must keep flashlight visual for layering")
+		if front_hand_visual != null and flashlight_visual != null:
+			assert_true(flashlight_visual.z_index < front_hand_visual.z_index, "Player skeleton flashlight must render behind the gripping hand")
 	rig.free()
 
 func _test_legacy_player_keeps_sprite_sequence() -> void:
