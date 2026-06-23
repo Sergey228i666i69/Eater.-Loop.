@@ -32,9 +32,25 @@ const CLEANED_FRONT_SHIN_VISUAL_PATH := "Hips/FrontThigh/FrontShin/VisualFrontSh
 const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
 const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
 const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand"
+const SAFE_ALPHA_MARGIN_VISUAL_PATHS: Array[String] = [
+	"Hips/Spine/Chest/Neck/Head/VisualHead",
+	CLEANED_FRONT_HAND_VISUAL_PATH,
+	CLEANED_BACK_HAND_VISUAL_PATH,
+]
+const SINGLE_ALPHA_COMPONENT_VISUAL_PATHS: Array[String] = [
+	"Hips/Spine/Chest/VisualTorso",
+	CLEANED_PELVIS_VISUAL_PATH,
+	CLEANED_SEAM_FILL_VISUAL_PATH,
+	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
+	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
+	CLEANED_FRONT_THIGH_VISUAL_PATH,
+	CLEANED_FRONT_SHIN_VISUAL_PATH,
+	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
+]
 const SEAM_FILL_MAX_INTERNAL_WIDTH := 52
 const SEAM_FILL_MIN_INTERNAL_X := 88
 const SEAM_FILL_MAX_INTERNAL_X := 136
+const CUTOUT_MIN_SAFE_ALPHA_MARGIN := 6
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
@@ -46,24 +62,28 @@ const LIGHT_RUN_SAMPLE_TIMES: Array[float] = [0.0, 0.06875, 0.1375, 0.20625, 0.2
 const FOOT_CONTACT_GROUND_TOLERANCE := 12.0
 const IDLE_MIN_HAND_BREATH_RANGE := 0.009
 const IDLE_MAX_HAND_BREATH_RANGE := 0.02
-const WALK_MIN_LIMB_SWING_RANGE := 0.1
-const WALK_MAX_LIMB_SWING_RANGE := 0.16
+const WALK_MIN_LEG_SWING_RANGE := 0.08
+const WALK_MAX_LEG_SWING_RANGE := 0.12
+const WALK_MIN_ARM_SWING_RANGE := 0.035
+const WALK_MAX_ARM_SWING_RANGE := 0.06
 const WALK_MIN_SPINE_SWAY_RANGE := 0.03
 const WALK_MAX_SPINE_SWAY_RANGE := 0.04
 const WALK_MIN_NECK_COUNTER_RANGE := 0.018
 const WALK_MAX_NECK_COUNTER_RANGE := 0.03
-const LIGHT_RUN_MIN_LIMB_SWING_RANGE := 0.18
-const LIGHT_RUN_MAX_LIMB_SWING_RANGE := 0.24
+const LIGHT_RUN_MIN_LEG_SWING_RANGE := 0.13
+const LIGHT_RUN_MAX_LEG_SWING_RANGE := 0.17
+const LIGHT_RUN_MIN_ARM_SWING_RANGE := 0.06
+const LIGHT_RUN_MAX_ARM_SWING_RANGE := 0.09
 const LIGHT_RUN_MIN_NECK_COUNTER_RANGE := 0.025
 const LIGHT_RUN_MAX_NECK_COUNTER_RANGE := 0.035
 const WALK_MIN_FOOT_LIFT_RANGE := 6.0
 const WALK_MAX_FOOT_LIFT_RANGE := 10.0
 const LIGHT_RUN_MIN_FOOT_LIFT_RANGE := 9.0
 const LIGHT_RUN_MAX_FOOT_LIFT_RANGE := 12.0
-const LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE := 8.0
-const LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE := 11.0
-const LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE := 6.0
-const LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE := 9.0
+const LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE := 5.5
+const LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE := 6.5
+const LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE := 3.5
+const LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE := 4.5
 const WALK_MIN_WRIST_SWING_RANGE := 0.03
 const WALK_MAX_WRIST_SWING_RANGE := 0.05
 const LIGHT_RUN_MIN_WRIST_SWING_RANGE := 0.05
@@ -165,18 +185,18 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
 				elif animation_name == &"walk":
-					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, WALK_MAX_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LEG_SWING_RANGE, WALK_MAX_LEG_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, SPINE_ROTATION_TRACK, WALK_MIN_SPINE_SWAY_RANGE, WALK_MAX_SPINE_SWAY_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, WALK_MIN_NECK_COUNTER_RANGE, WALK_MAX_NECK_COUNTER_RANGE, String(animation_name))
-					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_LIMB_SWING_RANGE, WALK_MAX_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_ARM_SWING_RANGE, WALK_MAX_ARM_SWING_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
 				elif animation_name == &"light_run":
-					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_LIMB_SWING_RANGE, LIGHT_RUN_MAX_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_LEG_SWING_RANGE, LIGHT_RUN_MAX_LEG_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, LIGHT_RUN_MIN_NECK_COUNTER_RANGE, LIGHT_RUN_MAX_NECK_COUNTER_RANGE, String(animation_name))
-					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_LIMB_SWING_RANGE, LIGHT_RUN_MAX_LIMB_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_ARM_SWING_RANGE, LIGHT_RUN_MAX_ARM_SWING_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_x_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE, String(animation_name))
@@ -192,9 +212,14 @@ func _test_rig_scene_contract() -> void:
 			assert_true(visual != null, "Player skeleton rig must keep Sprite2D cutout visual: %s" % visual_path)
 			if visual != null:
 				assert_true(visual.texture != null, "Player skeleton cutout visual must keep texture: %s" % visual_path)
+				assert_true(visual.z_index >= 0, "Player skeleton visual z-index must not fall behind level objects: %s" % visual_path)
 				if visual.texture != null:
 					assert_true(_is_player_skeleton_texture_path(String(visual.texture.resource_path)), "Player skeleton visual must use Andry cutout/cover texture: %s" % visual_path)
 					assert_true(_is_tight_cutout_texture(visual.texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
+					if SAFE_ALPHA_MARGIN_VISUAL_PATHS.has(visual_path):
+						_assert_cutout_has_safe_alpha_margin(visual.texture, visual_path, CUTOUT_MIN_SAFE_ALPHA_MARGIN)
+					if SINGLE_ALPHA_COMPONENT_VISUAL_PATHS.has(visual_path):
+						_assert_cutout_has_single_alpha_component(visual.texture, visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.70)
 						_assert_seam_fill_is_internal_strip(visual.texture, visual_path)
@@ -334,6 +359,62 @@ func _assert_cutout_has_alpha_negative_space(texture: Texture2D, visual_path: St
 			float(transparent_pixels) / float(total_pixels) >= min_transparent_ratio,
 			"Player skeleton cleaned cutout must not keep a full opaque source rectangle: %s" % visual_path
 	)
+
+func _assert_cutout_has_safe_alpha_margin(texture: Texture2D, visual_path: String, min_margin: int) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton cutout texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var min_x := image.get_width()
+	var min_y := image.get_height()
+	var max_x := -1
+	var max_y := -1
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			min_y = mini(min_y, y)
+			max_x = maxi(max_x, x)
+			max_y = maxi(max_y, y)
+	assert_true(max_x >= 0, "Player skeleton safe-margin cutout must contain visible pixels: %s" % visual_path)
+	if max_x < 0:
+		return
+	assert_true(min_x >= min_margin, "Player skeleton cutout must keep left transparent margin: %s" % visual_path)
+	assert_true(min_y >= min_margin, "Player skeleton cutout must keep top transparent margin: %s" % visual_path)
+	assert_true(image.get_width() - max_x - 1 >= min_margin, "Player skeleton cutout must keep right transparent margin: %s" % visual_path)
+	assert_true(image.get_height() - max_y - 1 >= min_margin, "Player skeleton cutout must keep bottom transparent margin: %s" % visual_path)
+
+func _assert_cutout_has_single_alpha_component(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton cutout texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var visited: Dictionary = {}
+	var component_count := 0
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			var point := Vector2i(x, y)
+			if visited.has(point) or image.get_pixel(x, y).a <= 0.0:
+				continue
+			component_count += 1
+			_mark_alpha_component_visited(image, point, visited)
+	assert_true(component_count == 1, "Player skeleton cutout must not keep detached alpha islands: %s" % visual_path)
+
+func _mark_alpha_component_visited(image: Image, start: Vector2i, visited: Dictionary) -> void:
+	var stack: Array[Vector2i] = [start]
+	visited[start] = true
+	while not stack.is_empty():
+		var point: Vector2i = stack.pop_back()
+		for y_offset in range(-1, 2):
+			for x_offset in range(-1, 2):
+				var next_point := Vector2i(point.x + x_offset, point.y + y_offset)
+				if next_point.x < 0 or next_point.x >= image.get_width() or next_point.y < 0 or next_point.y >= image.get_height():
+					continue
+				if visited.has(next_point) or image.get_pixel(next_point.x, next_point.y).a <= 0.0:
+					continue
+				visited[next_point] = true
+				stack.append(next_point)
 
 func _assert_seam_fill_is_internal_strip(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
