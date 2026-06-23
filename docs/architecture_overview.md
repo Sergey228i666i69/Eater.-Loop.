@@ -96,7 +96,7 @@
 - `player.gd` зеркалит риг вместе с направлением игрока, чтобы bone-based skin не расходился с текущим разворотом героя.
 - `SkeletonAnimationPlayer` внутри рига держит loop-клипы `idle`, `walk` и `light_run`; `player.gd` переключает их по фактическому движению.
 - Фонарик является отдельным cutout-слоем из `AndryWithFlashlight.png` на `FlashlightMount`; те же кости и анимации используются для варианта с фонариком и без него.
-- Skeleton-only звуки шагов привязаны к contact-time внутри `walk`/`light_run`, а не к независимому таймеру.
+- Skeleton-only звуки шагов привязаны к contact-time внутри `walk`/`light_run`, а не к независимому таймеру; тест рига сверяет эти таймкоды с нижним краем alpha-пикселей стоп.
 - Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 
 ## 3. Границы API (важно)
@@ -149,4 +149,4 @@
 - Добавлен скелетный `PlayerSkeletonRig` и активный skeleton-only `player.tscn`.
 - `PlayerSkeletonRig` получил первые loop-клипы `idle`, `walk` и `light_run`, а `Player` начал переключать их вместе с текущей логикой движения.
 - Активный `player.tscn` переведён на skeleton-only визуал, старый png-вариант сохранён в `LEGASY-ANIMATIONS-CHARACTER.tscn`.
-- Полигональный placeholder заменён на cutout-части из `Andry.png` и отдельный flashlight cutout из `AndryWithFlashlight.png`; шаги skeleton-only варианта теперь срабатывают по foot-contact точкам анимации.
+- Полигональный placeholder заменён на cutout-части из `Andry.png` и отдельный flashlight cutout из `AndryWithFlashlight.png`; шаги skeleton-only варианта теперь срабатывают по foot-contact точкам анимации и закреплены визуально-звуковым тестом.

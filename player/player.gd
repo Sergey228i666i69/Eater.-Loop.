@@ -67,10 +67,10 @@ signal flashlight_activation_denied(charge_ratio: float)
 @export var skeleton_light_run_animation: StringName = &"light_run"
 ## Длительность бленда между скелетными клипами.
 @export var skeleton_animation_blend_time: float = 0.08
-## Моменты касания стопы пола внутри walk-клипа.
-@export var skeleton_walk_step_times: PackedFloat32Array = PackedFloat32Array([0.0, 0.4])
-## Моменты касания стопы пола внутри light_run-клипа.
-@export var skeleton_light_run_step_times: PackedFloat32Array = PackedFloat32Array([0.0, 0.275])
+## Моменты касания стопы пола внутри walk-клипа. Держать синхронно с ключами стоп в PlayerSkeletonRig.
+@export var skeleton_walk_step_times: PackedFloat32Array = PackedFloat32Array([0.2, 0.6])
+## Моменты касания стопы пола внутри light_run-клипа. Держать синхронно с ключами стоп в PlayerSkeletonRig.
+@export var skeleton_light_run_step_times: PackedFloat32Array = PackedFloat32Array([0.1375, 0.4125])
 
 var keys: Dictionary = {}
 

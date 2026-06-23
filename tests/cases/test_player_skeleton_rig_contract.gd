@@ -6,6 +6,15 @@ const PLAYER_RIG_SCENE_PATH := "res://player/player_skeleton_rig.tscn"
 const LEVEL_DIR := "res://levels/cycles"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
 const FLASHLIGHT_VISUAL_PATH := FRONT_HAND_PATH + "/FlashlightMount/VisualFlashlight"
+const FOOT_VISUAL_PATHS: Array[String] = [
+	"Hips/BackThigh/BackShin/BackFoot/VisualBackFoot",
+	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
+]
+const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
+const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.2, 0.4, 0.6]
+const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
+const LIGHT_RUN_SAMPLE_TIMES: Array[float] = [0.0, 0.1375, 0.275, 0.4125]
+const FOOT_CONTACT_GROUND_TOLERANCE := 12.0
 const EXPECTED_BONE_PATHS: Array[String] = [
 	"Hips",
 	"Hips/Spine",
@@ -44,6 +53,7 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/FrontThigh/FrontShin/VisualFrontShin",
 	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
 ]
+var _opaque_texture_points: Dictionary = {}
 
 func run() -> Array[String]:
 	_test_rig_scene_contract()
@@ -75,6 +85,9 @@ func _test_rig_scene_contract() -> void:
 			if animation != null:
 				assert_true(animation.loop_mode == Animation.LOOP_LINEAR, "Player skeleton animation must loop: %s" % animation_name)
 				assert_true(animation.get_track_count() > 0, "Player skeleton animation must animate at least one bone: %s" % animation_name)
+		if skeleton != null:
+			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"walk", WALK_CONTACT_TIMES, WALK_SAMPLE_TIMES)
+			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"light_run", LIGHT_RUN_CONTACT_TIMES, LIGHT_RUN_SAMPLE_TIMES)
 	if skeleton != null:
 		for visual_path in EXPECTED_CUTOUT_VISUAL_PATHS:
 			var visual := skeleton.get_node_or_null(visual_path) as Sprite2D
@@ -146,16 +159,19 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 				assert_true(flashlight_visual.visible, "Player skeleton flashlight cutout must appear after flashlight unlock")
 		player.call("apply_checkpoint_state", {"facing_dir": -1.0})
 		assert_true(rig.scale.x < 0.0, "PlayerSkeletonRig must mirror with the player facing direction")
-		player.call("_update_walk_animation", 0.016, 1.0)
-		assert_eq(animation_player.current_animation, "walk", "Player skeleton animation must switch to walk while moving")
-		_assert_skeleton_steps_follow_contact_times(player, animation_player, "walk", 0.39, 0.41)
-		player.set("_is_running", true)
-		player.call("_update_walk_animation", 0.016, 1.0)
-		assert_eq(animation_player.current_animation, "light_run", "Player skeleton animation must switch to light_run while running")
-		_assert_skeleton_steps_follow_contact_times(player, animation_player, "light_run", 0.26, 0.29)
-		player.set("_is_running", false)
-		player.call("_update_walk_animation", 0.016, 0.0)
-		assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must return to idle when stopped")
+		if animation_player != null:
+			player.call("_update_walk_animation", 0.016, 1.0)
+			assert_eq(animation_player.current_animation, "walk", "Player skeleton animation must switch to walk while moving")
+			_assert_skeleton_steps_follow_contact_times(player, animation_player, "walk", 0.0, 0.19, 0.21)
+			_assert_skeleton_steps_follow_contact_times(player, animation_player, "walk", 0.4, 0.59, 0.61)
+			player.set("_is_running", true)
+			player.call("_update_walk_animation", 0.016, 1.0)
+			assert_eq(animation_player.current_animation, "light_run", "Player skeleton animation must switch to light_run while running")
+			_assert_skeleton_steps_follow_contact_times(player, animation_player, "light_run", 0.0, 0.13, 0.145)
+			_assert_skeleton_steps_follow_contact_times(player, animation_player, "light_run", 0.275, 0.405, 0.42)
+			player.set("_is_running", false)
+			player.call("_update_walk_animation", 0.016, 0.0)
+			assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must return to idle when stopped")
 
 	root.queue_free()
 	await tree.process_frame
@@ -163,7 +179,7 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 func _almost_eq(left: float, right: float, epsilon: float = 0.0001) -> bool:
 	return absf(left - right) <= epsilon
 
-func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player: AnimationPlayer, animation_name: String, before_contact: float, after_contact: float) -> void:
+func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player: AnimationPlayer, animation_name: String, start_position: float, before_contact: float, after_contact: float) -> void:
 	var step_audio := player.get_node_or_null("StepAudioComponent") as StepAudioComponent
 	assert_true(step_audio != null, "Player must keep StepAudioComponent for skeleton contact sounds")
 	if step_audio == null:
@@ -173,7 +189,7 @@ func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player:
 		events.append(source_animation)
 	)
 	step_audio.step_sounds = []
-	animation_player.seek(0.0, true)
+	animation_player.seek(start_position, true)
 	player.call("_update_skeleton_step_audio", true)
 	animation_player.seek(before_contact, true)
 	player.call("_update_skeleton_step_audio", true)
@@ -182,3 +198,57 @@ func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player:
 	player.call("_update_skeleton_step_audio", true)
 	assert_eq(events.size(), 1, "Skeleton step sound must fire exactly when crossing foot contact in %s" % animation_name)
 	assert_eq(events[0], StringName(animation_name), "Skeleton step sound must report source animation")
+
+func _assert_foot_contact_keys_reach_ground(
+		skeleton: Node,
+		animation_player: AnimationPlayer,
+		animation_name: StringName,
+		contact_times: Array[float],
+		sample_times: Array[float]
+) -> void:
+	var ground_y := -INF
+	for sample_time in sample_times:
+		animation_player.play(animation_name)
+		animation_player.seek(sample_time, true)
+		ground_y = maxf(ground_y, _lowest_foot_opaque_pixel_y(skeleton))
+	for contact_time in contact_times:
+		animation_player.play(animation_name)
+		animation_player.seek(contact_time, true)
+		var contact_y := _lowest_foot_opaque_pixel_y(skeleton)
+		assert_true(
+			ground_y - contact_y <= FOOT_CONTACT_GROUND_TOLERANCE,
+			"Skeleton %s footstep key %.4f must keep a foot visually on the floor" % [animation_name, contact_time]
+		)
+
+func _lowest_foot_opaque_pixel_y(skeleton: Node) -> float:
+	var lowest_y := -INF
+	for foot_path in FOOT_VISUAL_PATHS:
+		var foot := skeleton.get_node_or_null(foot_path) as Sprite2D
+		assert_true(foot != null, "Player skeleton must keep foot visual for contact test: %s" % foot_path)
+		if foot == null or foot.texture == null:
+			continue
+		var transform := foot.get_global_transform()
+		for local_point in _get_opaque_texture_points(foot.texture):
+			var visual_point := local_point + foot.offset
+			var global_point := transform * visual_point
+			lowest_y = maxf(lowest_y, global_point.y)
+	return lowest_y
+
+func _get_opaque_texture_points(texture: Texture2D) -> Array[Vector2]:
+	var cache_key := String(texture.resource_path)
+	if _opaque_texture_points.has(cache_key):
+		return _opaque_texture_points[cache_key]
+	var points: Array[Vector2] = []
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton foot texture must expose alpha pixels: %s" % cache_key)
+	if image == null:
+		_opaque_texture_points[cache_key] = points
+		return points
+	var size := Vector2(image.get_width(), image.get_height())
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			points.append(Vector2(float(x) + 0.5, float(y) + 0.5) - size * 0.5)
+	_opaque_texture_points[cache_key] = points
+	return points
