@@ -480,8 +480,12 @@ func _assert_neck_collar_cover_sits_between_torso_and_head(torso_visual: Sprite2
 		_assert_cutout_has_alpha_negative_space(neck_collar_visual.texture, NECK_COLLAR_VISUAL_PATH, NECK_COLLAR_MIN_TRANSPARENT_RATIO)
 		_assert_cutout_has_single_alpha_component(neck_collar_visual.texture, NECK_COLLAR_VISUAL_PATH)
 	assert_true(
-			neck_collar_visual.z_index >= torso_visual.z_index,
-			"Player skeleton neck/collar cover must draw over the torso seam"
+			neck_collar_visual.z_index > 0,
+			"Player skeleton neck/collar cover must stay above back-layer seams"
+	)
+	assert_true(
+			neck_collar_visual.z_index < torso_visual.z_index,
+			"Player skeleton neck/collar cover must stay under the torso so it does not overlay the shirt"
 	)
 	assert_true(
 			neck_collar_visual.z_index < head_visual.z_index,
