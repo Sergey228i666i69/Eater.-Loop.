@@ -1356,7 +1356,9 @@
 │   │   │   ├── front_knee.png
 │   │   │   ├── front_knee.png.import
 │   │   │   ├── front_shoulder.png
-│   │   │   └── front_shoulder.png.import
+│   │   │   ├── front_shoulder.png.import
+│   │   │   ├── neck_collar.png
+│   │   │   └── neck_collar.png.import
 │   │   └── cutouts
 │   │       ├── back_foot.png
 │   │       ├── back_foot.png.import
@@ -1610,4 +1612,4 @@
 ├── project.godot
 └── structure.txt
 
-129 directories, 1482 files
+129 directories, 1484 files

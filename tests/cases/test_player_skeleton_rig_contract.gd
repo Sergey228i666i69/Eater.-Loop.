@@ -7,6 +7,7 @@ const LEVEL_DIR := "res://levels/cycles"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
 const HEAD_VISUAL_PATH := "Hips/Spine/Chest/Neck/Head/VisualHead"
 const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
+const NECK_COLLAR_VISUAL_PATH := "Hips/Spine/Chest/VisualNeckCollarCover"
 const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
 const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
 const FRONT_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm"
@@ -59,6 +60,12 @@ const SEAM_FILL_MAX_INTERNAL_Y := 330
 const CUTOUT_MIN_SAFE_ALPHA_MARGIN := 6
 const HEAD_MAX_LOWER_LEFT_SHOULDER_PIXELS := 20
 const HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS := 680
+const NECK_COLLAR_MAX_TEXTURE_SIZE := Vector2i(96, 88)
+const NECK_COLLAR_MIN_TRANSPARENT_RATIO := 0.15
+const NECK_COLLAR_MIN_LOCAL_X := -24.0
+const NECK_COLLAR_MAX_LOCAL_X := 0.0
+const NECK_COLLAR_MIN_LOCAL_Y := -108.0
+const NECK_COLLAR_MAX_LOCAL_Y := -84.0
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
@@ -143,6 +150,7 @@ const EXPECTED_BONE_PATHS: Array[String] = [
 const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	HEAD_VISUAL_PATH,
 	"Hips/Spine/Chest/VisualTorso",
+	NECK_COLLAR_VISUAL_PATH,
 	"Hips/VisualPelvis",
 	"Hips/VisualSeamFill",
 	"Hips/Spine/Chest/BackUpperArm/VisualBackUpperArm",
@@ -278,12 +286,16 @@ func _test_rig_scene_contract() -> void:
 		var front_hand_visual := skeleton.get_node_or_null(FRONT_HAND_VISUAL_PATH) as Sprite2D
 		var flashlight_visual := skeleton.get_node_or_null(FLASHLIGHT_VISUAL_PATH) as Sprite2D
 		var torso_visual := skeleton.get_node_or_null(TORSO_VISUAL_PATH) as Sprite2D
+		var neck_collar_visual := skeleton.get_node_or_null(NECK_COLLAR_VISUAL_PATH) as Sprite2D
+		var head_visual := skeleton.get_node_or_null(HEAD_VISUAL_PATH) as Sprite2D
 		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as Sprite2D
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
 		assert_true(flashlight_visual != null, "Player skeleton must keep flashlight visual for layering")
 		assert_true(torso_visual != null, "Player skeleton must keep torso visual for photo-cutout layering")
+		assert_true(neck_collar_visual != null, "Player skeleton must keep neck/collar cover for head-torso seam")
+		assert_true(head_visual != null, "Player skeleton must keep head visual for photo-cutout layering")
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
 		assert_true(front_forearm_visual != null, "Player skeleton must keep front forearm visual for photo-cutout layering")
@@ -294,6 +306,8 @@ func _test_rig_scene_contract() -> void:
 			assert_true(torso_visual.z_index > front_upper_arm_visual.z_index, "Player skeleton torso must hide the front upper-arm photo seam")
 		if torso_visual != null and front_forearm_visual != null:
 			assert_true(front_forearm_visual.z_index > torso_visual.z_index, "Player skeleton front forearm must remain visible over the torso")
+		if torso_visual != null and neck_collar_visual != null and head_visual != null:
+			_assert_neck_collar_cover_sits_between_torso_and_head(torso_visual, neck_collar_visual, head_visual)
 		if pelvis_visual != null and torso_visual != null:
 			assert_true(pelvis_visual.z_index >= torso_visual.z_index, "Player skeleton pelvis must cover torso/lower-body seams")
 	rig.free()
@@ -453,6 +467,32 @@ func _assert_head_cutout_keeps_source_head_shape(texture: Texture2D, visual_path
 	assert_true(
 			upper_right_hair_pixels >= HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS,
 			"Player skeleton head cutout must keep Andry's rounded upper head instead of a diagonal crop: %s" % visual_path
+	)
+
+func _assert_neck_collar_cover_sits_between_torso_and_head(torso_visual: Sprite2D, neck_collar_visual: Sprite2D, head_visual: Sprite2D) -> void:
+	assert_true(neck_collar_visual.texture != null, "Player skeleton neck/collar cover must keep a compact texture")
+	if neck_collar_visual.texture != null:
+		assert_true(
+				neck_collar_visual.texture.get_width() <= NECK_COLLAR_MAX_TEXTURE_SIZE.x
+						and neck_collar_visual.texture.get_height() <= NECK_COLLAR_MAX_TEXTURE_SIZE.y,
+				"Player skeleton neck/collar cover must stay compact instead of duplicating the full torso"
+		)
+		_assert_cutout_has_alpha_negative_space(neck_collar_visual.texture, NECK_COLLAR_VISUAL_PATH, NECK_COLLAR_MIN_TRANSPARENT_RATIO)
+		_assert_cutout_has_single_alpha_component(neck_collar_visual.texture, NECK_COLLAR_VISUAL_PATH)
+	assert_true(
+			neck_collar_visual.z_index >= torso_visual.z_index,
+			"Player skeleton neck/collar cover must draw over the torso seam"
+	)
+	assert_true(
+			neck_collar_visual.z_index < head_visual.z_index,
+			"Player skeleton neck/collar cover must stay under the rotating head"
+	)
+	assert_true(
+			neck_collar_visual.position.x >= NECK_COLLAR_MIN_LOCAL_X
+					and neck_collar_visual.position.x <= NECK_COLLAR_MAX_LOCAL_X
+					and neck_collar_visual.position.y >= NECK_COLLAR_MIN_LOCAL_Y
+					and neck_collar_visual.position.y <= NECK_COLLAR_MAX_LOCAL_Y,
+			"Player skeleton neck/collar cover must stay on the chest-side head seam"
 	)
 
 func _assert_cutout_has_single_alpha_component(texture: Texture2D, visual_path: String) -> void:
