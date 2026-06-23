@@ -112,7 +112,7 @@ func _start_lab_minigame() -> void:
 	if game is Node:
 		game.process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	# Настраиваем параметры (как в твоем старом коде)
+	# Передаём timed-lab параметры, если minigame их поддерживает.
 	if "time_limit" in game: game.time_limit = time_limit
 	if "penalty_time" in game: game.penalty_time = penalty_time
 	if "lab_completion_id" in game:

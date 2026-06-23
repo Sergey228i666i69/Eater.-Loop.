@@ -7,7 +7,7 @@
 - Godot: `4.6.1.stable`.
 - `godot --headless --check-only -s res://tests/run_tests.gd` прошёл.
 - Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
-- После ремонтных проходов 2026-06-23 parser-only и полный suite проходят; текущий полный suite содержит 57 тестов.
+- После ремонтных проходов 2026-06-23 parser-only и полный suite проходят; текущий полный suite содержит 59 тестов.
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
 - Полный export/build не запускался, чтобы не писать в output paths и импорт-кэш.
 
@@ -43,7 +43,7 @@
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Последующие полные прогоны это не воспроизводят, поэтому пункт остался историческим наблюдением, а не текущим known failure.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (57)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (59)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -68,7 +68,9 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`export_presets.cfg`](../export_presets.cfg), около строки 11.
 - [`tools/macos_dmg_fix/export_macos_dmg.sh`](../tools/macos_dmg_fix/export_macos_dmg.sh), около строк 20 и 24.
 
-Оставшийся ремонт: добавить export dry-run, если понадобится проверять release artifacts автоматически.
+Оставшийся релизный апгрейд: добавить отдельный full export job, если нужно автоматически проверять сами release artifacts в CI.
+
+Текущий static export smoke покрыт обычным suite: `tests/cases/test_export_presets_contract.gd` проверяет, что `export_presets.cfg` парсится и все `export_path` остаются repo-local. Локальный `godot --headless --path . --export-debug "MacOS" /tmp/eater-loop-export-smoke/EaterLoop.app` на машине с templates прошёл с exit code `0`.
 
 ## Resolved: CI-Like Слой Есть, Но Был Неполный
 
@@ -76,7 +78,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 57 тестов.
+- 59 тестов.
 
 Добавлено:
 
@@ -87,6 +89,4 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - discovery тестов нерекурсивный только по `tests/cases`;
 - shell helper вычисляет project root относительно себя и запускает Godot с `--path`, поэтому может запускаться не из корня.
 
-Оставшийся ремонт:
-
-1. добавить optional export dry run.
+Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.

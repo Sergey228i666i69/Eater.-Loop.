@@ -93,7 +93,7 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 
 - mojibake в [`global/localization/texts.csv`](../global/localization/texts.csv), около строки 3;
 - транслит-ключи в том же CSV, около строки 32;
-- hardcoded русские строки вне CSV, например в [`objects/interactable/projector2/projector2.gd`](../objects/interactable/projector2/projector2.gd), около строки 164;
+- hardcoded русские строки вне CSV, например в [`objects/interactable/flashlight/pickup_flashlight.tscn`](../objects/interactable/flashlight/pickup_flashlight.tscn), около строки 33;
 - hardcoded prompt в [`objects/interactable/flashlight/pickup_flashlight.tscn`](../objects/interactable/flashlight/pickup_flashlight.tscn), около строки 33.
 
 Риск: английская локаль получит русские fallback-и или битый текст.
@@ -102,7 +102,7 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 
 ## Мелкие Smells
 
-- `CursorManager` вычисляет `_in_game`, но `_update_mouse_mode` его фактически не использует.
+- `CursorManager` больше не держит dead `_in_game` state; внешний `set_in_game(...)` оставлен как compatibility API для `GameDirector`.
 - `ending_credits.gd` имеет export `return_scene`, но resolver всегда возвращает main menu.
 - `Bed._try_sleep` делает ручной fade и затем вызывает scene-change с fade delay.
 - Первичный аудит находил `level_09_сrazy.tscn` с кириллической `с`; файл переименован в `level_09_crazy.tscn`.

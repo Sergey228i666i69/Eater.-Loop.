@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После P2 contract/tooling pass parser-only и полный suite проходили, полный suite содержит 57 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После P3 hygiene pass parser-only и полный suite проходили, полный suite содержит 59 тестов.
 
 Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
 
@@ -42,7 +42,12 @@
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
 - Ending-сцены классифицируются через `SceneContext`, и pause menu не открывается поверх концовок.
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
-- Stale current-state docs обновлены под `level_14_end.*` и suite из 57 тестов.
+- Stale current-state docs обновлены под `level_14_end.*` и suite из 59 тестов.
+- Obstacle special-case покрыт контрактным тестом.
+- Export presets проверяются static contract-тестом в suite; локальный macOS export smoke прошёл с templates.
+- Удалены `.gitignore.save`, ignored `global/export_presets.cfg`, legacy icon copies и неиспользуемый `Projector2`.
+- Убран dead `CursorManager._in_game` state и пустая `laptop_money.gd` specialization-wrapper.
+- Legacy-комментарии из runtime-кода очищены в `InteractiveObject`, `fridge.gd` и `laptop.gd`.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -163,14 +168,10 @@ Evidence:
 
 ### 18. `Obstacle` обходит нормальную InteractiveObject-архитектуру
 
-Evidence:
+Статус: закрыто контрактом.
 
-- `objects/interactable/obstacle/obstacle.gd`: не наследует `InteractiveObject`, а динамически навешивает `interactive_object.gd` на `$InteractArea`.
-
-Что сделать:
-
-- мигрировать на обычное наследование/scene composition;
-- либо явно покрыть этот special-case контрактными тестами.
+- `Obstacle` оставлен как `StaticBody2D` + `InteractArea`, потому что это collision-blocker, а не обычный `Area2D` interactable.
+- `tests/cases/test_obstacle_interaction_contract.gd` проверяет, что `$InteractArea` сохраняет `InteractiveObject` contract, не регистрируется как обычный focused candidate и press-clear flow освобождает obstacle после нужного числа нажатий.
 
 ### 19. Ending scenes и pause classification непоследовательны
 
@@ -183,15 +184,11 @@ Evidence:
 
 ### 20. CI не проверяет export presets dry-run
 
-Evidence:
+Статус: закрыто на уровне обычного suite + локального smoke.
 
-- `.github/workflows/godot-tests.yml`: ставит Godot и гоняет parser/full tests.
-- Export templates не ставятся, `export_presets.cfg` не проверяется реальным export/dry-run.
-
-Что сделать:
-
-- добавить optional release/export smoke job;
-- хотя бы проверять, что presets parse и paths repo-local.
+- `tests/cases/test_export_presets_contract.gd` проверяет, что `export_presets.cfg` парсится, содержит preset и не уводит `export_path` наружу из repo-local `exports/`.
+- Полный локальный smoke `godot --headless --path . --export-debug "MacOS" /tmp/eater-loop-export-smoke/EaterLoop.app` прошёл с exit code `0` на машине с installed templates.
+- Отдельный full export job в GitHub Actions остаётся возможным release-hardening, но presets больше не остаются непроверенными.
 
 ### 21. `tests/run_tests.sh` зависит от запуска из root
 
@@ -204,7 +201,7 @@ Evidence:
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (57)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (59)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 
@@ -212,34 +209,23 @@ Evidence:
 
 ### 23. Удалить tracked `.gitignore.save`
 
-Evidence:
+Статус: закрыто.
 
-- `.gitignore.save` tracked, выглядит как забытый backup.
-- Внутри устаревший ignore `export/`, тогда текущая `.gitignore` использует `/exports/` и другие актуальные paths.
+- Tracked `.gitignore.save` удалён.
 
 ### 24. Решить судьбу локального ignored `global/export_presets.cfg`
 
-Evidence:
+Статус: закрыто.
 
-- Файл есть в рабочей копии, но игнорируется.
-- Содержит старый внешний export path `../Documents/Тест экспорт/Едок Петля.app`.
-
-Что сделать:
-
-- удалить из рабочей копии, если он не нужен;
-- либо переименовать/перенести как явный sample вне Godot resource confusion.
+- Ignored локальный `global/export_presets.cfg` удалён из рабочей копии.
+- Canonical tracked preset остаётся в root `export_presets.cfg`.
 
 ### 25. Проверить и удалить/переименовать duplicate legacy icons
 
-Evidence:
+Статус: закрыто.
 
-- `global/macos_icon.icns` и `global/Иконка_предварительно.icns` имеют одинаковый LFS object id.
-- `global/windows_icon.ico` и `global/Иконка_предварительно.ico` выглядят как новая/старая пара.
-
-Что сделать:
-
-- оставить только canonical icon paths, которые реально используются export presets;
-- удалить или архивировать legacy copies отдельным коммитом.
+- Canonical icons, реально используемые `project.godot`, оставлены: `global/macos_icon.icns`, `global/windows_icon.ico`.
+- Неиспользуемые legacy copies `global/Иконка_предварительно.icns` и `global/Иконка_предварительно.ico` удалены.
 
 ### 26. Нормализовать naming debt через Godot rename
 
@@ -259,39 +245,25 @@ Evidence:
 
 ### 27. Почистить legacy-комментарии и flags
 
-Примеры:
+Статус: закрыто для найденных runtime-комментариев.
 
-- `InteractiveObject`: комментарии `СТАРЫЕ`, `НОВЫЕ`, `НОВЫЙ СИГНАЛ`.
-- `fridge.gd`: комментарии про "старый скрипт".
-- `laptop.gd`: `unlock_on_dependency_interaction` как legacy-флаг поверх enum dependency.
-
-Что сделать:
-
-- оставить только стабильные комментарии, которые объясняют контракт;
-- убрать историю ремонта из runtime-кода.
+- `InteractiveObject` очищен от `СТАРЫЕ`/`НОВЫЕ`/`НОВЫЙ СИГНАЛ`-комментариев.
+- `fridge.gd` и `laptop.gd` больше не содержат комментарии про "старый скрипт/код".
+- `unlock_on_dependency_interaction` оставлен как backward-compatible inspector flag; его removal лучше делать вместе с полноценным typed outcome/result слоем из P2.8.
 
 ### 28. Решить судьбу `Projector` vs `Projector2`
 
-Evidence:
+Статус: закрыто.
 
-- В проекте живут две параллельные модели похожего светового интерактива.
-
-Что сделать:
-
-- выбрать canonical implementation;
-- старую оставить только если она реально нужна для конкретной сцены;
-- покрыть input/power/prompt contract тестом.
+- Canonical implementation: `objects/interactable/projector/projector.gd` + `projector.tscn`, уже покрыт input/directional light tests.
+- `objects/interactable/projector2/` удалён как неиспользуемая параллельная реализация.
 
 ### 29. Убрать или задействовать `CursorManager._in_game`
 
-Evidence:
+Статус: закрыто.
 
-- `_in_game` обновляется, но не участвует в `_update_mouse_mode`.
-
-Что сделать:
-
-- удалить как dead state;
-- либо вернуть в mouse mode decision, если он должен влиять на курсор.
+- Dead `_in_game` state удалён из `levels/minigames/cursor_manager.gd`.
+- `set_in_game(...)` оставлен как compatibility API для `GameDirector`, но больше не хранит лишнее состояние.
 
 ### 30. Дедуплицировать input-device detection
 
@@ -306,14 +278,10 @@ Evidence:
 
 ### 31. Проверить пустые specialization wrappers
 
-Evidence:
+Статус: закрыто.
 
-- `objects/interactable/level12/notebook/laptop_money.gd` выглядит как пустая specialization-обёртка.
-
-Что сделать:
-
-- удалить, если она не нужна;
-- либо явно документировать, что это scene-specific alias для инспектора/будущего поведения.
+- Пустой `objects/interactable/level12/notebook/laptop_money.gd` удалён.
+- `laptop_money.tscn` оставлен как scene-specific inherited scene от `laptop_STU.tscn` с overrides `prompt_text` и `reward_on_work_completion`.
 
 ## Что Не Трогать Без Отдельной Задачи
 

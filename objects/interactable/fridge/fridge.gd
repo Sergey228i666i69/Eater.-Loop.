@@ -164,7 +164,7 @@ func _start_code_lock() -> void:
 	var lock_instance = code_lock_scene.instantiate()
 	_current_minigame = lock_instance
 	
-	# 2. Настраиваем пароль (как в твоем старом скрипте)
+	# Передаём код в актуальную версию code-lock minigame.
 	if "code_value" in lock_instance:
 		lock_instance.code_value = access_code
 	elif "target_code" in lock_instance:
@@ -226,7 +226,7 @@ func _start_feeding_process() -> void:
 	attach_minigame(game)
 	_mark_unique_intro_as_played(selected_scene)
 	
-	# Передаем параметры (как в твоем старом скрипте)
+	# Передаём параметры в feeding minigame, если сцена поддерживает этот контракт.
 	if game.has_method("setup_game"):
 		game.setup_game(andrey_face, food_count, bg_music, win_sound, eat_sound, background_texture, food_scenes)
 	

@@ -1,18 +1,16 @@
 extends Area2D
 class_name InteractiveObject
 
-# --- СИГНАЛЫ ---
 signal player_entered(player: Node)
 signal player_exited(player: Node)
 signal interaction_requested(player: Node)
-signal interaction_finished # <--- НОВЫЙ СИГНАЛ: для цепочек событий
+signal interaction_finished
 
 enum DependencyCondition {
 	COMPLETED,
 	INTERACTION_REQUESTED,
 }
 
-# --- НАСТРОЙКИ ВЗАИМОДЕЙСТВИЯ (СТАРЫЕ) ---
 @export_group("Interaction")
 ## Узел Area2D для зоны взаимодействия (пусто — использовать сам объект).
 @export var interact_area_node: NodePath = NodePath("")
@@ -29,7 +27,6 @@ enum DependencyCondition {
 ## Смещение спрайта подсказки относительно центра объекта.
 @export var prompt_offset: Vector2 = Vector2.ZERO
 
-# --- НОВЫЕ НАСТРОЙКИ (ЗАВИСИМОСТИ) ---
 @export_group("Dependency System")
 ## Если true, объект помечается выполненным после первого использования
 @export var one_shot: bool = false
@@ -40,13 +37,12 @@ enum DependencyCondition {
 ## Сообщение при блокировке (если показывать вручную)
 @export var locked_message: String = "Сначала нужно сделать что-то другое..."
 
-# --- ВНУТРЕННИЕ ПЕРЕМЕННЫЕ ---
 var _interact_area: Area2D = null
 var _player_in_range: Node = null
 var _prompts_enabled: bool = true
 var _interaction_focused: bool = false
 var _dependency_request_satisfied: bool = false
-var is_completed: bool = false # <--- ФЛАГ: Выполнен объект или нет
+var is_completed: bool = false
 
 func _ready() -> void:
 	if not is_in_group("checkpoint_stateful"):
@@ -80,9 +76,6 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	_dependency_request_satisfied = bool(state.get("dependency_request_satisfied", _dependency_request_satisfied))
 	_refresh_prompt_state()
 
-# --- ЛОГИКА ВЗАИМОДЕЙСТВИЯ ---
-
-# Этот метод вызывает движок при нажатии кнопки (из _unhandled_input)
 func request_interact() -> void:
 	if not _can_interact():
 		return
@@ -90,35 +83,28 @@ func request_interact() -> void:
 		_show_locked_message()
 		return
 
-	# 2. ЕСЛИ ВСЁ ОК — ЗАПУСКАЕМ ДЕЙСТВИЕ
 	interaction_requested.emit(_player_in_range)
 	_on_interact()
 	
-	# 3. ЕСЛИ ОБЪЕКТ ОДНОРАЗОВЫЙ
 	if _should_auto_complete_after_interact():
 		complete_interaction()
 
-# Вызывай это в дочерних скриптах, когда действие успешно завершено
 func complete_interaction() -> void:
 	is_completed = true
 	interaction_finished.emit()
 
-# Переопределяй этот метод в наследниках (Frizzer, Generator, Laptop)
 func _on_interact() -> void:
 	pass
 
 func _should_auto_complete_after_interact() -> bool:
 	return one_shot
 
-# Показ сообщения о блокировке
 func _show_locked_message() -> void:
 	var localized_message := tr(locked_message)
 	if UIMessage:
 		UIMessage.show_notification(localized_message)
 	else:
 		print_verbose("LOCKED: " + localized_message)
-
-# --- ИНФРАСТРУКТУРА (ОСТАВЛЯЕМ БЕЗ ИЗМЕНЕНИЙ) ---
 
 func _setup_interaction_area() -> void:
 	_interact_area = get_node_or_null(interact_area_node) as Area2D

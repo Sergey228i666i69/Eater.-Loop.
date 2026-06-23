@@ -284,7 +284,6 @@
 │   │   └── texts.ru.translation
 │   ├── checkpoint_state_utils.gd
 │   ├── checkpoint_state_utils.gd.uid
-│   ├── export_presets.cfg
 │   ├── iconofgame.png
 │   ├── iconofgame.png.import
 │   ├── interaction_manager.gd
@@ -294,9 +293,7 @@
 │   ├── reactive_light_utils.gd
 │   ├── reactive_light_utils.gd.uid
 │   ├── scene_context.gd
-│   ├── windows_icon.ico
-│   ├── Иконка_предварительно.icns
-│   └── Иконка_предварительно.ico
+│   └── windows_icon.ico
 ├── levels
 │   ├── cycles
 │   │   ├── TextureDistortionManager.tscn
@@ -1220,8 +1217,6 @@
 │       │   │   ├── level12_money_system.gd.uid
 │       │   │   └── level12_money_system.tscn
 │       │   ├── notebook
-│       │   │   ├── laptop_money.gd
-│       │   │   ├── laptop_money.gd.uid
 │       │   │   └── laptop_money.tscn
 │       │   └── student
 │       │       ├── student_money_npc.gd
@@ -1266,10 +1261,6 @@
 │       │   ├── projector.gd
 │       │   ├── projector.gd.uid
 │       │   └── projector.tscn
-│       ├── projector2
-│       │   ├── projector2.gd
-│       │   ├── projector2.gd.uid
-│       │   └── projector2.tscn
 │       ├── search_spot
 │       │   ├── search_spot.gd
 │       │   ├── search_spot.gd.uid
@@ -1411,6 +1402,7 @@
 │   │   ├── test_enemy_light_sensitive_external_flashlight.gd.uid
 │   │   ├── test_enemy_light_sensitive_flashlight_stun.gd
 │   │   ├── test_enemy_light_sensitive_flashlight_stun.gd.uid
+│   │   ├── test_export_presets_contract.gd
 │   │   ├── test_final_feed_minigame_stage_transition.gd
 │   │   ├── test_final_feed_minigame_stage_transition.gd.uid
 │   │   ├── test_flashlight_pickup_clears_location.gd
@@ -1477,6 +1469,7 @@
 │   │   ├── test_musicmanager_private_api_usage.gd.uid
 │   │   ├── test_note_audio_optional.gd
 │   │   ├── test_note_audio_optional.gd.uid
+│   │   ├── test_obstacle_interaction_contract.gd
 │   │   ├── test_project_config.gd
 │   │   ├── test_project_config.gd.uid
 │   │   ├── test_respawn_checkpoint_restore.gd
@@ -1521,4 +1514,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1397 files
+124 directories, 1391 files

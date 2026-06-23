@@ -89,14 +89,13 @@
 
 ## P2: Свет, Генератор И Враги Завязаны На Строковые Группы
 
-Лампа, фонарик, старый проектор и `Projector2` сами добавляют себя в `reactive_light_source`. Генератор ищет `generator_required_light`/`lamp` и вызывает `turn_on`.
+Лампа, фонарик и canonical projector сами добавляют себя в `reactive_light_source`. Генератор ищет `generator_required_light`/`lamp` и вызывает `turn_on`.
 
 Файлы:
 
 - [`objects/interactable/generator/generator.gd`](../objects/interactable/generator/generator.gd), около строки 77.
 - [`objects/interactable/lamp/lamp.gd`](../objects/interactable/lamp/lamp.gd), около строки 64.
 - [`objects/interactable/projector/projector.gd`](../objects/interactable/projector/projector.gd), около строки 77.
-- [`objects/interactable/projector2/projector2.gd`](../objects/interactable/projector2/projector2.gd), около строки 162.
 
 Практический риск: строка группы или имя метода меняется - контракт ломается без явной ошибки.
 

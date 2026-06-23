@@ -1,7 +1,6 @@
 extends Node
 
 var _visible_sources: Dictionary = {}
-var _in_game: bool = false
 var _last_mode: int = -1
 
 func _ready() -> void:
@@ -11,20 +10,13 @@ func _ready() -> void:
 	call_deferred("_refresh_scene_state")
 	_update_mouse_mode()
 
-func set_in_game(in_game: bool) -> void:
-	_in_game = in_game
+func set_in_game(_ignored: bool) -> void:
 	_update_mouse_mode()
 
-func _on_scene_changed(scene: Node = null) -> void:
-	if scene == null:
-		scene = get_tree().current_scene
-	_update_in_game_from_scene(scene)
+func _on_scene_changed(_scene: Node = null) -> void:
+	_update_mouse_mode()
 
 func _refresh_scene_state() -> void:
-	_update_in_game_from_scene(get_tree().current_scene)
-
-func _update_in_game_from_scene(scene: Node) -> void:
-	_in_game = SceneContext != null and SceneContext.is_gameplay_scene(scene)
 	_update_mouse_mode()
 
 func request_visible(source: Object) -> void:

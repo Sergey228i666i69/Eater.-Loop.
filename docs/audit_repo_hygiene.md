@@ -80,9 +80,9 @@ Git почти не трекает аудио/изображения, но сц�
 
 Ремонт: lowercase snake_case, без lookalike-кириллицы, без `trash/test/old` в runtime paths.
 
-## P2: Дублируется Паттерн Прожектора
+## Resolved: Дублировался Паттерн Прожектора
 
-Старый `projector.gd` и новый `projector2.gd` оба держат:
+Ранее старый `projector.gd` и новый `projector2.gd` оба держали:
 
 - питание;
 - группы `reactive_light_source`;
@@ -91,12 +91,11 @@ Git почти не трекает аудио/изображения, но сц�
 - toggle;
 - checkpoint-state.
 
-Файлы:
+Статус: `Projector2` удалён как неиспользуемая параллельная реализация. Canonical implementation остаётся:
 
 - [`objects/interactable/projector/projector.gd`](../objects/interactable/projector/projector.gd).
-- [`objects/interactable/projector2/projector2.gd`](../objects/interactable/projector2/projector2.gd).
 
-Ремонт: один базовый light-source/power component и разные scene skins/config resources.
+Направление, reactive-light group и input contract покрыты тестами старого projector implementation.
 
 ## Resolved: Debug Leftovers
 
