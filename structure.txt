@@ -1509,6 +1509,7 @@
 │       ├── hdiutil
 │       └── run_godot_with_dmg_fix.sh
 ├── AGENTS.md
+├── ToFix.md
 ├── default_bus_layout.tres
 ├── export_presets.cfg
 ├── icon.svg
@@ -1516,4 +1517,4 @@
 ├── project.godot
 └── structure.txt
 
-125 directories, 1392 files
+125 directories, 1393 files
