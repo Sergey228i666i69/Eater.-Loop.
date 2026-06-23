@@ -32,6 +32,9 @@ const CLEANED_FRONT_SHIN_VISUAL_PATH := "Hips/FrontThigh/FrontShin/VisualFrontSh
 const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
 const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
 const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand"
+const SEAM_FILL_MAX_INTERNAL_WIDTH := 52
+const SEAM_FILL_MIN_INTERNAL_X := 88
+const SEAM_FILL_MAX_INTERNAL_X := 136
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
 const FLASHLIGHT_MIN_FILLED_GAP_COLUMNS := 32
@@ -193,6 +196,7 @@ func _test_rig_scene_contract() -> void:
 					assert_true(_is_tight_cutout_texture(visual.texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.70)
+						_assert_seam_fill_is_internal_strip(visual.texture, visual_path)
 					elif visual_path == CLEANED_PELVIS_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
 					elif visual_path == CLEANED_FRONT_THIGH_VISUAL_PATH:
@@ -327,6 +331,25 @@ func _assert_cutout_has_alpha_negative_space(texture: Texture2D, visual_path: St
 			float(transparent_pixels) / float(total_pixels) >= min_transparent_ratio,
 			"Player skeleton cleaned cutout must not keep a full opaque source rectangle: %s" % visual_path
 	)
+
+func _assert_seam_fill_is_internal_strip(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton seam fill texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(image.get_height()):
+		var min_x := INF
+		var max_x := -INF
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = minf(min_x, float(x))
+			max_x = maxf(max_x, float(x))
+		if max_x == -INF:
+			continue
+		assert_true(max_x - min_x + 1.0 <= SEAM_FILL_MAX_INTERNAL_WIDTH, "Player skeleton seam fill must stay a narrow hidden strip: %s" % visual_path)
+		assert_true(min_x >= SEAM_FILL_MIN_INTERNAL_X, "Player skeleton seam fill must not keep the left hand or outer leg: %s" % visual_path)
+		assert_true(max_x <= SEAM_FILL_MAX_INTERNAL_X, "Player skeleton seam fill must not keep the right hand or outer leg: %s" % visual_path)
 
 func _assert_flashlight_cutout_has_completed_handle(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
