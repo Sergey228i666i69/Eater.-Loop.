@@ -35,6 +35,7 @@ const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForear
 const SEAM_FILL_MAX_INTERNAL_WIDTH := 52
 const SEAM_FILL_MIN_INTERNAL_X := 88
 const SEAM_FILL_MAX_INTERNAL_X := 136
+const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
 const FLASHLIGHT_MIN_FILLED_GAP_COLUMNS := 32
@@ -201,8 +202,10 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
 					elif visual_path == CLEANED_FRONT_THIGH_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.30)
+						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
 					elif visual_path == CLEANED_BACK_THIGH_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
+						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
 					elif visual_path == CLEANED_FRONT_SHIN_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.32)
 					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
@@ -350,6 +353,18 @@ func _assert_seam_fill_is_internal_strip(texture: Texture2D, visual_path: String
 		assert_true(max_x - min_x + 1.0 <= SEAM_FILL_MAX_INTERNAL_WIDTH, "Player skeleton seam fill must stay a narrow hidden strip: %s" % visual_path)
 		assert_true(min_x >= SEAM_FILL_MIN_INTERNAL_X, "Player skeleton seam fill must not keep the left hand or outer leg: %s" % visual_path)
 		assert_true(max_x <= SEAM_FILL_MAX_INTERNAL_X, "Player skeleton seam fill must not keep the right hand or outer leg: %s" % visual_path)
+
+func _assert_thigh_does_not_own_moving_waistband(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton thigh texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(mini(THIGH_MOVING_WAISTBAND_CLEAR_ROWS, image.get_height())):
+		for x in range(image.get_width()):
+			assert_true(
+					image.get_pixel(x, y).a <= 0.05,
+					"Player skeleton thigh cutout must not keep moving waistband/pelvis pixels: %s" % visual_path
+			)
 
 func _assert_flashlight_cutout_has_completed_handle(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
