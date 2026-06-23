@@ -40,7 +40,7 @@ var _time_left: float = 0.0
 var _auto_finish_on_timeout: bool = false
 var _timeout_emitted: bool = false
 var _pause_requested: bool = true
-var _pause_prev: bool = false
+var _pause_token_requested: bool = false
 var _show_mouse_cursor: bool = true
 var _music_pushed: bool = false
 var _music_is_stream: bool = false
@@ -360,13 +360,22 @@ func _update_timer(delta: float) -> void:
 func _setup_pause() -> void:
 	if not _pause_requested:
 		return
-	_pause_prev = get_tree().paused
-	get_tree().paused = true
+	if _pause_token_requested:
+		return
+	_pause_token_requested = true
+	if PauseManager != null and PauseManager.has_method("request_pause"):
+		PauseManager.request_pause(self, "minigame")
+	else:
+		get_tree().paused = true
 
 func _restore_pause() -> void:
-	if not _pause_requested:
+	if not _pause_token_requested:
 		return
-	get_tree().paused = _pause_prev
+	_pause_token_requested = false
+	if PauseManager != null and PauseManager.has_method("release_pause"):
+		PauseManager.release_pause(self, "minigame")
+	else:
+		get_tree().paused = false
 
 func _setup_mouse_cursor() -> void:
 	if not _show_mouse_cursor:

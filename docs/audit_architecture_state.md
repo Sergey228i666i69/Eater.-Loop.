@@ -55,6 +55,8 @@
 
 Риск не в том, что класс прямо сейчас сломан, а в цене изменений: любая новая механика уровня может задеть смерть, чекпоинт, музыку или курсор.
 
+Статус: pause ownership для death screen закрыт через owner-token API `PauseManager`, но сам класс всё ещё перегружен.
+
 Ремонт: вынести death/checkpoint, distortion/stalker и overlay/cursor coordination в отдельные сервисы.
 
 ## P2: `UIMessage` Стал Service Locator
@@ -71,6 +73,8 @@
 - сохранение текущей игровой сцены через path-check.
 
 Примеры: [`player/ui_message.gd`](../player/ui_message.gd), около строк 65, 415, 460.
+
+Статус: notes/hints больше не восстанавливают `get_tree().paused` через локальный previous-bool, а используют pause tokens `PauseManager`. Остальная перегрузка UI/navigation/fade/prompts остаётся.
 
 Ремонт: разделить message/prompt layer, transition service и scene navigation.
 

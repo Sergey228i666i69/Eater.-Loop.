@@ -100,6 +100,7 @@ var _death_glitch_background: Control
 var _death_title_label: Label
 var _death_retry_button: Button
 var _death_sequence_active: bool = false
+var _death_pause_requested: bool = false
 var _death_camera: Camera2D = null
 var _death_camera_base_rotation: float = 0.0
 var _death_camera_base_zoom: Vector2 = Vector2.ONE
@@ -591,8 +592,7 @@ func _on_death_fade_completed() -> void:
 	if _death_root:
 		_death_root.visible = true
 	_apply_death_input_mode()
-	if get_tree():
-		get_tree().paused = true
+	_request_death_pause()
 
 func _on_death_retry_pressed() -> void:
 	if not _death_sequence_active:
@@ -615,8 +615,8 @@ func _on_death_retry_pressed() -> void:
 	if _death_root:
 		_death_root.visible = false
 	_release_death_cursor_request()
+	_release_death_pause()
 	if get_tree():
-		get_tree().paused = false
 		get_tree().call_deferred("reload_current_scene")
 
 func _reset_death_screen_state() -> void:
@@ -632,8 +632,7 @@ func _reset_death_screen_state() -> void:
 	if _death_retry_button:
 		_death_retry_button.remove_theme_stylebox_override("focus")
 	_release_death_cursor_request()
-	if get_tree() and get_tree().paused:
-		get_tree().paused = false
+	_release_death_pause()
 
 func _restore_death_camera() -> void:
 	if _death_camera != null and is_instance_valid(_death_camera):
@@ -641,6 +640,24 @@ func _restore_death_camera() -> void:
 		_death_camera.zoom = _death_camera_base_zoom
 		_death_camera.offset = _death_camera_base_offset
 	_death_camera = null
+
+func _request_death_pause() -> void:
+	if _death_pause_requested:
+		return
+	_death_pause_requested = true
+	if PauseManager != null and PauseManager.has_method("request_pause"):
+		PauseManager.request_pause(self, "death_screen")
+	elif get_tree():
+		get_tree().paused = true
+
+func _release_death_pause() -> void:
+	if not _death_pause_requested:
+		return
+	_death_pause_requested = false
+	if PauseManager != null and PauseManager.has_method("release_pause"):
+		PauseManager.release_pause(self, "death_screen")
+	elif get_tree():
+		get_tree().paused = false
 
 func _set_distortion_intensity(value: float) -> void:
 	if _distortion_material == null:

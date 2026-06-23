@@ -1472,6 +1472,7 @@
 │   │   ├── test_note_audio_optional.gd
 │   │   ├── test_note_audio_optional.gd.uid
 │   │   ├── test_obstacle_interaction_contract.gd
+│   │   ├── test_pause_manager_tokens.gd
 │   │   ├── test_project_config.gd
 │   │   ├── test_project_config.gd.uid
 │   │   ├── test_respawn_checkpoint_restore.gd
@@ -1516,4 +1517,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1393 files
+124 directories, 1394 files

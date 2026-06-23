@@ -8,7 +8,7 @@
 
 Первичная проблемность аудита: **7.3/10**. Текущая проблемность после ремонтных проходов: **5.6/10**.
 
-Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов, typed dependency conditions и typed interaction outcomes. Костыльность всё ещё заметна в поддержке: крупные singleton-и, NodePath/name contracts и огромные сцены остаются главными источниками риска.
+Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов, typed dependency conditions, typed interaction outcomes и pause ownership tokens. Костыльность всё ещё заметна в поддержке: крупные singleton-и, NodePath/name contracts и огромные сцены остаются главными источниками риска.
 
 ## Сводные Оценки
 

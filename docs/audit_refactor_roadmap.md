@@ -56,6 +56,8 @@ Definition of done: каждый пункт имеет focused test или scene
 
 Definition of done: overlapping Area2D больше не вызывает несколько интерактов одним нажатием; success/failure/cancel outcomes выражены typed-сигналами и покрыты контрактными тестами.
 
+7. ~~Централизовать владение `get_tree().paused`.~~ Закрыто через owner-token API в `PauseManager`: pause menu, notes/hints, pause-game minigames и death screen больше не восстанавливают локальный previous-bool.
+
 ## Фаза 4: Scene Contracts И Validators
 
 Цель: ловить сломанные NodePath/group/method contracts до runtime.

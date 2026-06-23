@@ -47,7 +47,7 @@ var _note_bg: ColorRect
 var _note_image: TextureRect
 var _is_viewing_note: bool = false
 var _note_transition_active: bool = false
-var _note_prev_paused: bool = false
+var _note_pause_requested: bool = false
 var _queued_subtitle_text: String = ""
 var _queued_subtitle_duration: float = -1.0
 var _queued_dialogue_voice: AudioStream = null
@@ -60,7 +60,6 @@ var _hint_panel: PanelContainer
 var _hint_image: TextureRect
 var _hint_label: Label
 var _is_viewing_hint: bool = false
-var _hint_prev_paused: bool = false
 var _hint_pause_requested: bool = false
 
 func _ready() -> void:
@@ -238,8 +237,7 @@ func show_note(texture: Texture2D) -> void:
 		return
 	_note_transition_active = true
 	_is_viewing_note = true
-	_note_prev_paused = get_tree().paused
-	get_tree().paused = true
+	_request_note_pause()
 	play_fade_sequence(
 		note_transition_duration,
 		note_transition_duration,
@@ -272,12 +270,9 @@ func show_hint(text: String, texture: Texture2D = null, pause_game: bool = true)
 	_hint_bg.visible = true
 	_hint_panel.visible = true
 	if not was_viewing_hint:
-		_hint_prev_paused = get_tree().paused
-		_hint_pause_requested = pause_game
-	elif pause_game:
-		_hint_pause_requested = true
+		_hint_pause_requested = false
 	if pause_game:
-		get_tree().paused = true
+		_request_hint_pause()
 	_apply_hint_layout()
 
 func _apply_note_layout() -> void:
@@ -297,8 +292,7 @@ func hide_hint() -> void:
 	_is_viewing_hint = false
 	_hint_bg.visible = false
 	_hint_panel.visible = false
-	if _hint_pause_requested:
-		get_tree().paused = _hint_prev_paused
+	_release_hint_pause()
 
 func _apply_hint_layout() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
@@ -509,12 +503,11 @@ func is_screen_dark(threshold: float = 0.01) -> bool:
 
 func change_scene_with_fade(new_scene: PackedScene, duration: float = 0.5, unpause_after: bool = false) -> void:
 	_track_scene(new_scene)
-	var was_paused := get_tree().paused
 	await fade_out(duration)
 	get_tree().change_scene_to_packed(new_scene)
 	await get_tree().process_frame
-	if unpause_after and was_paused:
-		get_tree().paused = false
+	if unpause_after:
+		_clear_pause_for_scene_transition()
 	await fade_in(duration)
 
 func change_scene_with_fade_delay(new_scene: PackedScene, duration: float = 0.5, post_change_delay: float = 1.0, on_dark: Callable = Callable()) -> void:
@@ -592,7 +585,7 @@ func _hide_note_on_black() -> void:
 	_is_viewing_note = false
 	_note_bg.visible = false
 	_note_image.visible = false
-	get_tree().paused = _note_prev_paused
+	_release_note_pause()
 
 func _finish_note_transition() -> void:
 	_note_transition_active = false
@@ -600,3 +593,45 @@ func _finish_note_transition() -> void:
 func _finish_note_hide_transition() -> void:
 	_note_transition_active = false
 	_flush_queued_subtitle()
+
+func _clear_pause_for_scene_transition() -> void:
+	if PauseManager != null and PauseManager.has_method("clear_all_pause_requests"):
+		PauseManager.clear_all_pause_requests()
+	else:
+		get_tree().paused = false
+
+func _request_note_pause() -> void:
+	if _note_pause_requested:
+		return
+	_note_pause_requested = true
+	if PauseManager != null and PauseManager.has_method("request_pause"):
+		PauseManager.request_pause(self, "note")
+	else:
+		get_tree().paused = true
+
+func _release_note_pause() -> void:
+	if not _note_pause_requested:
+		return
+	_note_pause_requested = false
+	if PauseManager != null and PauseManager.has_method("release_pause"):
+		PauseManager.release_pause(self, "note")
+	else:
+		get_tree().paused = false
+
+func _request_hint_pause() -> void:
+	if _hint_pause_requested:
+		return
+	_hint_pause_requested = true
+	if PauseManager != null and PauseManager.has_method("request_pause"):
+		PauseManager.request_pause(self, "hint")
+	else:
+		get_tree().paused = true
+
+func _release_hint_pause() -> void:
+	if not _hint_pause_requested:
+		return
+	_hint_pause_requested = false
+	if PauseManager != null and PauseManager.has_method("release_pause"):
+		PauseManager.release_pause(self, "hint")
+	else:
+		get_tree().paused = false

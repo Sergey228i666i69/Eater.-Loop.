@@ -6,12 +6,11 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После input-device pass parser-only и полный suite проходили, полный suite содержит 60 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После pause-token pass parser-only и полный suite проходили, полный suite содержит 61 тест.
 
 Основная проблема уже не в "игра не запускается", а в поддерживаемости и краевых состояниях:
 
-- несколько singleton-ов одновременно владеют pause/fade/music состояниями;
-- интерактивы получили typed outcome/result слой, но крупные владельцы pause/fade/music состояний всё ещё пересекаются;
+- pause ownership и typed interaction outcomes уже централизованы, но fade/music/transition responsibilities всё ещё частично живут в крупных singleton-ах;
 - STU-уровни и крупные сцены сильно завязаны на `NodePath`, имена детей и serialized overrides;
 - часть файловой гигиены и naming debt всё ещё отстала от текущего состояния;
 - крупные классы остаются дорогими для ревью и регрессий.
@@ -42,7 +41,7 @@
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
 - Ending-сцены классифицируются через `SceneContext`, и pause menu не открывается поверх концовок.
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
-- Stale current-state docs обновлены под `level_14_end.*` и suite из 60 тестов.
+- Stale current-state docs обновлены под `level_14_end.*` и suite из 61 теста.
 - Obstacle special-case покрыт контрактным тестом.
 - Export presets проверяются static contract-тестом в suite; локальный macOS export smoke прошёл с templates.
 - Удалены `.gitignore.save`, ignored `global/export_presets.cfg`, legacy icon copies и неиспользуемый `Projector2`.
@@ -50,6 +49,7 @@
 - Legacy-комментарии из runtime-кода очищены в `InteractiveObject`, `fridge.gd` и `laptop.gd`.
 - Input-device detection централизован в `global/input_device_utils.gd` и переиспользуется `GameDirector`, `InteractionPrompts` и `MainMenu`.
 - `InteractiveObject` получил typed `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`; final branch и completed dependencies переведены на success outcome.
+- `PauseManager` получил owner-token API; pause menu, UI notes/hints, minigames и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -66,18 +66,12 @@
 
 ### 9. Владение `get_tree().paused` размазано по singleton-ам
 
-Evidence:
+Статус: закрыто.
 
-- `levels/menu/pause_manager.gd`
-- `player/ui_message.gd`
-- `levels/minigames/minigame_controller.gd`
-- `levels/game_director.gd`
-
-Что сделать:
-
-- сделать владельческий Pause API или pause tokens;
-- запретить прямое "restore previous bool" в модальных системах;
-- добавить тесты на пересечения: hint + pause menu, minigame + pause menu, death screen + fade.
+- `levels/menu/pause_manager.gd` теперь владеет pause tokens через `request_pause(...)`, `release_pause(...)`, `release_all_pauses_for(...)` и `clear_all_pause_requests()`.
+- Pause menu, `UIMessage` notes/hints, `MinigameController` и death screen в `GameDirector` запрашивают/освобождают свои owner tokens.
+- `UIMessage.change_scene_with_fade(..., unpause_after=true)` очищает все pause requests для выхода в меню/ending transitions.
+- Regression покрыт `tests/cases/test_pause_manager_tokens.gd`: два владельца, hint поверх другого owner-а, minigame finish при активном внешнем owner-е.
 
 ### 10. `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager`, `Player` остаются слишком крупными
 
@@ -201,7 +195,7 @@ Evidence:
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (60)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (61)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 

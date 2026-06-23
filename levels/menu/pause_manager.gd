@@ -5,8 +5,9 @@ extends Node
 var _pause_menu_layer: Node
 var _pause_menu: Node
 var _is_open: bool = false
-var _prev_paused_state: bool = false
 var _pause_blockers: Dictionary = {}
+var _pause_requests: Dictionary = {}
+var _paused_before_requests: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -39,11 +40,10 @@ func _input(event: InputEvent) -> void:
 func _open_menu() -> void:
 	if pause_menu_scene == null:
 		return
-	_prev_paused_state = get_tree().paused
 	_ensure_menu_instance()
 	if _pause_menu and _pause_menu.has_method("open_menu"):
 		_pause_menu.call("open_menu")
-	get_tree().paused = true
+	request_pause(self, "pause_menu")
 	_is_open = true
 	if MinigameController and MinigameController.has_method("set_pause_menu_open"):
 		MinigameController.set_pause_menu_open(true)
@@ -51,7 +51,7 @@ func _open_menu() -> void:
 func _request_resume() -> void:
 	if _pause_menu and _pause_menu.has_method("close_menu"):
 		_pause_menu.call("close_menu")
-	get_tree().paused = _prev_paused_state
+	release_pause(self, "pause_menu")
 	_is_open = false
 	if MinigameController and MinigameController.has_method("set_pause_menu_open"):
 		MinigameController.set_pause_menu_open(false)
@@ -71,6 +71,7 @@ func _ensure_menu_instance() -> void:
 		_pause_menu_layer = null
 		_pause_menu = null
 		_is_open = false
+		release_pause(self, "pause_menu")
 		if MinigameController and MinigameController.has_method("set_pause_menu_open"):
 			MinigameController.set_pause_menu_open(false)
 	)
@@ -124,6 +125,55 @@ func _should_defer_to_minigame_cancel(event: InputEvent) -> bool:
 func is_pause_menu_open() -> bool:
 	return _is_open
 
+func request_pause(owner: Object, reason: String = "") -> String:
+	if owner == null:
+		return ""
+	_cleanup_pause_requests()
+	if _pause_requests.is_empty():
+		_paused_before_requests = get_tree().paused
+	var key := _build_pause_key(owner, reason)
+	_pause_requests[key] = {
+		"ref": weakref(owner),
+		"reason": reason,
+	}
+	if owner is Node:
+		var owner_node := owner as Node
+		var exit_cleanup := Callable(self, "_on_pause_owner_tree_exiting").bind(key)
+		if not owner_node.tree_exiting.is_connected(exit_cleanup):
+			owner_node.tree_exiting.connect(exit_cleanup, Object.CONNECT_ONE_SHOT)
+	_apply_pause_requests()
+	return key
+
+func release_pause(owner: Object, reason: String = "") -> void:
+	if owner == null:
+		return
+	_pause_requests.erase(_build_pause_key(owner, reason))
+	_cleanup_pause_requests()
+	_apply_pause_requests()
+
+func release_all_pauses_for(owner: Object) -> void:
+	if owner == null:
+		return
+	var owner_prefix := "%s:" % owner.get_instance_id()
+	for key in _pause_requests.keys():
+		if str(key).begins_with(owner_prefix):
+			_pause_requests.erase(key)
+	_cleanup_pause_requests()
+	_apply_pause_requests()
+
+func clear_all_pause_requests() -> void:
+	_pause_requests.clear()
+	_paused_before_requests = false
+	_apply_pause_requests()
+
+func has_pause_requests() -> bool:
+	_cleanup_pause_requests()
+	return not _pause_requests.is_empty()
+
+func get_pause_request_count() -> int:
+	_cleanup_pause_requests()
+	return _pause_requests.size()
+
 func set_pause_blocked(source: Object, blocked: bool = true) -> void:
 	if source == null:
 		return
@@ -146,3 +196,31 @@ func _cleanup_pause_blockers() -> void:
 			stale.append(source_id)
 	for source_id in stale:
 		_pause_blockers.erase(source_id)
+
+func _build_pause_key(owner: Object, reason: String = "") -> String:
+	return "%s:%s" % [owner.get_instance_id(), reason.strip_edges()]
+
+func _cleanup_pause_requests() -> void:
+	var stale: Array[String] = []
+	for key in _pause_requests.keys():
+		var data := _pause_requests[key] as Dictionary
+		var ref := data.get("ref", null) as WeakRef
+		if ref == null or ref.get_ref() == null:
+			stale.append(str(key))
+	for key in stale:
+		_pause_requests.erase(key)
+
+func _on_pause_owner_tree_exiting(key: String) -> void:
+	_pause_requests.erase(key)
+	_cleanup_pause_requests()
+	_apply_pause_requests()
+
+func _apply_pause_requests() -> void:
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	if _pause_requests.is_empty():
+		tree.paused = _paused_before_requests
+		_paused_before_requests = false
+	else:
+		tree.paused = true

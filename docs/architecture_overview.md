@@ -13,7 +13,7 @@
 - `MusicManager` (`res://levels/music_manager.gd`)
   Единая точка управления музыкой (ambient/event/minigame/chase/pause/menu).
 - `PauseManager` (`res://levels/menu/pause_manager.gd`)
-  Открытие/закрытие pause-меню и синхронизация с состоянием мини-игр.
+  Открытие/закрытие pause-меню, pause-blockers и владелец tree-pause tokens.
 - `SettingsManager` (`res://levels/menu/settings_manager.gd`)
   Аудио/видео-настройки, загрузка/сохранение `user://settings.cfg`.
 - `MinigameController` (`res://levels/minigames/minigame_controller.gd`)
@@ -40,7 +40,14 @@
 - Сценовые `LevelMusic`-узлы вызывают только публичные методы `MusicManager`.
 - Trigger-зоны управляют музыкой через `TriggerSetProperty` действиями `music_on_*`.
 
-### 2.3 Контур мини-игр
+### 2.3 Pause-Контур
+
+- `PauseManager` является владельцем `get_tree().paused` для модальных игровых систем.
+- Модальные системы должны использовать `request_pause(owner, reason)` и `release_pause(owner, reason)`, а не локально восстанавливать previous bool.
+- Pause menu, notes/hints, pause-game minigames и death screen держат отдельные owner tokens.
+- `clear_all_pause_requests()` допустим для hard transition-ов вроде выхода в меню через `change_scene_with_fade(..., unpause_after=true)`.
+
+### 2.4 Контур мини-игр
 
 - Мини-игра регистрируется в `MinigameController.start_minigame(...)`.
 - Игра/пауза/cursor/music синхронизируются централизованно в контроллере.
@@ -48,14 +55,14 @@
 - Timed lab-мини-игры наследуются от `res://levels/minigames/labs/timed_lab_minigame_base.gd`.
 - Общий timed-lab helper отвечает за таймер, cleanup, стандартный outcome и post-line для успеха/провала.
 
-### 2.4 Текстовый UI-контур
+### 2.5 Текстовый UI-контур
 
 - `UIMessage` остаётся единой facade-точкой экранного текста.
 - Публичный канал `show_dialogue(...)` используется для нижних реплик/субтитров, с опциональной озвучкой.
 - Публичный канал `show_notification(...)` используется для системных сообщений, лута, дверей, блокировок и наград.
 - `show_text`, `show_message`, `show_subtitle` считаются legacy-wrapper API и не должны быть основной точкой интеграции в новом коде.
 
-### 2.5 Контур интеракций
+### 2.6 Контур интеракций
 
 - `InteractiveObject` является базовым публичным контрактом интеракции.
 - Зависимости между интерактивными объектами задаются через `set_dependency_object(...)` вместе с явным `set_dependency_condition(...)`.
@@ -66,7 +73,7 @@
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
 - Если зависимость не выполнена, базовый `InteractiveObject` обязан показать `locked_message`, если наследник не переопределил это поведение явно.
 
-### 2.6 Контур input-device detection
+### 2.7 Контур input-device detection
 
 - Определение keyboard/mouse/gamepad input-kind должно идти через `InputDeviceUtils`.
 - `InteractionPrompts` может отличать Sony gamepad для player-facing button prompt-ов.
@@ -116,3 +123,4 @@
 - Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup и fail-forward LLM glitch contract.
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
+- `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
