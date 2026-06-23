@@ -91,10 +91,12 @@
 ### 2.8 Контур визуального рига героя
 
 - `player/player.tscn` является активной skeleton-only сценой игрока; старый png/sequential-sprite вариант сохранён в `player/LEGASY-ANIMATIONS-CHARACTER.tscn`.
-- `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и держит видимые `Line2D`/`Polygon2D` части тела как детей костей.
+- `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и держит видимые `Sprite2D` cutout-части из `Andry.png` как детей костей.
 - Имена костей рига считаются контрактом для skeletal animation клипов: `Hips`, `Spine`, `Chest`, `Head`, `Front*`, `Back*` и `FlashlightMount`.
 - `player.gd` зеркалит риг вместе с направлением игрока, чтобы bone-based skin не расходился с текущим разворотом героя.
 - `SkeletonAnimationPlayer` внутри рига держит loop-клипы `idle`, `walk` и `light_run`; `player.gd` переключает их по фактическому движению.
+- Фонарик является отдельным cutout-слоем из `AndryWithFlashlight.png` на `FlashlightMount`; те же кости и анимации используются для варианта с фонариком и без него.
+- Skeleton-only звуки шагов привязаны к contact-time внутри `walk`/`light_run`, а не к независимому таймеру.
 - Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 
 ## 3. Границы API (важно)
@@ -147,3 +149,4 @@
 - Добавлен скелетный `PlayerSkeletonRig` и активный skeleton-only `player.tscn`.
 - `PlayerSkeletonRig` получил первые loop-клипы `idle`, `walk` и `light_run`, а `Player` начал переключать их вместе с текущей логикой движения.
 - Активный `player.tscn` переведён на skeleton-only визуал, старый png-вариант сохранён в `LEGASY-ANIMATIONS-CHARACTER.tscn`.
+- Полигональный placeholder заменён на cutout-части из `Andry.png` и отдельный flashlight cutout из `AndryWithFlashlight.png`; шаги skeleton-only варианта теперь срабатывают по foot-contact точкам анимации.

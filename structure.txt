@@ -1339,6 +1339,40 @@
 │   │   ├── FlashlightOnOff.wav.import
 │   │   ├── HeartBeat_1.wav
 │   │   └── HeartBeat_1.wav.import
+│   ├── skeleton
+│   │   └── cutouts
+│   │       ├── back_foot.png
+│   │       ├── back_foot.png.import
+│   │       ├── back_forearm.png
+│   │       ├── back_forearm.png.import
+│   │       ├── back_hand.png
+│   │       ├── back_hand.png.import
+│   │       ├── back_shin.png
+│   │       ├── back_shin.png.import
+│   │       ├── back_thigh.png
+│   │       ├── back_thigh.png.import
+│   │       ├── back_upper_arm.png
+│   │       ├── back_upper_arm.png.import
+│   │       ├── flashlight.png
+│   │       ├── flashlight.png.import
+│   │       ├── front_foot.png
+│   │       ├── front_foot.png.import
+│   │       ├── front_forearm.png
+│   │       ├── front_forearm.png.import
+│   │       ├── front_hand.png
+│   │       ├── front_hand.png.import
+│   │       ├── front_shin.png
+│   │       ├── front_shin.png.import
+│   │       ├── front_thigh.png
+│   │       ├── front_thigh.png.import
+│   │       ├── front_upper_arm.png
+│   │       ├── front_upper_arm.png.import
+│   │       ├── head.png
+│   │       ├── head.png.import
+│   │       ├── pelvis.png
+│   │       ├── pelvis.png.import
+│   │       ├── torso.png
+│   │       └── torso.png.import
 │   ├── ui
 │   │   ├── FlashlightDrawing.png
 │   │   ├── FlashlightDrawing.png.import
@@ -1548,4 +1582,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1425 files
+126 directories, 1457 files

@@ -5,6 +5,7 @@ const LEGACY_PLAYER_SCENE_PATH := "res://player/LEGASY-ANIMATIONS-CHARACTER.tscn
 const PLAYER_RIG_SCENE_PATH := "res://player/player_skeleton_rig.tscn"
 const LEVEL_DIR := "res://levels/cycles"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
+const FLASHLIGHT_VISUAL_PATH := FRONT_HAND_PATH + "/FlashlightMount/VisualFlashlight"
 const EXPECTED_BONE_PATHS: Array[String] = [
 	"Hips",
 	"Hips/Spine",
@@ -24,6 +25,24 @@ const EXPECTED_BONE_PATHS: Array[String] = [
 	"Hips/FrontThigh",
 	"Hips/FrontThigh/FrontShin",
 	"Hips/FrontThigh/FrontShin/FrontFoot",
+]
+const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
+	"Hips/Spine/Chest/Neck/Head/VisualHead",
+	"Hips/Spine/Chest/VisualTorso",
+	"Hips/VisualPelvis",
+	"Hips/Spine/Chest/BackUpperArm/VisualBackUpperArm",
+	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
+	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",
+	"Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm",
+	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
+	FRONT_HAND_PATH + "/VisualFrontHand",
+	FLASHLIGHT_VISUAL_PATH,
+	"Hips/BackThigh/VisualBackThigh",
+	"Hips/BackThigh/BackShin/VisualBackShin",
+	"Hips/BackThigh/BackShin/BackFoot/VisualBackFoot",
+	"Hips/FrontThigh/VisualFrontThigh",
+	"Hips/FrontThigh/FrontShin/VisualFrontShin",
+	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
 ]
 
 func run() -> Array[String]:
@@ -56,8 +75,14 @@ func _test_rig_scene_contract() -> void:
 			if animation != null:
 				assert_true(animation.loop_mode == Animation.LOOP_LINEAR, "Player skeleton animation must loop: %s" % animation_name)
 				assert_true(animation.get_track_count() > 0, "Player skeleton animation must animate at least one bone: %s" % animation_name)
-	var visual_nodes := rig.find_children("Visual*", "", true, false)
-	assert_true(visual_nodes.size() >= 12, "Player skeleton rig must include visible bone-driven body parts")
+	if skeleton != null:
+		for visual_path in EXPECTED_CUTOUT_VISUAL_PATHS:
+			var visual := skeleton.get_node_or_null(visual_path) as Sprite2D
+			assert_true(visual != null, "Player skeleton rig must keep Sprite2D cutout visual: %s" % visual_path)
+			if visual != null:
+				assert_true(visual.texture != null, "Player skeleton cutout visual must keep texture: %s" % visual_path)
+				if visual.texture != null:
+					assert_true(String(visual.texture.resource_path).begins_with("res://player/skeleton/cutouts/"), "Player skeleton visual must use Andry cutout texture: %s" % visual_path)
 	rig.free()
 
 func _test_legacy_player_keeps_sprite_sequence() -> void:
@@ -90,6 +115,10 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 
 	var root := Node2D.new()
 	tree.root.add_child(root)
+	if GameState != null and GameState.has_method("reset_run"):
+		GameState.reset_run()
+	if CycleState != null and CycleState.has_method("reset_cycle_state"):
+		CycleState.reset_cycle_state()
 	var player := player_scene.instantiate()
 	root.add_child(player)
 	await tree.process_frame
@@ -106,13 +135,24 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 		assert_eq(rig.position, Vector2(-5.375, 83.37938), "PlayerSkeletonRig must keep the old player visual anchor")
 		assert_true(_almost_eq(absf(rig.scale.x), 0.44800887), "PlayerSkeletonRig x-scale must keep the old player visual scale")
 		assert_true(_almost_eq(rig.scale.y, 0.44800875), "PlayerSkeletonRig y-scale must keep the old player visual scale")
+		var flashlight_visual := rig.get_node_or_null("Skeleton2D/" + FLASHLIGHT_VISUAL_PATH) as Sprite2D
+		assert_true(flashlight_visual != null, "Player skeleton must keep optional flashlight cutout")
+		if flashlight_visual != null:
+			assert_true(not flashlight_visual.visible, "Player skeleton flashlight cutout must be hidden before flashlight unlock")
+		if CycleState != null and CycleState.has_method("collect_flashlight_for_cycle"):
+			CycleState.collect_flashlight_for_cycle()
+			player.call("_update_skeleton_flashlight_visibility")
+			if flashlight_visual != null:
+				assert_true(flashlight_visual.visible, "Player skeleton flashlight cutout must appear after flashlight unlock")
 		player.call("apply_checkpoint_state", {"facing_dir": -1.0})
 		assert_true(rig.scale.x < 0.0, "PlayerSkeletonRig must mirror with the player facing direction")
 		player.call("_update_walk_animation", 0.016, 1.0)
 		assert_eq(animation_player.current_animation, "walk", "Player skeleton animation must switch to walk while moving")
+		_assert_skeleton_steps_follow_contact_times(player, animation_player, "walk", 0.39, 0.41)
 		player.set("_is_running", true)
 		player.call("_update_walk_animation", 0.016, 1.0)
 		assert_eq(animation_player.current_animation, "light_run", "Player skeleton animation must switch to light_run while running")
+		_assert_skeleton_steps_follow_contact_times(player, animation_player, "light_run", 0.26, 0.29)
 		player.set("_is_running", false)
 		player.call("_update_walk_animation", 0.016, 0.0)
 		assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must return to idle when stopped")
@@ -122,3 +162,23 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 
 func _almost_eq(left: float, right: float, epsilon: float = 0.0001) -> bool:
 	return absf(left - right) <= epsilon
+
+func _assert_skeleton_steps_follow_contact_times(player: Node, animation_player: AnimationPlayer, animation_name: String, before_contact: float, after_contact: float) -> void:
+	var step_audio := player.get_node_or_null("StepAudioComponent") as StepAudioComponent
+	assert_true(step_audio != null, "Player must keep StepAudioComponent for skeleton contact sounds")
+	if step_audio == null:
+		return
+	var events: Array[StringName] = []
+	step_audio.step_triggered.connect(func(_frame_index: int, source_animation: StringName) -> void:
+		events.append(source_animation)
+	)
+	step_audio.step_sounds = []
+	animation_player.seek(0.0, true)
+	player.call("_update_skeleton_step_audio", true)
+	animation_player.seek(before_contact, true)
+	player.call("_update_skeleton_step_audio", true)
+	assert_eq(events.size(), 0, "Skeleton step sound must not fire before foot contact in %s" % animation_name)
+	animation_player.seek(after_contact, true)
+	player.call("_update_skeleton_step_audio", true)
+	assert_eq(events.size(), 1, "Skeleton step sound must fire exactly when crossing foot contact in %s" % animation_name)
+	assert_eq(events[0], StringName(animation_name), "Skeleton step sound must report source animation")

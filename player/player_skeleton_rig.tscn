@@ -1,5 +1,22 @@
 [gd_scene format=3]
 
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/head.png" id="1_head"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/torso.png" id="2_torso"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/pelvis.png" id="3_pelvis"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/back_upper_arm.png" id="4_back_upper_arm"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/back_forearm.png" id="5_back_forearm"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/back_hand.png" id="6_back_hand"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_upper_arm.png" id="7_front_upper_arm"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_forearm.png" id="8_front_forearm"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_hand.png" id="9_front_hand"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/flashlight.png" id="10_flashlight"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/back_thigh.png" id="11_back_thigh"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/back_shin.png" id="12_back_shin"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/back_foot.png" id="13_back_foot"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_thigh.png" id="14_front_thigh"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_shin.png" id="15_front_shin"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_foot.png" id="16_front_foot"]
+
 [sub_resource type="Animation" id="Animation_player_skeleton_idle"]
 resource_name = "idle"
 length = 1.6
@@ -584,97 +601,101 @@ auto_calculate_length_and_angle = false
 length = 58.0
 bone_angle = 0.0
 
-[node name="VisualPelvis" type="Polygon2D" parent="Skeleton2D/Hips"]
-color = Color(0.43, 0.5, 0.66, 1)
-polygon = PackedVector2Array(-46, -4, 47, -5, 58, 42, 30, 70, -34, 68, -58, 40)
+[node name="VisualBackUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
+light_mask = 2
+z_index = -5
+texture = ExtResource("4_back_upper_arm")
+position = Vector2(-61, 180)
 
-[node name="VisualTorso" type="Polygon2D" parent="Skeleton2D/Hips/Spine/Chest"]
-color = Color(0.71, 0.69, 0.63, 1)
-polygon = PackedVector2Array(-92, -38, 82, -35, 70, 92, -54, 108)
+[node name="VisualBackForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
+light_mask = 2
+z_index = -5
+texture = ExtResource("5_back_forearm")
+position = Vector2(-85, 80)
 
-[node name="VisualNeck" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/Neck"]
-width = 30.0
-default_color = Color(0.78, 0.63, 0.53, 1)
-points = PackedVector2Array(0, 0, 12, -42)
+[node name="VisualBackHand" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand"]
+light_mask = 2
+z_index = -5
+texture = ExtResource("6_back_hand")
+position = Vector2(-94, -26)
 
-[node name="VisualHead" type="Polygon2D" parent="Skeleton2D/Hips/Spine/Chest/Neck/Head"]
-color = Color(0.78, 0.63, 0.53, 1)
-polygon = PackedVector2Array(-36, -82, 42, -78, 60, -22, 48, 38, 2, 62, -42, 42, -58, -18)
+[node name="VisualBackThigh" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh"]
+light_mask = 2
+z_index = -4
+texture = ExtResource("11_back_thigh")
+position = Vector2(-30, -60)
 
-[node name="VisualGlasses" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/Neck/Head"]
-width = 6.0
-default_color = Color(0.05, 0.05, 0.055, 1)
-points = PackedVector2Array(-38, -18, -18, -25, 6, -22, 18, -14, 43, -15)
+[node name="VisualBackShin" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
+light_mask = 2
+z_index = -4
+texture = ExtResource("12_back_shin")
+position = Vector2(-42, -198)
 
-[node name="VisualBackUpperArm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
-width = 36.0
-default_color = Color(0.71, 0.69, 0.63, 1)
-points = PackedVector2Array(0, 0, 24, 100)
+[node name="VisualBackFoot" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin/BackFoot"]
+light_mask = 2
+z_index = -4
+texture = ExtResource("13_back_foot")
+position = Vector2(-38, -336)
 
-[node name="VisualBackForearm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
-width = 31.0
-default_color = Color(0.78, 0.63, 0.53, 1)
-points = PackedVector2Array(0, 0, 9, 106)
+[node name="VisualTorso" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest"]
+light_mask = 2
+z_index = 0
+texture = ExtResource("2_torso")
+position = Vector2(5, 160)
 
-[node name="VisualBackHand" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand"]
-width = 25.0
-default_color = Color(0.78, 0.63, 0.53, 1)
-points = PackedVector2Array(0, 0, 0, 30)
+[node name="VisualPelvis" type="Sprite2D" parent="Skeleton2D/Hips"]
+light_mask = 2
+z_index = 1
+texture = ExtResource("3_pelvis")
+position = Vector2(0, -50)
 
-[node name="VisualFrontUpperArm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
-width = 38.0
-default_color = Color(0.71, 0.69, 0.63, 1)
-points = PackedVector2Array(0, 0, -18, 112)
+[node name="VisualHead" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/Neck/Head"]
+light_mask = 2
+z_index = 3
+texture = ExtResource("1_head")
+position = Vector2(-29, 274)
 
-[node name="VisualFrontForearm" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
-width = 31.0
-default_color = Color(0.78, 0.63, 0.53, 1)
-points = PackedVector2Array(0, 0, -6, 110)
+[node name="VisualFrontThigh" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh"]
+light_mask = 2
+z_index = 3
+texture = ExtResource("14_front_thigh")
+position = Vector2(28, -60)
 
-[node name="VisualFrontHand" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
-width = 25.0
-default_color = Color(0.78, 0.63, 0.53, 1)
-points = PackedVector2Array(0, 0, 0, 30)
+[node name="VisualFrontShin" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
+light_mask = 2
+z_index = 3
+texture = ExtResource("15_front_shin")
+position = Vector2(39, -198)
 
-[node name="VisualFlashlight" type="Line2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount"]
-width = 22.0
-default_color = Color(0.09, 0.095, 0.1, 1)
-points = PackedVector2Array(0, 0, -52, 0)
+[node name="VisualFrontFoot" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot"]
+light_mask = 2
+z_index = 3
+texture = ExtResource("16_front_foot")
+position = Vector2(34, -336)
 
-[node name="VisualFlashlightHead" type="Polygon2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount"]
-position = Vector2(-56, 0)
-color = Color(0.045, 0.048, 0.052, 1)
-polygon = PackedVector2Array(-11, -16, 12, -12, 14, 12, -12, 16)
+[node name="VisualFrontUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("7_front_upper_arm")
+position = Vector2(74, 178)
 
-[node name="VisualBackThigh" type="Line2D" parent="Skeleton2D/Hips/BackThigh"]
-width = 48.0
-default_color = Color(0.43, 0.5, 0.66, 1)
-points = PackedVector2Array(0, 0, 12, 138)
+[node name="VisualFrontForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("8_front_forearm")
+position = Vector2(92, 66)
 
-[node name="VisualBackShin" type="Line2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
-width = 42.0
-default_color = Color(0.43, 0.5, 0.66, 1)
-points = PackedVector2Array(0, 0, -4, 138)
+[node name="VisualFrontHand" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("9_front_hand")
+position = Vector2(98, -44)
 
-[node name="VisualBackFoot" type="Line2D" parent="Skeleton2D/Hips/BackThigh/BackShin/BackFoot"]
-width = 29.0
-default_color = Color(0.74, 0.61, 0.5, 1)
-points = PackedVector2Array(0, 0, 58, 0)
-
-[node name="VisualFrontThigh" type="Line2D" parent="Skeleton2D/Hips/FrontThigh"]
-width = 48.0
-default_color = Color(0.5, 0.58, 0.74, 1)
-points = PackedVector2Array(0, 0, -11, 138)
-
-[node name="VisualFrontShin" type="Line2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
-width = 42.0
-default_color = Color(0.5, 0.58, 0.74, 1)
-points = PackedVector2Array(0, 0, 5, 138)
-
-[node name="VisualFrontFoot" type="Line2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot"]
-width = 29.0
-default_color = Color(0.74, 0.61, 0.5, 1)
-points = PackedVector2Array(0, 0, 58, 0)
+[node name="VisualFlashlight" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount"]
+light_mask = 2
+z_index = 5
+texture = ExtResource("10_flashlight")
+position = Vector2(126, -62)
 
 [node name="SkeletonAnimationPlayer" type="AnimationPlayer" parent="."]
 libraries/ = SubResource("AnimationLibrary_player_skeleton")
