@@ -93,8 +93,12 @@ const LIGHT_RUN_MIN_NECK_COUNTER_RANGE := 0.025
 const LIGHT_RUN_MAX_NECK_COUNTER_RANGE := 0.035
 const WALK_MIN_FOOT_LIFT_RANGE := 6.0
 const WALK_MAX_FOOT_LIFT_RANGE := 10.0
+const WALK_MIN_FOOT_ROLL_RANGE := 0.075
+const WALK_MAX_FOOT_ROLL_RANGE := 0.09
 const LIGHT_RUN_MIN_FOOT_LIFT_RANGE := 9.0
 const LIGHT_RUN_MAX_FOOT_LIFT_RANGE := 12.0
+const LIGHT_RUN_MIN_FOOT_ROLL_RANGE := 0.12
+const LIGHT_RUN_MAX_FOOT_ROLL_RANGE := 0.14
 const LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE := 5.5
 const LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE := 6.5
 const LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE := 3.5
@@ -111,6 +115,8 @@ const FRONT_FOREARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/Fron
 const BACK_FOREARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm:rotation")
 const FRONT_FOOT_POSITION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot:position")
 const BACK_FOOT_POSITION_TRACK := NodePath("Skeleton2D/Hips/BackThigh/BackShin/BackFoot:position")
+const FRONT_FOOT_ROTATION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot:rotation")
+const BACK_FOOT_ROTATION_TRACK := NodePath("Skeleton2D/Hips/BackThigh/BackShin/BackFoot:rotation")
 const FRONT_HAND_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand:rotation")
 const BACK_HAND_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand:rotation")
 const SOURCE_ANDRY_TEXTURE_SIZE := Vector2i(226, 774)
@@ -206,6 +212,8 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_ARM_SWING_RANGE, WALK_MAX_ARM_SWING_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_FOOT_ROTATION_TRACK, WALK_MIN_FOOT_ROLL_RANGE, WALK_MAX_FOOT_ROLL_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_FOOT_ROTATION_TRACK, WALK_MIN_FOOT_ROLL_RANGE, WALK_MAX_FOOT_ROLL_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
 				elif animation_name == &"light_run":
@@ -216,6 +224,8 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_x_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE, String(animation_name))
 					_assert_animation_vector2_x_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_FOOT_ROTATION_TRACK, LIGHT_RUN_MIN_FOOT_ROLL_RANGE, LIGHT_RUN_MAX_FOOT_ROLL_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_FOOT_ROTATION_TRACK, LIGHT_RUN_MIN_FOOT_ROLL_RANGE, LIGHT_RUN_MAX_FOOT_ROLL_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 		if skeleton != null:
