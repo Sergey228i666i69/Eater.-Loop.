@@ -1367,6 +1367,7 @@
 │   ├── player.gd
 │   ├── player.gd.uid
 │   ├── player.tscn
+│   ├── player_skeleton_rig.tscn
 │   ├── stamina_bar.gd
 │   ├── stamina_bar.gd.uid
 │   ├── step_audio_component.gd
@@ -1492,6 +1493,7 @@
 │   │   ├── test_obstacle_interaction_contract.gd.uid
 │   │   ├── test_pause_manager_tokens.gd
 │   │   ├── test_pause_manager_tokens.gd.uid
+│   │   ├── test_player_skeleton_rig_contract.gd
 │   │   ├── test_project_config.gd
 │   │   ├── test_project_config.gd.uid
 │   │   ├── test_respawn_checkpoint_restore.gd
@@ -1544,4 +1546,4 @@
 ├── project.godot
 └── structure.txt
 
-124 directories, 1421 files
+124 directories, 1423 files

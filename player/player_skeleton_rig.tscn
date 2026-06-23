@@ -1,0 +1,133 @@
+[gd_scene format=3]
+
+[node name="PlayerSkeletonRig" type="Node2D"]
+
+[node name="Skeleton2D" type="Skeleton2D" parent="."]
+
+[node name="Hips" type="Bone2D" parent="Skeleton2D"]
+position = Vector2(0, 50)
+rest = Transform2D(1, 0, 0, 1, 0, 50)
+auto_calculate_length_and_angle = false
+length = 118.0
+bone_angle = -1.5707964
+
+[node name="Spine" type="Bone2D" parent="Skeleton2D/Hips"]
+position = Vector2(-6, -116)
+rest = Transform2D(1, 0, 0, 1, -6, -116)
+auto_calculate_length_and_angle = false
+length = 94.0
+bone_angle = -1.5707964
+
+[node name="Chest" type="Bone2D" parent="Skeleton2D/Hips/Spine"]
+position = Vector2(1, -94)
+rest = Transform2D(1, 0, 0, 1, 1, -94)
+auto_calculate_length_and_angle = false
+length = 76.0
+bone_angle = -1.3962634
+
+[node name="Neck" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest"]
+position = Vector2(22, -72)
+rest = Transform2D(1, 0, 0, 1, 22, -72)
+auto_calculate_length_and_angle = false
+length = 36.0
+bone_angle = -1.3089969
+
+[node name="Head" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/Neck"]
+position = Vector2(12, -42)
+rest = Transform2D(1, 0, 0, 1, 12, -42)
+auto_calculate_length_and_angle = false
+length = 86.0
+bone_angle = -1.5707964
+
+[node name="BackUpperArm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest"]
+position = Vector2(66, -20)
+rest = Transform2D(1, 0, 0, 1, 66, -20)
+auto_calculate_length_and_angle = false
+length = 104.0
+bone_angle = 1.3089969
+
+[node name="BackForearm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
+position = Vector2(24, 100)
+rest = Transform2D(1, 0, 0, 1, 24, 100)
+auto_calculate_length_and_angle = false
+length = 108.0
+bone_angle = 1.4835298
+
+[node name="BackHand" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
+position = Vector2(9, 106)
+rest = Transform2D(1, 0, 0, 1, 9, 106)
+auto_calculate_length_and_angle = false
+length = 30.0
+bone_angle = 1.5707964
+
+[node name="FrontUpperArm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest"]
+position = Vector2(-69, -18)
+rest = Transform2D(1, 0, 0, 1, -69, -18)
+auto_calculate_length_and_angle = false
+length = 113.0
+bone_angle = 1.7453293
+
+[node name="FrontForearm" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
+position = Vector2(-18, 112)
+rest = Transform2D(1, 0, 0, 1, -18, 112)
+auto_calculate_length_and_angle = false
+length = 112.0
+bone_angle = 1.6580628
+
+[node name="FrontHand" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
+position = Vector2(-6, 110)
+rest = Transform2D(1, 0, 0, 1, -6, 110)
+auto_calculate_length_and_angle = false
+length = 30.0
+bone_angle = 1.5707964
+
+[node name="FlashlightMount" type="Bone2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
+position = Vector2(-28, 18)
+rest = Transform2D(1, 0, 0, 1, -28, 18)
+auto_calculate_length_and_angle = false
+length = 48.0
+bone_angle = 3.1415927
+
+[node name="BackThigh" type="Bone2D" parent="Skeleton2D/Hips"]
+position = Vector2(30, 10)
+rest = Transform2D(1, 0, 0, 1, 30, 10)
+auto_calculate_length_and_angle = false
+length = 142.0
+bone_angle = 1.4835298
+
+[node name="BackShin" type="Bone2D" parent="Skeleton2D/Hips/BackThigh"]
+position = Vector2(12, 138)
+rest = Transform2D(1, 0, 0, 1, 12, 138)
+auto_calculate_length_and_angle = false
+length = 142.0
+bone_angle = 1.6580628
+
+[node name="BackFoot" type="Bone2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
+position = Vector2(-4, 138)
+rest = Transform2D(1, 0, 0, 1, -4, 138)
+auto_calculate_length_and_angle = false
+length = 58.0
+bone_angle = 0.0
+
+[node name="FrontThigh" type="Bone2D" parent="Skeleton2D/Hips"]
+position = Vector2(-28, 10)
+rest = Transform2D(1, 0, 0, 1, -28, 10)
+auto_calculate_length_and_angle = false
+length = 142.0
+bone_angle = 1.6580628
+
+[node name="FrontShin" type="Bone2D" parent="Skeleton2D/Hips/FrontThigh"]
+position = Vector2(-11, 138)
+rest = Transform2D(1, 0, 0, 1, -11, 138)
+auto_calculate_length_and_angle = false
+length = 142.0
+bone_angle = 1.4835298
+
+[node name="FrontFoot" type="Bone2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
+position = Vector2(5, 138)
+rest = Transform2D(1, 0, 0, 1, 5, 138)
+auto_calculate_length_and_angle = false
+length = 58.0
+bone_angle = 0.0
+
+[node name="SkeletonAnimationPlayer" type="AnimationPlayer" parent="."]

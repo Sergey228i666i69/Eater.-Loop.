@@ -88,6 +88,13 @@
 - `GameDirector` и `MainMenu` используют тот же helper для переключения input mode и navigation mode.
 - Новые проверки устройств не должны дублировать local deadzone/name/GUID эвристики в сценовых скриптах.
 
+### 2.8 Контур визуального рига героя
+
+- `player/player.tscn` сохраняет текущий `AnimatedSprite2D` как runtime-визуал ходьбы.
+- `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и выровнен по позиции/масштабу текущего спрайта.
+- Имена костей рига считаются контрактом для будущих skeletal animation клипов: `Hips`, `Spine`, `Chest`, `Head`, `Front*`, `Back*` и `FlashlightMount`.
+- `player.gd` зеркалит риг вместе с направлением игрока, чтобы будущие bone-based skins не расходились с текущим разворотом героя.
+
 ## 3. Границы API (важно)
 
 - Внешний код не должен обращаться к приватным `MusicManager._*`.
@@ -135,3 +142,4 @@
 - Добавлены scene-contract validators для critical NodePath/child contracts и отдельные STU path contracts.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
 - `UIMessage`, `MinigameController` и death-title часть `GameDirector` получили facade-preserving helper split-ы.
+- Добавлен скелетный `PlayerSkeletonRig` для будущих bone-анимаций героя без замены текущего `AnimatedSprite2D`.

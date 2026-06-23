@@ -63,6 +63,7 @@ var keys: Dictionary = {}
 # Ссылки на узлы
 @onready var pivot: Node2D = get_node_or_null("Pivot") as Node2D
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+@onready var skeleton_rig: Node2D = get_node_or_null("PlayerSkeletonRig") as Node2D
 @onready var flashlight: PointLight2D = null
 var step_audio: StepAudioComponent = null
 
@@ -70,6 +71,7 @@ var step_audio: StepAudioComponent = null
 var _facing_dir: float = 1.0
 var _pivot_base_scale: Vector2 = Vector2.ONE
 var _sprite_base_scale: Vector2 = Vector2.ONE
+var _skeleton_rig_base_scale: Vector2 = Vector2.ONE
 var _flashlight_base_scale: Vector2 = Vector2.ONE
 var _flashlight_base_offset: Vector2 = Vector2.ZERO
 var _idle_texture: Texture2D = null
@@ -119,6 +121,9 @@ func _ready() -> void:
 	
 	if pivot:
 		_pivot_base_scale = pivot.scale
+	
+	if skeleton_rig:
+		_skeleton_rig_base_scale = skeleton_rig.scale
 	
 	if sprite:
 		_sprite_base_scale = sprite.scale
@@ -393,6 +398,8 @@ func _apply_facing() -> void:
 		if not _sprite_under_pivot:
 			x_scale *= _facing_dir
 		sprite.scale = Vector2(x_scale, y_scale)
+	if skeleton_rig:
+		skeleton_rig.scale = Vector2(absf(_skeleton_rig_base_scale.x) * _facing_dir, _skeleton_rig_base_scale.y)
 	if flashlight and pivot == null:
 		flashlight.scale = Vector2(abs(_flashlight_base_scale.x) * _facing_dir, _flashlight_base_scale.y)
 		flashlight.offset = _flashlight_base_offset
