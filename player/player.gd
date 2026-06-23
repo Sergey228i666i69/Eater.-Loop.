@@ -58,6 +58,16 @@ signal flashlight_activation_denied(charge_ratio: float)
 ## Например: [2, 9] означает, что звук будет на 2-м и 9-м кадре анимации.
 @export var step_frame_indices: Array[int] = [2, 9]
 
+@export_group("Skeleton Animation")
+## Имя скелетной анимации простоя.
+@export var skeleton_idle_animation: StringName = &"idle"
+## Имя скелетной анимации ходьбы.
+@export var skeleton_walk_animation: StringName = &"walk"
+## Имя скелетной анимации лёгкого бега.
+@export var skeleton_light_run_animation: StringName = &"light_run"
+## Длительность бленда между скелетными клипами.
+@export var skeleton_animation_blend_time: float = 0.08
+
 var keys: Dictionary = {}
 
 # Ссылки на узлы
@@ -66,6 +76,7 @@ var keys: Dictionary = {}
 @onready var skeleton_rig: Node2D = get_node_or_null("PlayerSkeletonRig") as Node2D
 @onready var flashlight: PointLight2D = null
 var step_audio: StepAudioComponent = null
+var skeleton_animation_player: AnimationPlayer = null
 
 # Внутренние переменные
 var _facing_dir: float = 1.0
@@ -87,6 +98,7 @@ var _time_since_flashlight_use: float = 0.0
 var _time_since_run: float = 0.0
 var _adjusting_frame: bool = false
 var _movement_blocked: bool = false
+var _current_skeleton_animation: StringName = StringName()
 
 # Переменные для аудио
 var _flashlight_player: AudioStreamPlayer
@@ -124,6 +136,7 @@ func _ready() -> void:
 	
 	if skeleton_rig:
 		_skeleton_rig_base_scale = skeleton_rig.scale
+		skeleton_animation_player = skeleton_rig.get_node_or_null("SkeletonAnimationPlayer") as AnimationPlayer
 	
 	if sprite:
 		_sprite_base_scale = sprite.scale
@@ -144,6 +157,7 @@ func _ready() -> void:
 	_flashlight_charge = max(0.0, flashlight_use_duration)
 	_time_since_flashlight_use = max(0.0, flashlight_recharge_delay)
 	_apply_facing()
+	_update_skeleton_motion_animation(false)
 	_connect_minigame_controller()
 
 func _connect_minigame_controller() -> void:
@@ -448,9 +462,11 @@ func _calc_texture_scale(texture: Texture2D) -> Vector2:
 	return Vector2(ratio, ratio)
 
 func _update_walk_animation(_delta: float, direction: float) -> void:
-	if sprite == null or sprite.sprite_frames == null:
-		return
 	var is_moving := direction != 0.0
+	if sprite == null or sprite.sprite_frames == null:
+		_is_walking = is_moving
+		_update_skeleton_motion_animation(is_moving)
+		return
 	if is_moving:
 		if not _is_walking:
 			_is_walking = true
@@ -460,6 +476,25 @@ func _update_walk_animation(_delta: float, direction: float) -> void:
 			_is_walking = false
 			_start_idle_animation()
 	_update_walk_animation_speed()
+	_update_skeleton_motion_animation(is_moving)
+
+func _update_skeleton_motion_animation(is_moving: bool) -> void:
+	var target_animation := skeleton_idle_animation
+	if is_moving:
+		target_animation = skeleton_light_run_animation if _is_running else skeleton_walk_animation
+	_play_skeleton_animation(target_animation)
+
+func _play_skeleton_animation(animation_name: StringName) -> void:
+	if skeleton_animation_player == null:
+		return
+	if animation_name == StringName():
+		return
+	if not skeleton_animation_player.has_animation(animation_name):
+		return
+	if _current_skeleton_animation == animation_name and skeleton_animation_player.is_playing():
+		return
+	_current_skeleton_animation = animation_name
+	skeleton_animation_player.play(animation_name, skeleton_animation_blend_time)
 
 func _update_walk_animation_speed() -> void:
 	if sprite == null or sprite.sprite_frames == null:

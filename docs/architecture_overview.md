@@ -94,6 +94,7 @@
 - `PlayerSkeletonRig` инстансится из `res://player/player_skeleton_rig.tscn` и выровнен по позиции/масштабу текущего спрайта.
 - Имена костей рига считаются контрактом для будущих skeletal animation клипов: `Hips`, `Spine`, `Chest`, `Head`, `Front*`, `Back*` и `FlashlightMount`.
 - `player.gd` зеркалит риг вместе с направлением игрока, чтобы будущие bone-based skins не расходились с текущим разворотом героя.
+- `SkeletonAnimationPlayer` внутри рига держит loop-клипы `idle`, `walk` и `light_run`; `player.gd` переключает их по фактическому движению.
 
 ## 3. Границы API (важно)
 
@@ -143,3 +144,4 @@
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
 - `UIMessage`, `MinigameController` и death-title часть `GameDirector` получили facade-preserving helper split-ы.
 - Добавлен скелетный `PlayerSkeletonRig` для будущих bone-анимаций героя без замены текущего `AnimatedSprite2D`.
+- `PlayerSkeletonRig` получил первые loop-клипы `idle`, `walk` и `light_run`, а `Player` начал переключать их вместе с текущей логикой движения.

@@ -42,7 +42,16 @@ func _test_rig_scene_contract() -> void:
 	if skeleton != null:
 		for bone_path in EXPECTED_BONE_PATHS:
 			assert_true(skeleton.get_node_or_null(bone_path) is Bone2D, "Player skeleton rig must keep Bone2D: %s" % bone_path)
-	assert_true(rig.get_node_or_null("SkeletonAnimationPlayer") is AnimationPlayer, "Player skeleton rig must keep SkeletonAnimationPlayer")
+	var animation_player := rig.get_node_or_null("SkeletonAnimationPlayer") as AnimationPlayer
+	assert_true(animation_player != null, "Player skeleton rig must keep SkeletonAnimationPlayer")
+	if animation_player != null:
+		for animation_name in [&"idle", &"walk", &"light_run"]:
+			assert_true(animation_player.has_animation(animation_name), "Player skeleton rig must keep %s animation" % animation_name)
+			var animation := animation_player.get_animation(animation_name)
+			assert_true(animation != null, "Player skeleton animation must load: %s" % animation_name)
+			if animation != null:
+				assert_true(animation.loop_mode == Animation.LOOP_LINEAR, "Player skeleton animation must loop: %s" % animation_name)
+				assert_true(animation.get_track_count() > 0, "Player skeleton animation must animate at least one bone: %s" % animation_name)
 	rig.free()
 
 func _test_player_scene_mounts_and_mirrors_rig() -> void:
@@ -67,12 +76,24 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 	assert_true(sprite != null, "Player must keep AnimatedSprite2D while skeleton rig is introduced")
 	assert_true(rig != null, "Player must mount PlayerSkeletonRig")
 	if sprite != null and rig != null:
+		var animation_player := rig.get_node_or_null("SkeletonAnimationPlayer") as AnimationPlayer
+		assert_true(animation_player != null, "Mounted PlayerSkeletonRig must keep SkeletonAnimationPlayer")
+		if animation_player != null:
+			assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must start from idle")
 		assert_eq(rig.position, sprite.position, "PlayerSkeletonRig must be aligned to current player sprite")
 		assert_true(_almost_eq(absf(rig.scale.x), absf(sprite.scale.x)), "PlayerSkeletonRig x-scale must match current player sprite")
 		assert_true(_almost_eq(rig.scale.y, sprite.scale.y), "PlayerSkeletonRig y-scale must match current player sprite")
 		player.call("apply_checkpoint_state", {"facing_dir": -1.0})
 		assert_true(rig.scale.x < 0.0, "PlayerSkeletonRig must mirror with the player facing direction")
 		assert_true(sprite.scale.x < 0.0, "AnimatedSprite2D must still mirror with the player facing direction")
+		player.call("_update_walk_animation", 0.016, 1.0)
+		assert_eq(animation_player.current_animation, "walk", "Player skeleton animation must switch to walk while moving")
+		player.set("_is_running", true)
+		player.call("_update_walk_animation", 0.016, 1.0)
+		assert_eq(animation_player.current_animation, "light_run", "Player skeleton animation must switch to light_run while running")
+		player.set("_is_running", false)
+		player.call("_update_walk_animation", 0.016, 0.0)
+		assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must return to idle when stopped")
 
 	root.queue_free()
 	await tree.process_frame
