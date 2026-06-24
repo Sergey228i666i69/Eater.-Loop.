@@ -82,6 +82,12 @@ const HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS := 680
 const HEAD_SHIRT_TAIL_MIN_Y := 144
 const HEAD_MAX_LOWER_SHIRT_TAIL_PIXELS := 4
 const HEAD_SHIRT_TAIL_MAX_SATURATION := 0.18
+const HEAD_NECK_SOLID_SAMPLE_Y := 136
+const HEAD_NECK_SOFT_SAMPLE_Y := 142
+const HEAD_NECK_BOTTOM_SAMPLE_Y := 146
+const HEAD_NECK_MIN_SOLID_ALPHA := 0.90
+const HEAD_NECK_MAX_SOFT_ALPHA := 0.55
+const HEAD_NECK_MAX_BOTTOM_ALPHA := 0.20
 const NECK_COLLAR_MAX_TEXTURE_SIZE := Vector2i(96, 88)
 const NECK_COLLAR_MIN_TRANSPARENT_RATIO := 0.15
 const NECK_COLLAR_MIN_LOCAL_X := -24.0
@@ -885,6 +891,18 @@ func _assert_head_cutout_keeps_source_head_shape(texture: Texture2D, visual_path
 	assert_true(
 			lower_shirt_tail_pixels <= HEAD_MAX_LOWER_SHIRT_TAIL_PIXELS,
 			"Player skeleton head cutout must not carry a lower shirt/collar tail that rotates with the head: %s" % visual_path
+	)
+	assert_true(
+			_get_max_alpha_in_row(image, HEAD_NECK_SOLID_SAMPLE_Y) >= HEAD_NECK_MIN_SOLID_ALPHA,
+			"Player skeleton head cutout must keep enough visible neck before the torso collar seam: %s" % visual_path
+	)
+	assert_true(
+			_get_max_alpha_in_row(image, HEAD_NECK_SOFT_SAMPLE_Y) <= HEAD_NECK_MAX_SOFT_ALPHA,
+			"Player skeleton head cutout lower neck must fade instead of ending in a hard line: %s" % visual_path
+	)
+	assert_true(
+			_get_max_alpha_in_row(image, HEAD_NECK_BOTTOM_SAMPLE_Y) <= HEAD_NECK_MAX_BOTTOM_ALPHA,
+			"Player skeleton head cutout lower neck edge must be nearly transparent at the collar seam: %s" % visual_path
 	)
 
 func _is_visible_low_saturation_shirt_pixel(color: Color) -> bool:
