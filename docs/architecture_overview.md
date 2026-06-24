@@ -195,3 +195,4 @@
 - `walk`/`light_run` получили промежуточные passing-ключи на position/rotation треках обеих стоп и более сдержанный swing дальней thigh/shin пары; шаговые contact-times для звуков не менялись.
 - Добавлен изолированный `Polygon2D` forearm mesh prototype с внутренними vertices и двумя bone-weight наборами. Это подготовительный срез для перехода от жёстких Sprite2D-частей к настоящей skeletal deformation; активный игрок пока остаётся на проверенном Sprite2D-cutout риге.
 - Нижний контур `back_shin.png` ещё сильнее сужен alpha-taper-ом, а inpaint-prep инструмент получил arm-targets (`front_upper_arm`, `back_upper_arm`, `front_forearm`, `back_forearm`), чтобы будущая дорисовка скрытых частей рук шла через locked-pixel маски, а не свободную генерацию новой руки.
+- `back_forearm.png` дополнительно очищен до skin-only предплечья: серо-синий хвост корпуса/штанов больше не должен ехать вместе с костью дальней руки и читаться как дубликат тела в walk/light_run.

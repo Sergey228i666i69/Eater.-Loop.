@@ -126,6 +126,7 @@ const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
 const BACK_FOREARM_WRIST_TAPER_MAX_Y := 128
 const BACK_FOREARM_WRIST_TAPER_MAX_WIDTH := 22
 const BACK_FOREARM_HAND_TAIL_CLEAR_Y := 130
+const FOREARM_MAX_CLOTHING_FRAGMENT_PIXELS := 20
 const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
 const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
 const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
@@ -439,11 +440,13 @@ func _test_rig_scene_contract() -> void:
 								["../Hips/Spine/Chest/BackUpperArm", "../Hips/Spine/Chest/BackUpperArm/BackForearm"]
 						)
 						_assert_back_forearm_does_not_keep_hand_tail(visual_texture, visual_path)
+						_assert_forearm_does_not_keep_clothing_fragments(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif visual_path == FRONT_FOREARM_VISUAL_PATH:
 						_assert_front_forearm_is_weighted_mesh(visual, visual_path)
 						_assert_front_forearm_has_soft_elbow_taper(visual_texture, visual_path)
+						_assert_forearm_does_not_keep_clothing_fragments(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
@@ -955,6 +958,57 @@ func _assert_back_forearm_does_not_keep_hand_tail(texture: Texture2D, visual_pat
 					image.get_pixel(x, y).a <= 0.05,
 					"Player skeleton back forearm must leave the hand to the separate back-hand cutout: %s" % visual_path
 			)
+
+func _assert_forearm_does_not_keep_clothing_fragments(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton forearm texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var clothing_pixels := 0
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			if _is_forearm_clothing_fragment_pixel(image.get_pixel(x, y)):
+				clothing_pixels += 1
+	assert_true(
+			clothing_pixels <= FOREARM_MAX_CLOTHING_FRAGMENT_PIXELS,
+			"Player skeleton forearm cutout must not carry shirt or trouser fragments over the arm: %s" % visual_path
+	)
+
+func _is_forearm_clothing_fragment_pixel(color: Color) -> bool:
+	if color.a <= 0.05:
+		return false
+	if _is_forearm_skin_or_shadow_pixel(color):
+		return false
+	var max_channel := maxf(color.r, maxf(color.g, color.b))
+	var min_channel := minf(color.r, minf(color.g, color.b))
+	if max_channel <= 0.0:
+		return false
+	var saturation := (max_channel - min_channel) / max_channel
+	var luminance := 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b
+	var blue_pajama := (
+			color.b > color.r * 1.02
+			and color.b > color.g * 0.88
+			and saturation >= 0.08
+			and luminance >= 0.12
+	)
+	var gray_shirt := saturation < 0.14 and luminance >= 0.16
+	return blue_pajama or gray_shirt
+
+func _is_forearm_skin_or_shadow_pixel(color: Color) -> bool:
+	if color.a <= 0.05:
+		return false
+	var max_channel := maxf(color.r, maxf(color.g, color.b))
+	var min_channel := minf(color.r, minf(color.g, color.b))
+	if max_channel <= 0.0:
+		return false
+	var saturation := (max_channel - min_channel) / max_channel
+	return (
+			max_channel >= 0.16
+			and saturation >= 0.10
+			and color.r > color.b * 1.08
+			and color.g > color.b * 0.82
+			and color.r >= color.g * 0.88
+	)
 
 func _assert_arm_cutout_has_soft_side_edges(texture: Texture2D, visual_path: String, min_y: int, max_edge_alpha: float) -> void:
 	var image := texture.get_image()
