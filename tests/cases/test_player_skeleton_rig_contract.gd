@@ -9,9 +9,9 @@ const HEAD_VISUAL_PATH := "Hips/Spine/Chest/Neck/Head/VisualHead"
 const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
 const NECK_COLLAR_VISUAL_PATH := "Hips/Spine/Chest/VisualNeckCollarCover"
 const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
-const BACK_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/VisualBackUpperArm"
-const BACK_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm"
-const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
+const BACK_UPPER_ARM_VISUAL_PATH := "VisualBackUpperArm"
+const BACK_FOREARM_VISUAL_PATH := "VisualBackForearm"
+const FRONT_UPPER_ARM_VISUAL_PATH := "VisualFrontUpperArm"
 const FRONT_FOREARM_VISUAL_PATH := "VisualFrontForearm"
 const FRONT_ELBOW_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontElbowCover"
 const FRONT_HAND_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHand"
@@ -22,7 +22,7 @@ const FOOT_VISUAL_PATHS: Array[String] = [
 	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
 ]
 const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
-	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
+	BACK_FOREARM_VISUAL_PATH,
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",
 	FRONT_FOREARM_VISUAL_PATH,
 	FRONT_HAND_VISUAL_PATH,
@@ -53,7 +53,7 @@ const SINGLE_ALPHA_COMPONENT_VISUAL_PATHS: Array[String] = [
 	TORSO_VISUAL_PATH,
 	CLEANED_PELVIS_VISUAL_PATH,
 	CLEANED_SEAM_FILL_VISUAL_PATH,
-	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
+	BACK_FOREARM_VISUAL_PATH,
 	FRONT_FOREARM_VISUAL_PATH,
 	CLEANED_FRONT_THIGH_VISUAL_PATH,
 	CLEANED_FRONT_SHIN_VISUAL_PATH,
@@ -124,6 +124,8 @@ const BACK_FOREARM_HAND_TAIL_CLEAR_Y := 130
 const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
 const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
 const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
+const UPPER_ARM_MESH_MIN_INTERNAL_VERTICES := 8
+const FOREARM_MESH_MIN_INTERNAL_VERTICES := 8
 const FRONT_FOREARM_MESH_MIN_INTERNAL_VERTICES := 8
 const THIGH_MESH_MIN_INTERNAL_VERTICES := 8
 const SHIN_MESH_MIN_INTERNAL_VERTICES := 8
@@ -222,12 +224,12 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	NECK_COLLAR_VISUAL_PATH,
 	"Hips/VisualPelvis",
 	"Hips/VisualSeamFill",
-	"Hips/Spine/Chest/BackUpperArm/VisualBackUpperArm",
+	BACK_UPPER_ARM_VISUAL_PATH,
 	"Hips/Spine/Chest/BackUpperArm/VisualBackShoulderCover",
-	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
+	BACK_FOREARM_VISUAL_PATH,
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackElbowCover",
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",
-	"Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm",
+	FRONT_UPPER_ARM_VISUAL_PATH,
 	"Hips/Spine/Chest/FrontUpperArm/VisualFrontShoulderCover",
 	FRONT_FOREARM_VISUAL_PATH,
 	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontElbowCover",
@@ -395,14 +397,32 @@ func _test_rig_scene_contract() -> void:
 					elif visual_path == FLASHLIGHT_VISUAL_PATH:
 						_assert_flashlight_cutout_has_completed_handle(visual_texture, visual_path)
 					elif visual_path == BACK_UPPER_ARM_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								UPPER_ARM_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips/Spine/Chest", "../Hips/Spine/Chest/BackUpperArm"]
+						)
 						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.45)
 					elif visual_path == FRONT_UPPER_ARM_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								UPPER_ARM_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips/Spine/Chest", "../Hips/Spine/Chest/FrontUpperArm"]
+						)
 						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.40)
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								FOREARM_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips/Spine/Chest/BackUpperArm", "../Hips/Spine/Chest/BackUpperArm/BackForearm"]
+						)
 						_assert_back_forearm_does_not_keep_hand_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
@@ -422,7 +442,7 @@ func _test_rig_scene_contract() -> void:
 		var neck_collar_visual := skeleton.get_node_or_null(NECK_COLLAR_VISUAL_PATH) as Sprite2D
 		var head_visual := skeleton.get_node_or_null(HEAD_VISUAL_PATH) as Sprite2D
 		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
-		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
+		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as CanvasItem
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as CanvasItem
 		var front_elbow_visual := skeleton.get_node_or_null(FRONT_ELBOW_VISUAL_PATH) as Sprite2D
 		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as CanvasItem
