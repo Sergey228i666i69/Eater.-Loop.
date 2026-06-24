@@ -80,6 +80,8 @@ const FLASHLIGHT_GRIP_MIN_LOCAL_X := -4.0
 const FLASHLIGHT_GRIP_MAX_LOCAL_X := 2.0
 const FLASHLIGHT_GRIP_MIN_LOCAL_Y_OFFSET := 6.0
 const FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET := 12.0
+const BACK_THIGH_SOFT_EDGE_MIN_Y := 70
+const BACK_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
 const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
 const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
@@ -280,6 +282,7 @@ func _test_rig_scene_contract() -> void:
 					elif visual_path == CLEANED_BACK_THIGH_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
+						_assert_back_thigh_has_soft_lower_edges(visual.texture, visual_path)
 					elif visual_path == CLEANED_FRONT_SHIN_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.32)
 						_assert_front_shin_does_not_keep_detached_side_strip(visual.texture, visual_path)
@@ -660,6 +663,30 @@ func _assert_front_forearm_has_soft_elbow_taper(texture: Texture2D, visual_path:
 			max_alpha <= FRONT_FOREARM_SOFT_TOP_MAX_ALPHA,
 			"Player skeleton front forearm must fade in under the upper arm instead of covering it with an opaque strip: %s" % visual_path
 	)
+
+func _assert_back_thigh_has_soft_lower_edges(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton back thigh texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(BACK_THIGH_SOFT_EDGE_MIN_Y, image.get_height()):
+		var min_x := image.get_width()
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		assert_true(
+				image.get_pixel(min_x, y).a <= BACK_THIGH_SOFT_EDGE_MAX_ALPHA,
+				"Player skeleton back thigh lower left edge must stay alpha-tapered: %s" % visual_path
+		)
+		assert_true(
+				image.get_pixel(max_x, y).a <= BACK_THIGH_SOFT_EDGE_MAX_ALPHA,
+				"Player skeleton back thigh lower right edge must stay alpha-tapered: %s" % visual_path
+		)
 
 func _assert_flashlight_visual_sits_inside_front_grip(front_hand_visual: Sprite2D, flashlight_visual: Sprite2D) -> void:
 	assert_true(
