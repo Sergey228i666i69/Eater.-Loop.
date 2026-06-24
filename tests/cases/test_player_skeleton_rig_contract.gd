@@ -93,6 +93,8 @@ const FRONT_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_Y := 104
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_LEFT_X := 22
 const BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH := 29
+const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
+const FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X := 58
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
 const BACK_FOREARM_WRIST_TAPER_MAX_Y := 128
 const BACK_FOREARM_WRIST_TAPER_MAX_WIDTH := 22
@@ -109,8 +111,8 @@ const IDLE_MIN_HAND_BREATH_RANGE := 0.009
 const IDLE_MAX_HAND_BREATH_RANGE := 0.02
 const WALK_MIN_HIPS_BOUNCE_RANGE := 2.5
 const WALK_MAX_HIPS_BOUNCE_RANGE := 3.5
-const WALK_MIN_LEG_SWING_RANGE := 0.11
-const WALK_MAX_LEG_SWING_RANGE := 0.13
+const WALK_MIN_LEG_SWING_RANGE := 0.055
+const WALK_MAX_LEG_SWING_RANGE := 0.07
 const WALK_MIN_ARM_SWING_RANGE := 0.06
 const WALK_MAX_ARM_SWING_RANGE := 0.075
 const WALK_MIN_SPINE_SWAY_RANGE := 0.03
@@ -119,10 +121,10 @@ const WALK_MIN_NECK_COUNTER_RANGE := 0.018
 const WALK_MAX_NECK_COUNTER_RANGE := 0.03
 const LIGHT_RUN_MIN_HIPS_BOUNCE_RANGE := 5.0
 const LIGHT_RUN_MAX_HIPS_BOUNCE_RANGE := 6.5
-const LIGHT_RUN_MIN_LEG_SWING_RANGE := 0.21
-const LIGHT_RUN_MAX_LEG_SWING_RANGE := 0.23
-const LIGHT_RUN_MIN_ARM_SWING_RANGE := 0.125
-const LIGHT_RUN_MAX_ARM_SWING_RANGE := 0.14
+const LIGHT_RUN_MIN_LEG_SWING_RANGE := 0.115
+const LIGHT_RUN_MAX_LEG_SWING_RANGE := 0.13
+const LIGHT_RUN_MIN_ARM_SWING_RANGE := 0.10
+const LIGHT_RUN_MAX_ARM_SWING_RANGE := 0.115
 const LIGHT_RUN_MIN_SPINE_SWAY_RANGE := 0.04
 const LIGHT_RUN_MAX_SPINE_SWAY_RANGE := 0.05
 const LIGHT_RUN_MIN_NECK_COUNTER_RANGE := 0.025
@@ -131,18 +133,18 @@ const WALK_MIN_FOOT_LIFT_RANGE := 9.0
 const WALK_MAX_FOOT_LIFT_RANGE := 11.0
 const WALK_MIN_FOOT_ROLL_RANGE := 0.075
 const WALK_MAX_FOOT_ROLL_RANGE := 0.09
-const LIGHT_RUN_MIN_FOOT_LIFT_RANGE := 16.0
-const LIGHT_RUN_MAX_FOOT_LIFT_RANGE := 20.0
-const LIGHT_RUN_MIN_FOOT_ROLL_RANGE := 0.145
-const LIGHT_RUN_MAX_FOOT_ROLL_RANGE := 0.16
-const LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE := 17.0
-const LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE := 19.0
-const LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE := 13.0
-const LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE := 15.0
+const LIGHT_RUN_MIN_FOOT_LIFT_RANGE := 13.5
+const LIGHT_RUN_MAX_FOOT_LIFT_RANGE := 17.0
+const LIGHT_RUN_MIN_FOOT_ROLL_RANGE := 0.125
+const LIGHT_RUN_MAX_FOOT_ROLL_RANGE := 0.14
+const LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE := 7.5
+const LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE := 9.0
+const LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE := 5.5
+const LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE := 7.0
 const WALK_MIN_WRIST_SWING_RANGE := 0.03
 const WALK_MAX_WRIST_SWING_RANGE := 0.05
-const LIGHT_RUN_MIN_WRIST_SWING_RANGE := 0.10
-const LIGHT_RUN_MAX_WRIST_SWING_RANGE := 0.115
+const LIGHT_RUN_MIN_WRIST_SWING_RANGE := 0.08
+const LIGHT_RUN_MAX_WRIST_SWING_RANGE := 0.095
 const HIPS_POSITION_TRACK := NodePath("Skeleton2D/Hips:position")
 const FRONT_THIGH_ROTATION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh:rotation")
 const SPINE_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine:rotation")
@@ -318,6 +320,9 @@ func _test_rig_scene_contract() -> void:
 					elif visual_path == BACK_UPPER_ARM_VISUAL_PATH:
 						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual.texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
+					elif visual_path == FRONT_UPPER_ARM_VISUAL_PATH:
+						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.40)
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
 						_assert_back_forearm_does_not_keep_hand_tail(visual.texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
@@ -741,6 +746,24 @@ func _assert_back_upper_arm_does_not_keep_lower_torso_tail(texture: Texture2D, v
 		assert_true(
 				max_x - min_x + 1 <= BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH,
 				"Player skeleton back upper arm lower edge must stay a narrow arm/sleeve shape: %s" % visual_path
+		)
+
+func _assert_front_upper_arm_does_not_keep_side_torso_tail(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton front upper-arm texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y, image.get_height()):
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		assert_true(
+				max_x <= FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X,
+				"Player skeleton front upper arm must not rotate the side torso/shirt tail with the arm: %s" % visual_path
 		)
 
 func _assert_back_thigh_has_soft_lower_edges(texture: Texture2D, visual_path: String) -> void:
