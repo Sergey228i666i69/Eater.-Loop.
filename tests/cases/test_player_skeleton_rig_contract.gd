@@ -69,6 +69,12 @@ const SEAM_FILL_MAX_INTERNAL_WIDTH := 52
 const SEAM_FILL_MIN_INTERNAL_X := 88
 const SEAM_FILL_MAX_INTERNAL_X := 136
 const SEAM_FILL_MAX_INTERNAL_Y := 255
+const SEAM_FILL_WAIST_BRIDGE_MAX_Y := 108
+const SEAM_FILL_WAIST_BRIDGE_MAX_WIDTH := 72
+const SEAM_FILL_WAIST_BRIDGE_MIN_X := 72
+const SEAM_FILL_WAIST_BRIDGE_MAX_X := 146
+const SEAM_FILL_WAIST_BRIDGE_MIN_ROWS := 18
+const SEAM_FILL_WAIST_BRIDGE_MIN_WIDTH := 58
 const CUTOUT_MIN_SAFE_ALPHA_MARGIN := 6
 const HEAD_MAX_LOWER_LEFT_SHOULDER_PIXELS := 20
 const HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS := 680
@@ -902,6 +908,7 @@ func _assert_seam_fill_is_internal_strip(texture: Texture2D, visual_path: String
 	if image == null:
 		return
 	var max_visible_y := -1
+	var waist_bridge_rows := 0
 	for y in range(image.get_height()):
 		var min_x := INF
 		var max_x := -INF
@@ -913,10 +920,22 @@ func _assert_seam_fill_is_internal_strip(texture: Texture2D, visual_path: String
 		if max_x == -INF:
 			continue
 		max_visible_y = maxi(max_visible_y, y)
-		assert_true(max_x - min_x + 1.0 <= SEAM_FILL_MAX_INTERNAL_WIDTH, "Player skeleton seam fill must stay a narrow hidden strip: %s" % visual_path)
-		assert_true(min_x >= SEAM_FILL_MIN_INTERNAL_X, "Player skeleton seam fill must not keep the left hand or outer leg: %s" % visual_path)
-		assert_true(max_x <= SEAM_FILL_MAX_INTERNAL_X, "Player skeleton seam fill must not keep the right hand or outer leg: %s" % visual_path)
+		var row_width := max_x - min_x + 1.0
+		if y <= SEAM_FILL_WAIST_BRIDGE_MAX_Y:
+			if row_width >= SEAM_FILL_WAIST_BRIDGE_MIN_WIDTH:
+				waist_bridge_rows += 1
+			assert_true(row_width <= SEAM_FILL_WAIST_BRIDGE_MAX_WIDTH, "Player skeleton seam fill waist bridge must stay compact under the shirt hem: %s" % visual_path)
+			assert_true(min_x >= SEAM_FILL_WAIST_BRIDGE_MIN_X, "Player skeleton seam fill waist bridge must not keep the left hand or outer leg: %s" % visual_path)
+			assert_true(max_x <= SEAM_FILL_WAIST_BRIDGE_MAX_X, "Player skeleton seam fill waist bridge must not keep the right hand or outer leg: %s" % visual_path)
+		else:
+			assert_true(row_width <= SEAM_FILL_MAX_INTERNAL_WIDTH, "Player skeleton seam fill must stay a narrow hidden strip below the waist bridge: %s" % visual_path)
+			assert_true(min_x >= SEAM_FILL_MIN_INTERNAL_X, "Player skeleton seam fill must not keep the left hand or outer leg below the waist bridge: %s" % visual_path)
+			assert_true(max_x <= SEAM_FILL_MAX_INTERNAL_X, "Player skeleton seam fill must not keep the right hand or outer leg below the waist bridge: %s" % visual_path)
 	assert_true(max_visible_y <= SEAM_FILL_MAX_INTERNAL_Y, "Player skeleton seam fill must fade before the lower shin/ankle: %s" % visual_path)
+	assert_true(
+			waist_bridge_rows >= SEAM_FILL_WAIST_BRIDGE_MIN_ROWS,
+			"Player skeleton seam fill must keep a short waist bridge so the shirt hem does not reveal a black rectangle: %s" % visual_path
+	)
 
 func _assert_thigh_does_not_own_moving_waistband(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
