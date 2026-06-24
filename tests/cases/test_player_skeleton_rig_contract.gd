@@ -140,6 +140,10 @@ const FRONT_ELBOW_COVER_MIN_LOCAL_X := 1.0
 const FRONT_ELBOW_COVER_MAX_LOCAL_X := 3.0
 const FRONT_ELBOW_COVER_MIN_LOCAL_Y := 6.0
 const FRONT_ELBOW_COVER_MAX_LOCAL_Y := 10.0
+const FRONT_FOREARM_ELBOW_OVERLAP_TOP_RIGHT_X := -10.0
+const FRONT_FOREARM_ELBOW_OVERLAP_MID_RIGHT_X := -12.0
+const FRONT_FOREARM_ELBOW_OVERLAP_LOW_RIGHT_X := -14.0
+const FRONT_FOREARM_GRIP_RIGHT_X := -16.0
 const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
 const FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X := 58
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
@@ -1211,6 +1215,27 @@ func _assert_active_limb_mesh(mesh: Polygon2D, spec: Dictionary) -> void:
 	assert_true(mesh.get_bone_count() == 2, "Active player limb mesh must blend across two neighboring bones: %s" % mesh_path)
 	_assert_polygon_bone_weights(mesh, 0, spec["first_bone"], true)
 	_assert_polygon_bone_weights(mesh, 1, spec["second_bone"], false)
+	if mesh_path == "MeshFrontForearm":
+		_assert_front_forearm_mesh_keeps_elbow_overlap(mesh)
+
+func _assert_front_forearm_mesh_keeps_elbow_overlap(mesh: Polygon2D) -> void:
+	if mesh.polygon.size() < 7:
+		return
+	assert_true(
+			mesh.polygon[1].x >= FRONT_FOREARM_ELBOW_OVERLAP_TOP_RIGHT_X
+					and mesh.polygon[2].x >= FRONT_FOREARM_ELBOW_OVERLAP_TOP_RIGHT_X,
+			"Player skeleton front forearm mesh must overlap the upper-arm elbow seam at the top"
+	)
+	assert_true(
+			mesh.polygon[3].x >= FRONT_FOREARM_ELBOW_OVERLAP_MID_RIGHT_X
+					and mesh.polygon[4].x >= FRONT_FOREARM_ELBOW_OVERLAP_LOW_RIGHT_X,
+			"Player skeleton front forearm mesh must taper its elbow overlap instead of leaving a hard gap"
+	)
+	assert_true(
+			mesh.polygon[5].x <= FRONT_FOREARM_GRIP_RIGHT_X
+					and mesh.polygon[6].x <= FRONT_FOREARM_GRIP_RIGHT_X,
+			"Player skeleton front forearm mesh must not widen the lower grip/flashlight hand area"
+	)
 
 func _assert_polygon_bone_weights(mesh: Polygon2D, bone_index: int, expected_path: NodePath, stronger_at_top: bool) -> void:
 	assert_true(mesh.get_bone_path(bone_index) == expected_path, "Active player limb mesh must keep the expected weighted bone path: %s" % mesh.name)
