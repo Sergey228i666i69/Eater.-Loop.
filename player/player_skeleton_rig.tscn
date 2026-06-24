@@ -930,6 +930,7 @@ position = Vector2(0, 71.5)
 light_mask = 2
 z_index = 5
 texture = ExtResource("22_front_elbow")
+position = Vector2(2, 8)
 
 [node name="VisualFrontHandEmpty" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
 light_mask = 2

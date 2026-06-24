@@ -13,6 +13,7 @@ const BACK_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/VisualBackUpp
 const BACK_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm"
 const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
 const FRONT_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm"
+const FRONT_ELBOW_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontElbowCover"
 const FRONT_HAND_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHand"
 const FRONT_HAND_EMPTY_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHandEmpty"
 const FLASHLIGHT_VISUAL_PATH := FRONT_HAND_PATH + "/FlashlightMount/VisualFlashlight"
@@ -106,6 +107,12 @@ const UPPER_ARM_SOFT_EDGE_MIN_Y := 68
 const UPPER_ARM_SOFT_EDGE_MAX_ALPHA := 0.68
 const FOREARM_SOFT_SIDE_EDGE_MIN_Y := 16
 const FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA := 0.65
+const FRONT_ELBOW_COVER_MAX_ALPHA := 0.75
+const FRONT_ELBOW_COVER_MAX_VISIBLE_RATIO := 0.50
+const FRONT_ELBOW_COVER_MIN_LOCAL_X := 1.0
+const FRONT_ELBOW_COVER_MAX_LOCAL_X := 3.0
+const FRONT_ELBOW_COVER_MIN_LOCAL_Y := 6.0
+const FRONT_ELBOW_COVER_MAX_LOCAL_Y := 10.0
 const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
 const FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X := 58
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
@@ -362,6 +369,7 @@ func _test_rig_scene_contract() -> void:
 		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as Sprite2D
+		var front_elbow_visual := skeleton.get_node_or_null(FRONT_ELBOW_VISUAL_PATH) as Sprite2D
 		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as Sprite2D
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
 		assert_true(front_hand_empty_visual != null, "Player skeleton must keep empty front hand visual for no-flashlight variant")
@@ -372,6 +380,7 @@ func _test_rig_scene_contract() -> void:
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
 		assert_true(front_forearm_visual != null, "Player skeleton must keep front forearm visual for photo-cutout layering")
+		assert_true(front_elbow_visual != null, "Player skeleton must keep front elbow cover for the upper-arm/forearm seam")
 		assert_true(front_thigh_visual != null, "Player skeleton must keep front thigh visual for photo-cutout layering")
 		if front_hand_visual != null and front_hand_visual.texture != null:
 			assert_true(not front_hand_visual.visible, "Player skeleton held-hand cutout must stay hidden before flashlight unlock")
@@ -392,6 +401,9 @@ func _test_rig_scene_contract() -> void:
 			assert_true(torso_visual.z_index > front_upper_arm_visual.z_index, "Player skeleton torso must hide the front upper-arm photo seam")
 		if torso_visual != null and front_forearm_visual != null:
 			assert_true(front_forearm_visual.z_index > torso_visual.z_index, "Player skeleton front forearm must remain visible over the torso")
+		if front_forearm_visual != null and front_elbow_visual != null:
+			assert_true(front_elbow_visual.z_index > front_forearm_visual.z_index, "Player skeleton front elbow cover must sit over the forearm seam")
+			_assert_front_elbow_cover_stays_subtle(front_elbow_visual)
 		if torso_visual != null and neck_collar_visual != null and head_visual != null:
 			_assert_neck_collar_cover_sits_between_torso_and_head(torso_visual, neck_collar_visual, head_visual)
 		if pelvis_visual != null and torso_visual != null:
@@ -823,6 +835,39 @@ func _assert_arm_cutout_has_soft_side_edges(texture: Texture2D, visual_path: Str
 				image.get_pixel(max_x, y).a <= max_edge_alpha,
 				"Player skeleton arm side edge must stay alpha-tapered instead of reading as a cutout slab: %s" % visual_path
 		)
+
+func _assert_front_elbow_cover_stays_subtle(visual: Sprite2D) -> void:
+	assert_true(visual.texture != null, "Player skeleton front elbow cover must keep a texture")
+	if visual.texture == null:
+		return
+	assert_true(
+			visual.position.x >= FRONT_ELBOW_COVER_MIN_LOCAL_X
+					and visual.position.x <= FRONT_ELBOW_COVER_MAX_LOCAL_X
+					and visual.position.y >= FRONT_ELBOW_COVER_MIN_LOCAL_Y
+					and visual.position.y <= FRONT_ELBOW_COVER_MAX_LOCAL_Y,
+			"Player skeleton front elbow cover must stay tucked onto the forearm seam"
+	)
+	var image := visual.texture.get_image()
+	assert_true(image != null, "Player skeleton front elbow cover texture must expose alpha pixels")
+	if image == null:
+		return
+	var max_alpha := 0.0
+	var visible_pixels := 0
+	var total_pixels := image.get_width() * image.get_height()
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			var alpha := image.get_pixel(x, y).a
+			max_alpha = maxf(max_alpha, alpha)
+			if alpha > 0.05:
+				visible_pixels += 1
+	assert_true(
+			max_alpha <= FRONT_ELBOW_COVER_MAX_ALPHA,
+			"Player skeleton front elbow cover must not become an opaque patch over the arm"
+	)
+	assert_true(
+			float(visible_pixels) / float(total_pixels) <= FRONT_ELBOW_COVER_MAX_VISIBLE_RATIO,
+			"Player skeleton front elbow cover must stay compact enough to hide the seam without reading as a separate oval"
+	)
 
 func _assert_back_upper_arm_does_not_keep_lower_torso_tail(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
