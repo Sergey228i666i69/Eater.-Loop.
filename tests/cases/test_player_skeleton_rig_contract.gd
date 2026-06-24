@@ -131,6 +131,7 @@ const FOREARM_SOFT_SIDE_EDGE_MIN_Y := 16
 const FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA := 0.65
 const ARM_EDGE_MAX_OPAQUE_DARK_MATTE_PIXELS := 16
 const BACK_ARM_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 24
+const FRONT_UPPER_ARM_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 48
 const ARM_EDGE_VISIBLE_DARK_FRINGE_MIN_ALPHA := 0.235
 const ARM_EDGE_VISIBLE_DARK_FRINGE_MAX_LUMINANCE := 0.30
 const FRONT_ELBOW_COVER_MAX_ALPHA := 0.75
@@ -553,7 +554,11 @@ func _test_rig_scene_contract() -> void:
 						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
-						_assert_back_arm_cutout_does_not_keep_visible_dark_edge_fringe(visual_texture, visual_path)
+						_assert_arm_cutout_does_not_keep_visible_dark_edge_fringe(
+								visual_texture,
+								visual_path,
+								BACK_ARM_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS
+						)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.45)
 					elif visual_path == FRONT_UPPER_ARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
@@ -561,6 +566,11 @@ func _test_rig_scene_contract() -> void:
 						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
+						_assert_arm_cutout_does_not_keep_visible_dark_edge_fringe(
+								visual_texture,
+								visual_path,
+								FRONT_UPPER_ARM_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS
+						)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.40)
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
@@ -568,7 +578,11 @@ func _test_rig_scene_contract() -> void:
 						_assert_forearm_does_not_keep_clothing_fragments(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
-						_assert_back_arm_cutout_does_not_keep_visible_dark_edge_fringe(visual_texture, visual_path)
+						_assert_arm_cutout_does_not_keep_visible_dark_edge_fringe(
+								visual_texture,
+								visual_path,
+								BACK_ARM_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS
+						)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif visual_path == FRONT_FOREARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
@@ -1336,9 +1350,9 @@ func _assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(texture: Texture2D,
 			"Player skeleton arm cutout edge must not keep opaque dark source-matte pixels: %s" % visual_path
 	)
 
-func _assert_back_arm_cutout_does_not_keep_visible_dark_edge_fringe(texture: Texture2D, visual_path: String) -> void:
+func _assert_arm_cutout_does_not_keep_visible_dark_edge_fringe(texture: Texture2D, visual_path: String, max_fringe_pixels: int) -> void:
 	var image := texture.get_image()
-	assert_true(image != null, "Player skeleton back arm texture must expose alpha pixels: %s" % visual_path)
+	assert_true(image != null, "Player skeleton arm texture must expose alpha pixels: %s" % visual_path)
 	if image == null:
 		return
 	var visible_dark_fringe_pixels := 0
@@ -1358,8 +1372,8 @@ func _assert_back_arm_cutout_does_not_keep_visible_dark_edge_fringe(texture: Tex
 			if _is_visible_dark_edge_fringe_pixel(image.get_pixel(x, y)):
 				visible_dark_fringe_pixels += 1
 	assert_true(
-			visible_dark_fringe_pixels <= BACK_ARM_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS,
-			"Player skeleton back arm cutout edge must not keep visible dark fringe pixels: %s" % visual_path
+			visible_dark_fringe_pixels <= max_fringe_pixels,
+			"Player skeleton arm cutout edge must not keep visible dark fringe pixels: %s" % visual_path
 	)
 
 func _is_visible_dark_edge_fringe_pixel(color: Color) -> bool:
