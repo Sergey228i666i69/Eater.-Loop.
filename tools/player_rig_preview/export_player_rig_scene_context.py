@@ -71,6 +71,7 @@ LAYER_OVERLAY_COLORS: dict[str, tuple[int, int, int, int]] = {
     "VisualFrontForearm": (255, 220, 0, 150),
     "VisualFrontHand": (255, 55, 0, 165),
     "VisualFrontHandEmpty": (255, 55, 0, 165),
+    "VisualBackLegUnderlay": (110, 80, 255, 115),
     "VisualBackThigh": (0, 152, 255, 160),
     "VisualBackShin": (0, 220, 255, 160),
     "VisualBackFoot": (0, 255, 180, 165),

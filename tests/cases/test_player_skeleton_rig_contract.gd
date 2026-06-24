@@ -9,6 +9,7 @@ const HEAD_VISUAL_PATH := "Hips/Spine/Chest/Neck/Head/VisualHead"
 const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
 const NECK_COLLAR_VISUAL_PATH := "Hips/Spine/Chest/VisualNeckCollarCover"
 const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
+const BACK_LEG_UNDERLAY_VISUAL_PATH := "VisualBackLegUnderlay"
 const BACK_UPPER_ARM_VISUAL_PATH := "VisualBackUpperArm"
 const BACK_FOREARM_VISUAL_PATH := "VisualBackForearm"
 const FRONT_UPPER_ARM_VISUAL_PATH := "VisualFrontUpperArm"
@@ -92,10 +93,14 @@ const FLASHLIGHT_GRIP_MIN_LOCAL_Y_OFFSET := 6.0
 const FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET := 12.0
 const BACK_THIGH_SOFT_EDGE_MIN_Y := 70
 const BACK_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
+const BACK_LEG_UNDERLAY_MESH_MIN_INTERNAL_VERTICES := 8
+const BACK_LEG_UNDERLAY_MAX_ALPHA := 0.50
+const BACK_LEG_UNDERLAY_MAX_VISIBLE_RATIO := 0.66
+const BACK_LEG_UNDERLAY_MAX_SKIN_PIXELS := 24
 const BACK_SHIN_SOFT_INNER_EDGE_MIN_Y := 44
 const BACK_SHIN_SOFT_SIDE_EDGE_MAX_ALPHA := 0.50
 const BACK_SHIN_LOWER_TAPER_SAMPLE_ROWS: Array[int] = [144, 162, 180, 198]
-const BACK_SHIN_LOWER_TAPER_MAX_WIDTHS: Array[int] = [54, 51, 45, 39]
+const BACK_SHIN_LOWER_TAPER_MAX_WIDTHS: Array[int] = [46, 44, 37, 35]
 const FRONT_THIGH_SMOOTH_HIP_MIN_Y := 88
 const FRONT_THIGH_SMOOTH_HIP_MAX_Y := 132
 const FRONT_THIGH_MAX_LEFT_EDGE_STEP := 2
@@ -236,6 +241,7 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	FRONT_HAND_EMPTY_VISUAL_PATH,
 	FRONT_HAND_PATH + "/VisualFrontHand",
 	FLASHLIGHT_VISUAL_PATH,
+	BACK_LEG_UNDERLAY_VISUAL_PATH,
 	CLEANED_BACK_THIGH_VISUAL_PATH,
 	CLEANED_BACK_SHIN_VISUAL_PATH,
 	"Hips/BackThigh/BackShin/VisualBackKneeCover",
@@ -360,6 +366,15 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.30)
 						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
 						_assert_front_thigh_has_soft_outer_edge(visual_texture, visual_path)
+					elif visual_path == BACK_LEG_UNDERLAY_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								BACK_LEG_UNDERLAY_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips", "../Hips/BackThigh", "../Hips/BackThigh/BackShin"]
+						)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.34)
+						_assert_back_leg_underlay_stays_subtle(visual_texture, visual_path)
 					elif visual_path == CLEANED_BACK_THIGH_VISUAL_PATH:
 						_assert_limb_visual_is_weighted_mesh(
 								visual,
@@ -1063,6 +1078,37 @@ func _assert_back_thigh_has_soft_lower_edges(texture: Texture2D, visual_path: St
 				image.get_pixel(max_x, y).a <= BACK_THIGH_SOFT_EDGE_MAX_ALPHA,
 				"Player skeleton back thigh lower right edge must stay alpha-tapered: %s" % visual_path
 		)
+
+func _assert_back_leg_underlay_stays_subtle(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton back-leg underlay texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var max_alpha := 0.0
+	var visible_pixels := 0
+	var skin_pixels := 0
+	var total_pixels := image.get_width() * image.get_height()
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			var color := image.get_pixel(x, y)
+			if color.a <= 0.05:
+				continue
+			visible_pixels += 1
+			max_alpha = maxf(max_alpha, color.a)
+			if _is_skin_toned_pixel(color):
+				skin_pixels += 1
+	assert_true(
+			max_alpha <= BACK_LEG_UNDERLAY_MAX_ALPHA,
+			"Player skeleton back-leg underlay must stay translucent instead of becoming a static full leg: %s" % visual_path
+	)
+	assert_true(
+			float(visible_pixels) / float(total_pixels) <= BACK_LEG_UNDERLAY_MAX_VISIBLE_RATIO,
+			"Player skeleton back-leg underlay must stay sparse enough to avoid a static lower-body ghost: %s" % visual_path
+	)
+	assert_true(
+			skin_pixels <= BACK_LEG_UNDERLAY_MAX_SKIN_PIXELS,
+			"Player skeleton back-leg underlay must not bring hands or feet back under the skeleton: %s" % visual_path
+	)
 
 func _assert_back_shin_has_soft_inner_edge(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()

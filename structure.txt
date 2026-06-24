@@ -1366,6 +1366,8 @@
 │   │       ├── back_forearm.png.import
 │   │       ├── back_hand.png
 │   │       ├── back_hand.png.import
+│   │       ├── back_leg_underlay.png
+│   │       ├── back_leg_underlay.png.import
 │   │       ├── back_shin.png
 │   │       ├── back_shin.png.import
 │   │       ├── back_thigh.png
@@ -1557,6 +1559,7 @@
 │   │   ├── test_player_rig_preview_tool_contract.gd
 │   │   ├── test_player_rig_preview_tool_contract.gd.uid
 │   │   ├── test_player_skeleton_mesh_prototype_contract.gd
+│   │   ├── test_player_skeleton_mesh_prototype_contract.gd.uid
 │   │   ├── test_player_skeleton_rig_contract.gd
 │   │   ├── test_player_skeleton_rig_contract.gd.uid
 │   │   ├── test_project_config.gd
@@ -1616,4 +1619,4 @@
 ├── project.godot
 └── structure.txt
 
-129 directories, 1488 files
+129 directories, 1491 files
