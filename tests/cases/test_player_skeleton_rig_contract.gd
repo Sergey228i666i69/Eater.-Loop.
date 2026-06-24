@@ -82,6 +82,12 @@ const FLASHLIGHT_GRIP_MIN_LOCAL_Y_OFFSET := 6.0
 const FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET := 12.0
 const BACK_THIGH_SOFT_EDGE_MIN_Y := 70
 const BACK_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
+const FRONT_THIGH_SMOOTH_HIP_MIN_Y := 88
+const FRONT_THIGH_SMOOTH_HIP_MAX_Y := 132
+const FRONT_THIGH_MAX_LEFT_EDGE_STEP := 2
+const FRONT_THIGH_SOFT_EDGE_MIN_Y := 96
+const FRONT_THIGH_SOFT_EDGE_MAX_Y := 206
+const FRONT_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
 const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
 const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
@@ -279,6 +285,7 @@ func _test_rig_scene_contract() -> void:
 					elif visual_path == CLEANED_FRONT_THIGH_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.30)
 						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
+						_assert_front_thigh_has_soft_outer_edge(visual.texture, visual_path)
 					elif visual_path == CLEANED_BACK_THIGH_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
@@ -312,6 +319,7 @@ func _test_rig_scene_contract() -> void:
 		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as Sprite2D
+		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as Sprite2D
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
 		assert_true(front_hand_empty_visual != null, "Player skeleton must keep empty front hand visual for no-flashlight variant")
 		assert_true(flashlight_visual != null, "Player skeleton must keep flashlight visual for layering")
@@ -321,6 +329,7 @@ func _test_rig_scene_contract() -> void:
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
 		assert_true(front_forearm_visual != null, "Player skeleton must keep front forearm visual for photo-cutout layering")
+		assert_true(front_thigh_visual != null, "Player skeleton must keep front thigh visual for photo-cutout layering")
 		if front_hand_visual != null and front_hand_visual.texture != null:
 			assert_true(not front_hand_visual.visible, "Player skeleton held-hand cutout must stay hidden before flashlight unlock")
 			assert_true(
@@ -344,6 +353,8 @@ func _test_rig_scene_contract() -> void:
 			_assert_neck_collar_cover_sits_between_torso_and_head(torso_visual, neck_collar_visual, head_visual)
 		if pelvis_visual != null and torso_visual != null:
 			assert_true(pelvis_visual.z_index >= torso_visual.z_index, "Player skeleton pelvis must cover torso/lower-body seams")
+		if pelvis_visual != null and front_thigh_visual != null:
+			assert_true(pelvis_visual.z_index > front_thigh_visual.z_index, "Player skeleton pelvis must cover the front-thigh upper crop seam")
 	rig.free()
 
 func _test_legacy_player_keeps_sprite_sequence() -> void:
@@ -687,6 +698,37 @@ func _assert_back_thigh_has_soft_lower_edges(texture: Texture2D, visual_path: St
 				image.get_pixel(max_x, y).a <= BACK_THIGH_SOFT_EDGE_MAX_ALPHA,
 				"Player skeleton back thigh lower right edge must stay alpha-tapered: %s" % visual_path
 		)
+
+func _assert_front_thigh_has_soft_outer_edge(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton front thigh texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var previous_left_x := -1
+	for y in range(FRONT_THIGH_SMOOTH_HIP_MIN_Y, mini(FRONT_THIGH_SMOOTH_HIP_MAX_Y + 1, image.get_height())):
+		var left_x := _find_left_visible_pixel_in_row(image, y)
+		if left_x < 0:
+			continue
+		if previous_left_x >= 0:
+			assert_true(
+					previous_left_x - left_x <= FRONT_THIGH_MAX_LEFT_EDGE_STEP,
+					"Player skeleton front thigh left hip contour must not jump into a blocky side slab: %s" % visual_path
+			)
+		previous_left_x = left_x
+	for y in range(FRONT_THIGH_SOFT_EDGE_MIN_Y, mini(FRONT_THIGH_SOFT_EDGE_MAX_Y + 1, image.get_height())):
+		var edge_x := _find_left_visible_pixel_in_row(image, y)
+		if edge_x < 0:
+			continue
+		assert_true(
+				image.get_pixel(edge_x, y).a <= FRONT_THIGH_SOFT_EDGE_MAX_ALPHA,
+				"Player skeleton front thigh outer edge must stay alpha-tapered: %s" % visual_path
+		)
+
+func _find_left_visible_pixel_in_row(image: Image, y: int) -> int:
+	for x in range(image.get_width()):
+		if image.get_pixel(x, y).a > 0.05:
+			return x
+	return -1
 
 func _assert_flashlight_visual_sits_inside_front_grip(front_hand_visual: Sprite2D, flashlight_visual: Sprite2D) -> void:
 	assert_true(
