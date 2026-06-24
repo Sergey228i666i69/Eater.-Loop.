@@ -56,6 +56,27 @@ FLOOR_TEXTURE = "objects/environment/background/Floor.png"
 PLINTUS_TEXTURE = "objects/environment/background/Plintus.png"
 BEHIND_DOOR_TEXTURE = "objects/interactable/door/sprites/DoorBasic.png"
 FOREGROUND_CHAIR_TEXTURE = "objects/environment/sprites/bedroom/ChairBedroom.png"
+LAYER_OVERLAY_COLORS: dict[str, tuple[int, int, int, int]] = {
+    "VisualHead": (255, 220, 0, 172),
+    "VisualNeckCollarCover": (255, 0, 255, 190),
+    "VisualTorso": (100, 100, 100, 155),
+    "VisualPelvis": (255, 0, 130, 145),
+    "VisualSeamFill": (210, 0, 255, 172),
+    "VisualBackUpperArm": (0, 130, 255, 150),
+    "VisualBackForearm": (0, 220, 255, 150),
+    "VisualBackHand": (0, 255, 180, 155),
+    "VisualFrontUpperArm": (255, 120, 0, 150),
+    "VisualFrontForearm": (255, 220, 0, 150),
+    "VisualFrontHand": (255, 55, 0, 165),
+    "VisualFrontHandEmpty": (255, 55, 0, 165),
+    "VisualBackThigh": (0, 152, 255, 160),
+    "VisualBackShin": (0, 220, 255, 160),
+    "VisualBackFoot": (0, 255, 180, 165),
+    "VisualFrontThigh": (255, 165, 0, 160),
+    "VisualFrontShin": (255, 220, 0, 160),
+    "VisualFrontFoot": (255, 75, 0, 165),
+    "VisualFlashlight": (255, 255, 255, 190),
+}
 
 
 def main() -> int:
@@ -90,6 +111,11 @@ def main() -> int:
         default=0.0,
         help="Animation time sampled by --dark-closeup. Defaults to 0.0.",
     )
+    parser.add_argument(
+        "--layer-overlay",
+        action="store_true",
+        help="Render player Visual* layers as colored silhouettes for cutout/z-order diagnosis.",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
@@ -113,11 +139,11 @@ def main() -> int:
         ]
 
     if args.dark_closeup:
-        panel = _render_dark_closeup_panel(repo_root, pose_data[0], poses[0][0], args.scale)
+        panel = _render_dark_closeup_panel(repo_root, pose_data[0], poses[0][0], args.scale, args.layer_overlay)
         panel.save(output_path)
     else:
         panels = [
-            _render_scene_panel(repo_root, pose_data[index], label, args.scale)
+            _render_scene_panel(repo_root, pose_data[index], label, args.scale, args.layer_overlay)
             for index, (label, _, _) in enumerate(poses)
         ]
         _save_scene_sheet(panels, output_path)
@@ -132,11 +158,11 @@ def _resolve_scene_poses(dark_closeup: bool, pose_animation: str, pose_time: flo
     return [(label, pose_animation, pose_time)]
 
 
-def _render_scene_panel(repo_root: Path, data: dict, label: str, scale: float) -> Image.Image:
+def _render_scene_panel(repo_root: Path, data: dict, label: str, scale: float, layer_overlay: bool = False) -> Image.Image:
     panel = _render_room_background(repo_root, PANEL_SIZE)
     layers: list[tuple[int, Image.Image, tuple[int, int]]] = []
     layers.append((BEHIND_OBJECT_Z, _scaled_asset(repo_root, BEHIND_DOOR_TEXTURE, 0.68), (260, 110)))
-    layers.extend(_build_player_visual_layers(repo_root, data, scale))
+    layers.extend(_build_player_visual_layers(repo_root, data, scale, layer_overlay=layer_overlay))
     layers.append((FOREGROUND_OBJECT_Z, _scaled_asset(repo_root, FOREGROUND_CHAIR_TEXTURE, 0.32), (290, 390)))
 
     for _z, image, position in sorted(layers, key=lambda layer: layer[0]):
@@ -146,11 +172,18 @@ def _render_scene_panel(repo_root: Path, data: dict, label: str, scale: float) -
     panel.alpha_composite(darkness)
     draw = ImageDraw.Draw(panel)
     draw.rectangle((0, 0, PANEL_SIZE[0], 34), fill=(7, 7, 10, 220))
-    draw.text((10, 9), f"{label} | door z1, player z2+, chair z10", fill=(245, 245, 245, 255))
+    overlay_label = " | layer overlay" if layer_overlay else ""
+    draw.text((10, 9), f"{label} | door z1, player z2+, chair z10{overlay_label}", fill=(245, 245, 245, 255))
     return panel
 
 
-def _render_dark_closeup_panel(repo_root: Path, data: dict, label: str, base_scale: float) -> Image.Image:
+def _render_dark_closeup_panel(
+    repo_root: Path,
+    data: dict,
+    label: str,
+    base_scale: float,
+    layer_overlay: bool = False,
+) -> Image.Image:
     panel = _render_room_background(repo_root, DARK_CLOSEUP_PANEL_SIZE)
     layers: list[tuple[int, Image.Image, tuple[int, int]]] = []
     layers.append((BEHIND_OBJECT_Z, _scaled_asset(repo_root, BEHIND_DOOR_TEXTURE, 0.9), (235, 78)))
@@ -163,6 +196,7 @@ def _render_dark_closeup_panel(repo_root: Path, data: dict, label: str, base_sca
             DARK_CLOSEUP_PANEL_SIZE,
             DARK_CLOSEUP_PLAYER_FLOOR_Y,
             player_x=250,
+            layer_overlay=layer_overlay,
         )
     )
     for _z, image, position in sorted(layers, key=lambda layer: layer[0]):
@@ -172,7 +206,8 @@ def _render_dark_closeup_panel(repo_root: Path, data: dict, label: str, base_sca
     panel.alpha_composite(darkness)
     draw = ImageDraw.Draw(panel)
     draw.rectangle((0, 0, DARK_CLOSEUP_PANEL_SIZE[0], 30), fill=(7, 7, 10, 225))
-    draw.text((10, 8), f"{label} | dark close-up", fill=(245, 245, 245, 255))
+    overlay_label = " | layer overlay" if layer_overlay else ""
+    draw.text((10, 8), f"{label} | dark close-up{overlay_label}", fill=(245, 245, 245, 255))
     return panel
 
 
@@ -198,6 +233,7 @@ def _build_player_visual_layers(
     panel_size: tuple[int, int] = PANEL_SIZE,
     floor_y: int = PLAYER_FLOOR_Y,
     player_x: int | None = None,
+    layer_overlay: bool = False,
 ) -> list[tuple[int, Image.Image, tuple[int, int]]]:
     texture_cache: dict[str, Image.Image] = {}
     visuals = [visual for visual in data["visuals"] if visual["visible"]]
@@ -215,12 +251,26 @@ def _build_player_visual_layers(
     layers: list[tuple[int, Image.Image, tuple[int, int]]] = []
     for visual in visuals:
         texture = _load_texture(repo_root, texture_cache, visual["texture"])
+        if layer_overlay:
+            texture = _build_layer_overlay_texture(texture, visual["name"])
         transformed = _transform_texture(texture, visual, scale)
         origin_x, origin_y = visual["origin"]
         x = int(player_x + (origin_x - center_x) * scale - transformed.width / 2)
         y = int(floor_y + (origin_y - max_y) * scale - transformed.height / 2)
         layers.append((PLAYER_ROOT_Z + int(visual["z_index"]), transformed, (x, y)))
     return layers
+
+
+def _build_layer_overlay_texture(texture: Image.Image, visual_name: str) -> Image.Image:
+    alpha = texture.getchannel("A")
+    color = LAYER_OVERLAY_COLORS.get(visual_name)
+    if color is None:
+        dimmed = texture.copy()
+        dimmed.putalpha(alpha.point(lambda value: int(value * 0.22)))
+        return dimmed
+    overlay = Image.new("RGBA", texture.size, color)
+    overlay.putalpha(alpha.point(lambda value: min(int(value * color[3] / 255), color[3])))
+    return overlay
 
 
 def _transform_texture(texture: Image.Image, visual: dict, scale: float) -> Image.Image:

@@ -74,6 +74,13 @@ const NECK_COLLAR_MAX_LOCAL_Y := -84.0
 const FRONT_SHIN_DETACHED_STRIP_MIN_X := 71
 const FRONT_SHIN_DETACHED_STRIP_MIN_Y := 8
 const FRONT_SHIN_DETACHED_STRIP_MAX_Y := 150
+const TORSO_STATIC_SIDE_ARM_TOP_Y := 62
+const TORSO_STATIC_SIDE_ARM_LOWER_Y := 115
+const TORSO_STATIC_SIDE_ARM_LEFT_MAX_X := 62
+const TORSO_STATIC_SIDE_ARM_RIGHT_MIN_X := 145
+const TORSO_STATIC_SIDE_ARM_LOWER_LEFT_MAX_X := 78
+const TORSO_STATIC_SIDE_ARM_LOWER_RIGHT_MIN_X := 132
+const TORSO_STATIC_SIDE_ARM_MAX_SKIN_PIXELS := 100
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
@@ -84,6 +91,8 @@ const FLASHLIGHT_GRIP_MIN_LOCAL_Y_OFFSET := 6.0
 const FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET := 12.0
 const BACK_THIGH_SOFT_EDGE_MIN_Y := 70
 const BACK_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
+const BACK_SHIN_SOFT_INNER_EDGE_MIN_Y := 44
+const BACK_SHIN_SOFT_INNER_EDGE_MAX_ALPHA := 0.65
 const FRONT_THIGH_SMOOTH_HIP_MIN_Y := 88
 const FRONT_THIGH_SMOOTH_HIP_MAX_Y := 132
 const FRONT_THIGH_MAX_LEFT_EDGE_STEP := 2
@@ -291,6 +300,8 @@ func _test_rig_scene_contract() -> void:
 						_assert_head_cutout_keeps_source_head_shape(visual.texture, visual_path)
 					if SINGLE_ALPHA_COMPONENT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_single_alpha_component(visual.texture, visual_path)
+					if visual_path == TORSO_VISUAL_PATH:
+						_assert_torso_does_not_keep_static_side_arms(visual.texture, visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.70)
 						_assert_seam_fill_is_internal_strip(visual.texture, visual_path)
@@ -309,6 +320,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_front_shin_does_not_keep_detached_side_strip(visual.texture, visual_path)
 					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.24)
+						_assert_back_shin_has_soft_inner_edge(visual.texture, visual_path)
 					elif visual_path == CLEANED_FRONT_HAND_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.62)
 					elif visual_path == CLEANED_FRONT_HAND_EMPTY_VISUAL_PATH:
@@ -656,6 +668,62 @@ func _assert_front_shin_does_not_keep_detached_side_strip(texture: Texture2D, vi
 					"Player skeleton front shin must not keep the detached dark source-gap strip: %s" % visual_path
 			)
 
+func _assert_torso_does_not_keep_static_side_arms(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton torso texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var side_arm_skin_pixels := 0
+	for y in range(TORSO_STATIC_SIDE_ARM_TOP_Y, image.get_height()):
+		for x in range(image.get_width()):
+			if not _is_torso_static_side_arm_region(x, y):
+				continue
+			if _is_skin_toned_pixel(image.get_pixel(x, y)):
+				side_arm_skin_pixels += 1
+	assert_true(
+			side_arm_skin_pixels <= TORSO_STATIC_SIDE_ARM_MAX_SKIN_PIXELS,
+			"Player skeleton torso must not keep static side-arm skin that duplicates skeletal arms: %s" % visual_path
+	)
+
+func _is_torso_static_side_arm_region(x: int, y: int) -> bool:
+	if y > TORSO_STATIC_SIDE_ARM_LOWER_Y:
+		return x < TORSO_STATIC_SIDE_ARM_LOWER_LEFT_MAX_X or x > TORSO_STATIC_SIDE_ARM_LOWER_RIGHT_MIN_X
+	return x < TORSO_STATIC_SIDE_ARM_LEFT_MAX_X or x > TORSO_STATIC_SIDE_ARM_RIGHT_MIN_X
+
+func _is_skin_toned_pixel(color: Color) -> bool:
+	if color.a <= 0.05:
+		return false
+	var max_channel := maxf(color.r, maxf(color.g, color.b))
+	var min_channel := minf(color.r, minf(color.g, color.b))
+	if max_channel <= 0.0:
+		return false
+	var saturation := (max_channel - min_channel) / max_channel
+	var hue := _rgb_hue(color, max_channel, min_channel)
+	return (
+			hue >= 0.02
+			and hue <= 0.12
+			and saturation >= 0.18
+			and max_channel >= 0.25
+			and color.r > color.g * 1.03
+			and color.g > color.b * 0.92
+	)
+
+func _rgb_hue(color: Color, max_channel: float, min_channel: float) -> float:
+	var delta := max_channel - min_channel
+	if delta <= 0.0001:
+		return 0.0
+	var hue_sector := 0.0
+	if is_equal_approx(max_channel, color.r):
+		hue_sector = fmod((color.g - color.b) / delta, 6.0)
+	elif is_equal_approx(max_channel, color.g):
+		hue_sector = ((color.b - color.r) / delta) + 2.0
+	else:
+		hue_sector = ((color.r - color.g) / delta) + 4.0
+	var hue := hue_sector / 6.0
+	if hue < 0.0:
+		hue += 1.0
+	return hue
+
 func _assert_flashlight_cutout_has_completed_handle(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
 	assert_true(image != null, "Player skeleton flashlight texture must expose alpha pixels: %s" % visual_path)
@@ -788,6 +856,20 @@ func _assert_back_thigh_has_soft_lower_edges(texture: Texture2D, visual_path: St
 		assert_true(
 				image.get_pixel(max_x, y).a <= BACK_THIGH_SOFT_EDGE_MAX_ALPHA,
 				"Player skeleton back thigh lower right edge must stay alpha-tapered: %s" % visual_path
+		)
+
+func _assert_back_shin_has_soft_inner_edge(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton back shin texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(BACK_SHIN_SOFT_INNER_EDGE_MIN_Y, image.get_height()):
+		var edge_x := _find_left_visible_pixel_in_row(image, y)
+		if edge_x < 0:
+			continue
+		assert_true(
+				image.get_pixel(edge_x, y).a <= BACK_SHIN_SOFT_INNER_EDGE_MAX_ALPHA,
+				"Player skeleton back shin inner edge must stay alpha-tapered instead of reading as a hard cut: %s" % visual_path
 		)
 
 func _assert_front_thigh_has_soft_outer_edge(texture: Texture2D, visual_path: String) -> void:
