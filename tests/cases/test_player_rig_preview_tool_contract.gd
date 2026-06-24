@@ -1,13 +1,16 @@
 extends "res://tests/test_case.gd"
 
 const SCENE_CONTEXT_TOOL_PATH := "res://tools/player_rig_preview/export_player_rig_scene_context.py"
+const NATIVE_FRAME_TOOL_PATH := "res://tools/player_rig_preview/export_player_rig_native_frame.py"
 
 func run() -> Array[String]:
 	assert_true(FileAccess.file_exists(SCENE_CONTEXT_TOOL_PATH), "Player rig scene-context preview tool must exist")
-	if not FileAccess.file_exists(SCENE_CONTEXT_TOOL_PATH):
+	assert_true(FileAccess.file_exists(NATIVE_FRAME_TOOL_PATH), "Player rig native-frame preview tool must exist")
+	if not FileAccess.file_exists(SCENE_CONTEXT_TOOL_PATH) or not FileAccess.file_exists(NATIVE_FRAME_TOOL_PATH):
 		return get_failures()
 
 	var source := FileAccess.get_file_as_string(SCENE_CONTEXT_TOOL_PATH)
+	var native_source := FileAccess.get_file_as_string(NATIVE_FRAME_TOOL_PATH)
 	assert_true(source.find("DEFAULT_OUTPUT = Path(\"/tmp/andry_player_rig_scene_context.png\")") != -1, "Scene-context preview must default outside the repository")
 	assert_true(source.find("BEHIND_OBJECT_Z = 1") != -1, "Scene-context preview must keep a behind-player probe object")
 	assert_true(source.find("PLAYER_ROOT_Z = 2") != -1, "Scene-context preview must render the player above behind-player objects")
@@ -46,4 +49,10 @@ func run() -> Array[String]:
 	assert_true(montage_source.find("_polygon_bone_rows") != -1, "Rig preview montage must export Polygon2D bone weights for visual QA")
 	assert_true(montage_source.find("_render_polygon_visual") != -1, "Rig preview montage must render weighted mesh visuals, not only Sprite2D cutouts")
 	assert_true(source.find("_render_visual_layer") != -1, "Scene-context preview must render visual layers through the shared Sprite2D/Polygon2D path")
+	assert_true(native_source.find("DEFAULT_OUTPUT = Path(\"/tmp/andry_player_rig_native_frame.png\")") != -1, "Native-frame preview must default outside the repository")
+	assert_true(native_source.find("SubViewport") != -1, "Native-frame preview must render through Godot's native SubViewport path")
+	assert_true(native_source.find("viewport.get_texture().get_image()") != -1, "Native-frame preview must save the actual Godot-rendered canvas texture")
+	assert_true(native_source.find("Polygon2D") != -1, "Native-frame preview documentation must call out Polygon2D visibility regression coverage")
+	assert_true(native_source.find("POSE_ANIMATIONS = (\"idle\", \"light_idle\", \"walk\", \"light_walk\", \"run\", \"light_run\")") != -1, "Native-frame preview must support all player skeleton motion clips")
+	assert_true(native_source.find("args.animation.startswith(\"light_\")") != -1, "Native-frame preview must auto-show flashlight layers for light_* clips")
 	return get_failures()
