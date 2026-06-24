@@ -325,6 +325,7 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 const CONVERTED_LIMB_VISUAL_PATHS: Array[String] = [
 	BACK_UPPER_ARM_VISUAL_PATH,
 	BACK_FOREARM_VISUAL_PATH,
+	CLEANED_BACK_HAND_VISUAL_PATH,
 	CLEANED_BACK_THIGH_VISUAL_PATH,
 	CLEANED_BACK_SHIN_VISUAL_PATH,
 	FRONT_UPPER_ARM_VISUAL_PATH,
@@ -1124,6 +1125,13 @@ func _active_limb_mesh_specs() -> Array[Dictionary]:
 			"z_index": 0,
 			"first_bone": NodePath("../Skeleton2D/Hips/Spine/Chest/BackUpperArm"),
 			"second_bone": NodePath("../Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"),
+		},
+		{
+			"path": "MeshBackHand",
+			"texture": "/back_hand.png",
+			"z_index": 0,
+			"first_bone": NodePath("../Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"),
+			"second_bone": NodePath("../Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand"),
 		},
 		{
 			"path": "MeshBackThigh",
