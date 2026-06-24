@@ -36,16 +36,20 @@ from export_player_rig_montage import (  # noqa: E402
 
 DEFAULT_OUTPUT = Path("/tmp/andry_player_rig_scene_context.png")
 PANEL_SIZE = (560, 720)
+DARK_CLOSEUP_PANEL_SIZE = (520, 720)
 PLAYER_ROOT_Z = 2
 BEHIND_OBJECT_Z = 1
 FOREGROUND_OBJECT_Z = 10
 PLAYER_VISUAL_SCALE = 0.4480088
 PLAYER_FLOOR_Y = 650
+DARK_CLOSEUP_PLAYER_SCALE = 0.70
+DARK_CLOSEUP_PLAYER_FLOOR_Y = 660
 SCENE_POSES: list[tuple[str, str, float]] = [
     ("idle", "idle", 0.0),
     ("walk contact", "walk", 0.2),
     ("run contact", "light_run", 0.1375),
 ]
+POSE_ANIMATIONS = ("idle", "walk", "light_run")
 
 WALL_TEXTURE = "objects/environment/background/BackWalls.png"
 FLOOR_TEXTURE = "objects/environment/background/Floor.png"
@@ -69,16 +73,35 @@ def main() -> int:
         default=PLAYER_VISUAL_SCALE,
         help="Scene preview scale for the unscaled skeleton rig. Defaults to the active player scene scale.",
     )
+    parser.add_argument(
+        "--dark-closeup",
+        action="store_true",
+        help="Render one darker close-up frame for screenshot-like rig QA instead of the three-panel sheet.",
+    )
+    parser.add_argument(
+        "--pose-animation",
+        choices=POSE_ANIMATIONS,
+        default="idle",
+        help="Animation sampled by --dark-closeup. Defaults to idle.",
+    )
+    parser.add_argument(
+        "--pose-time",
+        type=float,
+        default=0.0,
+        help="Animation time sampled by --dark-closeup. Defaults to 0.0.",
+    )
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[2]
     output_path = Path(args.output).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    poses = _resolve_scene_poses(args.dark_closeup, args.pose_animation, args.pose_time)
+
     with tempfile.TemporaryDirectory(prefix="andry-rig-scene-context-") as temp_dir_name:
         temp_dir = Path(temp_dir_name)
         dump_script = temp_dir / "dump_player_rig_scene_context.gd"
-        dump_script.write_text(_build_godot_dump_script(temp_dir, args.flashlight, SCENE_POSES), encoding="utf-8")
+        dump_script.write_text(_build_godot_dump_script(temp_dir, args.flashlight, poses), encoding="utf-8")
         subprocess.run(
             [args.godot, "--headless", "--path", str(repo_root), "-s", str(dump_script)],
             cwd=repo_root,
@@ -86,20 +109,31 @@ def main() -> int:
         )
         pose_data = [
             json.loads((temp_dir / f"pose_{index}.json").read_text(encoding="utf-8"))
-            for index in range(len(SCENE_POSES))
+            for index in range(len(poses))
         ]
 
-    panels = [
-        _render_scene_panel(repo_root, pose_data[index], label, args.scale)
-        for index, (label, _, _) in enumerate(SCENE_POSES)
-    ]
-    _save_scene_sheet(panels, output_path)
+    if args.dark_closeup:
+        panel = _render_dark_closeup_panel(repo_root, pose_data[0], poses[0][0], args.scale)
+        panel.save(output_path)
+    else:
+        panels = [
+            _render_scene_panel(repo_root, pose_data[index], label, args.scale)
+            for index, (label, _, _) in enumerate(poses)
+        ]
+        _save_scene_sheet(panels, output_path)
     print(output_path)
     return 0
 
 
+def _resolve_scene_poses(dark_closeup: bool, pose_animation: str, pose_time: float) -> list[tuple[str, str, float]]:
+    if not dark_closeup:
+        return SCENE_POSES
+    label = f"{pose_animation} {pose_time:.3f}"
+    return [(label, pose_animation, pose_time)]
+
+
 def _render_scene_panel(repo_root: Path, data: dict, label: str, scale: float) -> Image.Image:
-    panel = _render_room_background(repo_root)
+    panel = _render_room_background(repo_root, PANEL_SIZE)
     layers: list[tuple[int, Image.Image, tuple[int, int]]] = []
     layers.append((BEHIND_OBJECT_Z, _scaled_asset(repo_root, BEHIND_DOOR_TEXTURE, 0.68), (260, 110)))
     layers.extend(_build_player_visual_layers(repo_root, data, scale))
@@ -116,11 +150,37 @@ def _render_scene_panel(repo_root: Path, data: dict, label: str, scale: float) -
     return panel
 
 
-def _render_room_background(repo_root: Path) -> Image.Image:
-    width, height = PANEL_SIZE
+def _render_dark_closeup_panel(repo_root: Path, data: dict, label: str, base_scale: float) -> Image.Image:
+    panel = _render_room_background(repo_root, DARK_CLOSEUP_PANEL_SIZE)
+    layers: list[tuple[int, Image.Image, tuple[int, int]]] = []
+    layers.append((BEHIND_OBJECT_Z, _scaled_asset(repo_root, BEHIND_DOOR_TEXTURE, 0.9), (235, 78)))
+    closeup_scale = DARK_CLOSEUP_PLAYER_SCALE if base_scale == PLAYER_VISUAL_SCALE else base_scale
+    layers.extend(
+        _build_player_visual_layers(
+            repo_root,
+            data,
+            closeup_scale,
+            DARK_CLOSEUP_PANEL_SIZE,
+            DARK_CLOSEUP_PLAYER_FLOOR_Y,
+            player_x=250,
+        )
+    )
+    for _z, image, position in sorted(layers, key=lambda layer: layer[0]):
+        panel.alpha_composite(image, position)
+
+    darkness = Image.new("RGBA", panel.size, (0, 0, 18, 118))
+    panel.alpha_composite(darkness)
+    draw = ImageDraw.Draw(panel)
+    draw.rectangle((0, 0, DARK_CLOSEUP_PANEL_SIZE[0], 30), fill=(7, 7, 10, 225))
+    draw.text((10, 8), f"{label} | dark close-up", fill=(245, 245, 245, 255))
+    return panel
+
+
+def _render_room_background(repo_root: Path, panel_size: tuple[int, int]) -> Image.Image:
+    width, height = panel_size
     wall_height = 465
     floor_y = 440
-    panel = Image.new("RGBA", PANEL_SIZE, (18, 17, 20, 255))
+    panel = Image.new("RGBA", panel_size, (18, 17, 20, 255))
     wall = ImageOps.fit(_open_asset(repo_root, WALL_TEXTURE), (width, wall_height), method=Image.Resampling.LANCZOS)
     floor = ImageOps.fit(_open_asset(repo_root, FLOOR_TEXTURE), (width, height - floor_y), method=Image.Resampling.LANCZOS)
     plintus = _open_asset(repo_root, PLINTUS_TEXTURE)
@@ -131,7 +191,14 @@ def _render_room_background(repo_root: Path) -> Image.Image:
     return panel
 
 
-def _build_player_visual_layers(repo_root: Path, data: dict, scale: float) -> list[tuple[int, Image.Image, tuple[int, int]]]:
+def _build_player_visual_layers(
+    repo_root: Path,
+    data: dict,
+    scale: float,
+    panel_size: tuple[int, int] = PANEL_SIZE,
+    floor_y: int = PLAYER_FLOOR_Y,
+    player_x: int | None = None,
+) -> list[tuple[int, Image.Image, tuple[int, int]]]:
     texture_cache: dict[str, Image.Image] = {}
     visuals = [visual for visual in data["visuals"] if visual["visible"]]
     points: list[tuple[float, float]] = []
@@ -142,7 +209,8 @@ def _build_player_visual_layers(repo_root: Path, data: dict, scale: float) -> li
     max_x = max(x for x, _ in points)
     max_y = max(y for _, y in points)
     center_x = (min_x + max_x) / 2.0
-    player_x = PANEL_SIZE[0] // 2
+    if player_x is None:
+        player_x = panel_size[0] // 2
 
     layers: list[tuple[int, Image.Image, tuple[int, int]]] = []
     for visual in visuals:
@@ -150,7 +218,7 @@ def _build_player_visual_layers(repo_root: Path, data: dict, scale: float) -> li
         transformed = _transform_texture(texture, visual, scale)
         origin_x, origin_y = visual["origin"]
         x = int(player_x + (origin_x - center_x) * scale - transformed.width / 2)
-        y = int(PLAYER_FLOOR_Y + (origin_y - max_y) * scale - transformed.height / 2)
+        y = int(floor_y + (origin_y - max_y) * scale - transformed.height / 2)
         layers.append((PLAYER_ROOT_Z + int(visual["z_index"]), transformed, (x, y)))
     return layers
 
