@@ -1442,105 +1442,6 @@ _data = {
 
 [node name="Skeleton2D" type="Skeleton2D" parent="."]
 
-[node name="VisualFrontForearm" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 4
-texture = ExtResource("8_front_forearm")
-position = Vector2(-49, -39.5)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-33, -91.5, 33, -91.5, 33, 91.5, -33, 91.5, -16.5, -55, 16.5, -55, -16.5, -18, 16.5, -18, -16.5, 18, 16.5, 18, -16.5, 55, 16.5, 55)
-uv = PackedVector2Array(0, 0, 66, 0, 66, 183, 0, 183, 16.5, 36.5, 49.5, 36.5, 16.5, 73.5, 49.5, 73.5, 16.5, 109.5, 49.5, 109.5, 16.5, 146.5, 49.5, 146.5)
-internal_vertex_count = 8
-bones = ["../Hips/Spine/Chest/FrontUpperArm", PackedFloat32Array(0.85, 0.85, 0, 0, 0.7, 0.7, 0.45, 0.45, 0.2, 0.2, 0.05, 0.05), "../Hips/Spine/Chest/FrontUpperArm/FrontForearm", PackedFloat32Array(0.15, 0.15, 1, 1, 0.3, 0.3, 0.55, 0.55, 0.8, 0.8, 0.95, 0.95)]
-
-[node name="VisualBackUpperArm" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 0
-texture = ExtResource("4_back_upper_arm")
-position = Vector2(64, -158.5)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-29, -92.5, 29, -92.5, 29, 92.5, -29, 92.5, -17.5, -55.5, 17.5, -55.5, -17.5, -18.5, 17.5, -18.5, -17.5, 18.5, 17.5, 18.5, -17.5, 55.5, 17.5, 55.5)
-uv = PackedVector2Array(0, 0, 58, 0, 58, 185, 0, 185, 11.5, 37, 46.5, 37, 11.5, 74, 46.5, 74, 11.5, 111, 46.5, 111, 11.5, 148, 46.5, 148)
-internal_vertex_count = 8
-bones = ["../Hips/Spine/Chest", PackedFloat32Array(0.6, 0.6, 0, 0, 0.45, 0.45, 0.25, 0.25, 0.08, 0.08, 0, 0), "../Hips/Spine/Chest/BackUpperArm", PackedFloat32Array(0.4, 0.4, 1, 1, 0.55, 0.55, 0.75, 0.75, 0.92, 0.92, 1, 1)]
-
-[node name="VisualBackForearm" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 0
-texture = ExtResource("5_back_forearm")
-position = Vector2(84.5, -40)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-26.5, -77, 26.5, -77, 26.5, 77, -26.5, 77, -16, -46, 16, -46, -16, -15, 16, -15, -16, 15, 16, 15, -16, 46, 16, 46)
-uv = PackedVector2Array(0, 0, 53, 0, 53, 154, 0, 154, 10.5, 31, 42.5, 31, 10.5, 62, 42.5, 62, 10.5, 92, 42.5, 92, 10.5, 123, 42.5, 123)
-internal_vertex_count = 8
-bones = ["../Hips/Spine/Chest/BackUpperArm", PackedFloat32Array(0.85, 0.85, 0, 0, 0.7, 0.7, 0.45, 0.45, 0.2, 0.2, 0.05, 0.05), "../Hips/Spine/Chest/BackUpperArm/BackForearm", PackedFloat32Array(0.15, 0.15, 1, 1, 0.3, 0.3, 0.55, 0.55, 0.8, 0.8, 0.95, 0.95)]
-
-[node name="VisualFrontUpperArm" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 1
-texture = ExtResource("7_front_upper_arm")
-position = Vector2(-73, -158)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-39, -92, 39, -92, 39, 92, -39, 92, -23.5, -55, 23.5, -55, -23.5, -18, 23.5, -18, -23.5, 18, 23.5, 18, -23.5, 55, 23.5, 55)
-uv = PackedVector2Array(0, 0, 78, 0, 78, 184, 0, 184, 15.5, 37, 62.5, 37, 15.5, 74, 62.5, 74, 15.5, 110, 62.5, 110, 15.5, 147, 62.5, 147)
-internal_vertex_count = 8
-bones = ["../Hips/Spine/Chest", PackedFloat32Array(0.6, 0.6, 0, 0, 0.45, 0.45, 0.25, 0.25, 0.08, 0.08, 0, 0), "../Hips/Spine/Chest/FrontUpperArm", PackedFloat32Array(0.4, 0.4, 1, 1, 0.55, 0.55, 0.75, 0.75, 0.92, 0.92, 1, 1)]
-
-[node name="VisualBackLegUnderlay" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 0
-texture = ExtResource("27_back_leg_underlay")
-position = Vector2(14, 175)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-56, -188, 56, -188, 56, 188, -56, 188, -33.5, -113, 33.5, -113, -33.5, -38, 33.5, -38, -33.5, 38, 33.5, 38, -33.5, 113, 33.5, 113)
-uv = PackedVector2Array(0, 0, 112, 0, 112, 376, 0, 376, 22.5, 75, 89.5, 75, 22.5, 150, 89.5, 150, 22.5, 226, 89.5, 226, 22.5, 301, 89.5, 301)
-internal_vertex_count = 8
-bones = ["../Hips", PackedFloat32Array(0.55, 0.55, 0, 0, 0.35, 0.35, 0.12, 0.12, 0, 0, 0, 0), "../Hips/BackThigh", PackedFloat32Array(0.45, 0.45, 0, 0, 0.55, 0.55, 0.58, 0.58, 0.35, 0.35, 0.12, 0.12), "../Hips/BackThigh/BackShin", PackedFloat32Array(0, 0, 1, 1, 0.1, 0.1, 0.3, 0.3, 0.65, 0.65, 0.88, 0.88)]
-
-[node name="VisualBackThigh" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 0
-texture = ExtResource("11_back_thigh")
-position = Vector2(19, 80.5)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-49, -117.5, 49, -117.5, 49, 117.5, -49, 117.5, -29.5, -70.5, 29.5, -70.5, -29.5, -23.5, 29.5, -23.5, -29.5, 23.5, 29.5, 23.5, -29.5, 70.5, 29.5, 70.5)
-uv = PackedVector2Array(0, 0, 98, 0, 98, 235, 0, 235, 19.5, 47, 78.5, 47, 19.5, 94, 78.5, 94, 19.5, 141, 78.5, 141, 19.5, 188, 78.5, 188)
-internal_vertex_count = 8
-bones = ["../Hips", PackedFloat32Array(0.55, 0.55, 0, 0, 0.4, 0.4, 0.22, 0.22, 0.08, 0.08, 0, 0), "../Hips/BackThigh", PackedFloat32Array(0.45, 0.45, 1, 1, 0.6, 0.6, 0.78, 0.78, 0.92, 0.92, 1, 1)]
-
-[node name="VisualBackShin" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 0
-texture = ExtResource("12_back_shin")
-position = Vector2(28, 240)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-40, -109, 40, -109, 40, 109, -40, 109, -24, -65, 24, -65, -24, -22, 24, -22, -24, 22, 24, 22, -24, 65, 24, 65)
-uv = PackedVector2Array(0, 0, 80, 0, 80, 218, 0, 218, 16, 44, 64, 44, 16, 87, 64, 87, 16, 131, 64, 131, 16, 174, 64, 174)
-internal_vertex_count = 8
-bones = ["../Hips/BackThigh", PackedFloat32Array(0.35, 0.35, 0, 0, 0.22, 0.22, 0.08, 0.08, 0, 0, 0, 0), "../Hips/BackThigh/BackShin", PackedFloat32Array(0.65, 0.65, 1, 1, 0.78, 0.78, 0.92, 0.92, 1, 1, 1, 1)]
-
-[node name="VisualFrontThigh" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 1
-texture = ExtResource("14_front_thigh")
-position = Vector2(-37.5, 82.5)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-45.5, -119.5, 45.5, -119.5, 45.5, 119.5, -45.5, 119.5, -27.5, -72, 27.5, -72, -27.5, -24, 27.5, -24, -27.5, 24, 27.5, 24, -27.5, 72, 27.5, 72)
-uv = PackedVector2Array(0, 0, 91, 0, 91, 239, 0, 239, 18, 47.5, 73, 47.5, 18, 95.5, 73, 95.5, 18, 143.5, 73, 143.5, 18, 191.5, 73, 191.5)
-internal_vertex_count = 8
-bones = ["../Hips", PackedFloat32Array(0.55, 0.55, 0, 0, 0.4, 0.4, 0.22, 0.22, 0.08, 0.08, 0, 0), "../Hips/FrontThigh", PackedFloat32Array(0.45, 0.45, 1, 1, 0.6, 0.6, 0.78, 0.78, 0.92, 0.92, 1, 1)]
-
-[node name="VisualFrontShin" type="Polygon2D" parent="Skeleton2D"]
-light_mask = 2
-z_index = 3
-texture = ExtResource("15_front_shin")
-position = Vector2(-33.5, 244.5)
-skeleton = NodePath("..")
-polygon = PackedVector2Array(-42.5, -113.5, 42.5, -113.5, 42.5, 113.5, -42.5, 113.5, -25.5, -68, 25.5, -68, -25.5, -22.5, 25.5, -22.5, -25.5, 22.5, 25.5, 22.5, -25.5, 68, 25.5, 68)
-uv = PackedVector2Array(0, 0, 85, 0, 85, 227, 0, 227, 17, 45.5, 68, 45.5, 17, 91, 68, 91, 17, 136, 68, 136, 17, 181.5, 68, 181.5)
-internal_vertex_count = 8
-bones = ["../Hips/FrontThigh", PackedFloat32Array(0.35, 0.35, 0, 0, 0.22, 0.22, 0.08, 0.08, 0, 0, 0, 0), "../Hips/FrontThigh/FrontShin", PackedFloat32Array(0.65, 0.65, 1, 1, 0.78, 0.78, 0.92, 0.92, 1, 1, 1, 1)]
-
 [node name="Hips" type="Bone2D" parent="Skeleton2D"]
 position = Vector2(0, 50)
 rest = Transform2D(1, 0, 0, 1, 0, 50)
@@ -1673,11 +1574,29 @@ z_index = 0
 texture = ExtResource("0_seam_fill")
 position = Vector2(8, 117)
 
+[node name="VisualBackLegUnderlay" type="Sprite2D" parent="Skeleton2D/Hips"]
+light_mask = 2
+z_index = 0
+texture = ExtResource("27_back_leg_underlay")
+position = Vector2(14, 125)
+
+[node name="VisualBackUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
+light_mask = 2
+z_index = 0
+texture = ExtResource("4_back_upper_arm")
+position = Vector2(0, 57.5)
+
 [node name="VisualBackShoulderCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm"]
 light_mask = 2
 z_index = 0
 texture = ExtResource("17_back_shoulder")
 position = Vector2(0, 14)
+
+[node name="VisualBackForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
+light_mask = 2
+z_index = 0
+texture = ExtResource("5_back_forearm")
+position = Vector2(0, 57)
 
 [node name="VisualBackElbowCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm"]
 light_mask = 2
@@ -1690,6 +1609,18 @@ light_mask = 2
 z_index = 0
 texture = ExtResource("6_back_hand")
 position = Vector2(0, 32)
+
+[node name="VisualBackThigh" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh"]
+light_mask = 2
+z_index = 0
+texture = ExtResource("11_back_thigh")
+position = Vector2(1, 97.5)
+
+[node name="VisualBackShin" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
+light_mask = 2
+z_index = 0
+texture = ExtResource("12_back_shin")
+position = Vector2(0, 89)
 
 [node name="VisualBackKneeCover" type="Sprite2D" parent="Skeleton2D/Hips/BackThigh/BackShin"]
 light_mask = 2
@@ -1731,6 +1662,18 @@ z_index = 3
 texture = ExtResource("1_head")
 position = Vector2(-26.5, -27)
 
+[node name="VisualFrontThigh" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh"]
+light_mask = 2
+z_index = 1
+texture = ExtResource("14_front_thigh")
+position = Vector2(-9.5, 99.5)
+
+[node name="VisualFrontShin" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
+light_mask = 2
+z_index = 3
+texture = ExtResource("15_front_shin")
+position = Vector2(5.5, 93.5)
+
 [node name="VisualFrontKneeCover" type="Sprite2D" parent="Skeleton2D/Hips/FrontThigh/FrontShin"]
 light_mask = 2
 z_index = 4
@@ -1747,11 +1690,23 @@ light_mask = 2
 z_index = 4
 texture = ExtResource("24_front_ankle")
 
+[node name="VisualFrontUpperArm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
+light_mask = 2
+z_index = 1
+texture = ExtResource("7_front_upper_arm")
+position = Vector2(0, 57)
+
 [node name="VisualFrontShoulderCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm"]
 light_mask = 2
 z_index = 5
 texture = ExtResource("21_front_shoulder")
 position = Vector2(-3, 13)
+
+[node name="VisualFrontForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("8_front_forearm")
+position = Vector2(0, 71.5)
 
 [node name="VisualFrontElbowCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
 light_mask = 2
