@@ -144,6 +144,8 @@ const IDLE_MIN_HAND_BREATH_RANGE := 0.009
 const IDLE_MAX_HAND_BREATH_RANGE := 0.02
 const IDLE_MIN_EMPTY_HAND_BREATH_RANGE := 0.008
 const IDLE_MAX_EMPTY_HAND_BREATH_RANGE := 0.012
+const IDLE_MIN_FLASHLIGHT_BOB_RANGE := 0.02
+const IDLE_MAX_FLASHLIGHT_BOB_RANGE := 0.03
 const WALK_MIN_HIPS_BOUNCE_RANGE := 2.5
 const WALK_MAX_HIPS_BOUNCE_RANGE := 3.5
 const WALK_MIN_LEG_SWING_RANGE := 0.055
@@ -319,6 +321,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_EMPTY_VISUAL_ROTATION_TRACK, IDLE_MIN_EMPTY_HAND_BREATH_RANGE, IDLE_MAX_EMPTY_HAND_BREATH_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FLASHLIGHT_MOUNT_ROTATION_TRACK, IDLE_MIN_FLASHLIGHT_BOB_RANGE, IDLE_MAX_FLASHLIGHT_BOB_RANGE, String(animation_name))
 				elif animation_name == &"walk":
 					_assert_animation_vector2_y_range(animation, HIPS_POSITION_TRACK, WALK_MIN_HIPS_BOUNCE_RANGE, WALK_MAX_HIPS_BOUNCE_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LEG_SWING_RANGE, WALK_MAX_LEG_SWING_RANGE, String(animation_name))
