@@ -31,16 +31,16 @@ const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
 const CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/VisualPelvis",
 	"Hips/BackThigh/VisualBackThigh",
-	"Hips/BackThigh/BackShin/VisualBackShin",
+	CLEANED_BACK_SHIN_VISUAL_PATH,
 	"Hips/FrontThigh/VisualFrontThigh",
-	"Hips/FrontThigh/FrontShin/VisualFrontShin",
+	CLEANED_FRONT_SHIN_VISUAL_PATH,
 ]
 const CLEANED_SEAM_FILL_VISUAL_PATH := "Hips/VisualSeamFill"
 const CLEANED_PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
 const CLEANED_FRONT_THIGH_VISUAL_PATH := "Hips/FrontThigh/VisualFrontThigh"
 const CLEANED_BACK_THIGH_VISUAL_PATH := "Hips/BackThigh/VisualBackThigh"
-const CLEANED_FRONT_SHIN_VISUAL_PATH := "Hips/FrontThigh/FrontShin/VisualFrontShin"
-const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
+const CLEANED_FRONT_SHIN_VISUAL_PATH := "VisualFrontShin"
+const CLEANED_BACK_SHIN_VISUAL_PATH := "VisualBackShin"
 const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
 const CLEANED_FRONT_HAND_EMPTY_VISUAL_PATH := FRONT_HAND_EMPTY_VISUAL_PATH
 const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand"
@@ -125,6 +125,7 @@ const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
 const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
 const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
 const FRONT_FOREARM_MESH_MIN_INTERNAL_VERTICES := 8
+const SHIN_MESH_MIN_INTERNAL_VERTICES := 8
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -233,12 +234,12 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	FRONT_HAND_PATH + "/VisualFrontHand",
 	FLASHLIGHT_VISUAL_PATH,
 	"Hips/BackThigh/VisualBackThigh",
-	"Hips/BackThigh/BackShin/VisualBackShin",
+	CLEANED_BACK_SHIN_VISUAL_PATH,
 	"Hips/BackThigh/BackShin/VisualBackKneeCover",
 	"Hips/BackThigh/BackShin/BackFoot/VisualBackFoot",
 	"Hips/BackThigh/BackShin/BackFoot/VisualBackAnkleCover",
 	"Hips/FrontThigh/VisualFrontThigh",
-	"Hips/FrontThigh/FrontShin/VisualFrontShin",
+	CLEANED_FRONT_SHIN_VISUAL_PATH,
 	"Hips/FrontThigh/FrontShin/VisualFrontKneeCover",
 	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
 	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontAnkleCover",
@@ -355,9 +356,21 @@ func _test_rig_scene_contract() -> void:
 						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
 						_assert_back_thigh_has_soft_lower_edges(visual_texture, visual_path)
 					elif visual_path == CLEANED_FRONT_SHIN_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								SHIN_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips/FrontThigh", "../Hips/FrontThigh/FrontShin"]
+						)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.32)
 						_assert_front_shin_does_not_keep_detached_side_strip(visual_texture, visual_path)
 					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								SHIN_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips/BackThigh", "../Hips/BackThigh/BackShin"]
+						)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.24)
 						_assert_back_shin_has_soft_inner_edge(visual_texture, visual_path)
 					elif visual_path == CLEANED_FRONT_HAND_VISUAL_PATH:
@@ -825,31 +838,39 @@ func _assert_front_forearm_has_soft_elbow_taper(texture: Texture2D, visual_path:
 	)
 
 func _assert_front_forearm_is_weighted_mesh(visual: CanvasItem, visual_path: String) -> void:
+	_assert_limb_visual_is_weighted_mesh(
+			visual,
+			visual_path,
+			FRONT_FOREARM_MESH_MIN_INTERNAL_VERTICES,
+			["../Hips/Spine/Chest/FrontUpperArm", "../Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
+	)
+
+func _assert_limb_visual_is_weighted_mesh(
+		visual: CanvasItem,
+		visual_path: String,
+		min_internal_vertices: int,
+		expected_bone_paths: Array[String]
+) -> void:
 	var mesh := visual as Polygon2D
-	assert_true(mesh != null, "Player skeleton front forearm must be a weighted Polygon2D mesh: %s" % visual_path)
+	assert_true(mesh != null, "Player skeleton limb visual must be a weighted Polygon2D mesh: %s" % visual_path)
 	if mesh == null:
 		return
-	assert_eq(mesh.skeleton, NodePath(".."), "Player skeleton front forearm mesh must bind to the parent Skeleton2D")
+	assert_eq(mesh.skeleton, NodePath(".."), "Player skeleton limb mesh must bind to the parent Skeleton2D: %s" % visual_path)
 	assert_true(
-			mesh.internal_vertex_count >= FRONT_FOREARM_MESH_MIN_INTERNAL_VERTICES,
-			"Player skeleton front forearm mesh must keep internal vertices for smooth deformation"
+			mesh.internal_vertex_count >= min_internal_vertices,
+			"Player skeleton limb mesh must keep internal vertices for smooth deformation: %s" % visual_path
 	)
-	assert_true(mesh.polygon.size() == mesh.uv.size(), "Player skeleton front forearm mesh polygon and UV vertex counts must match")
-	assert_true(mesh.get_bone_count() >= 2, "Player skeleton front forearm mesh must use upper-arm and forearm bone weights")
+	assert_true(mesh.polygon.size() == mesh.uv.size(), "Player skeleton limb mesh polygon and UV vertex counts must match: %s" % visual_path)
+	assert_true(mesh.get_bone_count() >= expected_bone_paths.size(), "Player skeleton limb mesh must use expected bone weights: %s" % visual_path)
 	var bone_paths: Array[String] = []
 	for bone_index in range(mesh.get_bone_count()):
 		var bone_path := String(mesh.get_bone_path(bone_index))
 		bone_paths.append(bone_path)
 		var weights := mesh.get_bone_weights(bone_index)
-		assert_eq(weights.size(), mesh.polygon.size(), "Player skeleton front forearm mesh bone weights must cover every vertex: %s" % bone_path)
-	assert_true(
-			bone_paths.has("../Hips/Spine/Chest/FrontUpperArm"),
-			"Player skeleton front forearm mesh must include FrontUpperArm weights"
-	)
-	assert_true(
-			bone_paths.has("../Hips/Spine/Chest/FrontUpperArm/FrontForearm"),
-			"Player skeleton front forearm mesh must include FrontForearm weights"
-	)
+		assert_true(mesh.get_node_or_null(mesh.get_bone_path(bone_index)) is Bone2D, "Player skeleton limb mesh bone path must resolve to a Bone2D: %s" % bone_path)
+		assert_eq(weights.size(), mesh.polygon.size(), "Player skeleton limb mesh bone weights must cover every vertex: %s" % bone_path)
+	for expected_path in expected_bone_paths:
+		assert_true(bone_paths.has(expected_path), "Player skeleton limb mesh must include expected bone weights: %s" % expected_path)
 	for vertex_index in range(mesh.polygon.size()):
 		var total_weight := 0.0
 		for bone_index in range(mesh.get_bone_count()):
@@ -858,7 +879,7 @@ func _assert_front_forearm_is_weighted_mesh(visual: CanvasItem, visual_path: Str
 				total_weight += weights[vertex_index]
 		assert_true(
 				total_weight >= 0.99 and total_weight <= 1.01,
-				"Player skeleton front forearm mesh vertex weights must sum to 1.0"
+				"Player skeleton limb mesh vertex weights must sum to 1.0: %s" % visual_path
 		)
 
 func _assert_back_forearm_does_not_keep_hand_tail(texture: Texture2D, visual_path: String) -> void:
