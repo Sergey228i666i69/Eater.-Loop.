@@ -123,6 +123,7 @@ const UPPER_ARM_SOFT_EDGE_MIN_Y := 68
 const UPPER_ARM_SOFT_EDGE_MAX_ALPHA := 0.68
 const FOREARM_SOFT_SIDE_EDGE_MIN_Y := 16
 const FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA := 0.65
+const ARM_EDGE_MAX_OPAQUE_DARK_MATTE_PIXELS := 16
 const FRONT_ELBOW_COVER_MAX_ALPHA := 0.75
 const FRONT_ELBOW_COVER_MAX_VISIBLE_RATIO := 0.50
 const FRONT_ELBOW_COVER_MIN_LOCAL_X := 1.0
@@ -541,24 +542,28 @@ func _test_rig_scene_contract() -> void:
 						_assert_upper_arm_does_not_keep_duplicate_sleeve(visual_texture, visual_path)
 						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
+						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.45)
 					elif visual_path == FRONT_UPPER_ARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_upper_arm_does_not_keep_duplicate_sleeve(visual_texture, visual_path)
 						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
+						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.40)
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_back_forearm_does_not_keep_hand_tail(visual_texture, visual_path)
 						_assert_forearm_does_not_keep_clothing_fragments(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
+						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif visual_path == FRONT_FOREARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_front_forearm_has_soft_elbow_taper(visual_texture, visual_path)
 						_assert_forearm_does_not_keep_clothing_fragments(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
+						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
@@ -1272,6 +1277,42 @@ func _assert_arm_cutout_has_soft_side_edges(texture: Texture2D, visual_path: Str
 				image.get_pixel(max_x, y).a <= max_edge_alpha,
 				"Player skeleton arm side edge must stay alpha-tapered instead of reading as a cutout slab: %s" % visual_path
 		)
+
+func _assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton arm texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var opaque_dark_matte_pixels := 0
+	for y in range(image.get_height()):
+		var min_x := image.get_width()
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		for x in range(min_x, max_x + 1):
+			if mini(x - min_x, max_x - x) > 4:
+				continue
+			if _is_opaque_dark_matte_pixel(image.get_pixel(x, y)):
+				opaque_dark_matte_pixels += 1
+	assert_true(
+			opaque_dark_matte_pixels <= ARM_EDGE_MAX_OPAQUE_DARK_MATTE_PIXELS,
+			"Player skeleton arm cutout edge must not keep opaque dark source-matte pixels: %s" % visual_path
+	)
+
+func _is_opaque_dark_matte_pixel(color: Color) -> bool:
+	if color.a <= 0.70:
+		return false
+	var max_channel := maxf(color.r, maxf(color.g, color.b))
+	var min_channel := minf(color.r, minf(color.g, color.b))
+	if max_channel <= 0.0:
+		return false
+	var saturation := (max_channel - min_channel) / max_channel
+	return max_channel < 0.38 and saturation < 0.32
 
 func _assert_front_elbow_cover_stays_subtle(visual: Sprite2D) -> void:
 	assert_true(visual.texture != null, "Player skeleton front elbow cover must keep a texture")
