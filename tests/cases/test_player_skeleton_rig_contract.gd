@@ -30,15 +30,15 @@ const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
 ]
 const CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/VisualPelvis",
-	"Hips/BackThigh/VisualBackThigh",
+	CLEANED_BACK_THIGH_VISUAL_PATH,
 	CLEANED_BACK_SHIN_VISUAL_PATH,
-	"Hips/FrontThigh/VisualFrontThigh",
+	CLEANED_FRONT_THIGH_VISUAL_PATH,
 	CLEANED_FRONT_SHIN_VISUAL_PATH,
 ]
 const CLEANED_SEAM_FILL_VISUAL_PATH := "Hips/VisualSeamFill"
 const CLEANED_PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
-const CLEANED_FRONT_THIGH_VISUAL_PATH := "Hips/FrontThigh/VisualFrontThigh"
-const CLEANED_BACK_THIGH_VISUAL_PATH := "Hips/BackThigh/VisualBackThigh"
+const CLEANED_FRONT_THIGH_VISUAL_PATH := "VisualFrontThigh"
+const CLEANED_BACK_THIGH_VISUAL_PATH := "VisualBackThigh"
 const CLEANED_FRONT_SHIN_VISUAL_PATH := "VisualFrontShin"
 const CLEANED_BACK_SHIN_VISUAL_PATH := "VisualBackShin"
 const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
@@ -125,6 +125,7 @@ const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
 const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
 const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
 const FRONT_FOREARM_MESH_MIN_INTERNAL_VERTICES := 8
+const THIGH_MESH_MIN_INTERNAL_VERTICES := 8
 const SHIN_MESH_MIN_INTERNAL_VERTICES := 8
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
@@ -233,12 +234,12 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	FRONT_HAND_EMPTY_VISUAL_PATH,
 	FRONT_HAND_PATH + "/VisualFrontHand",
 	FLASHLIGHT_VISUAL_PATH,
-	"Hips/BackThigh/VisualBackThigh",
+	CLEANED_BACK_THIGH_VISUAL_PATH,
 	CLEANED_BACK_SHIN_VISUAL_PATH,
 	"Hips/BackThigh/BackShin/VisualBackKneeCover",
 	"Hips/BackThigh/BackShin/BackFoot/VisualBackFoot",
 	"Hips/BackThigh/BackShin/BackFoot/VisualBackAnkleCover",
-	"Hips/FrontThigh/VisualFrontThigh",
+	CLEANED_FRONT_THIGH_VISUAL_PATH,
 	CLEANED_FRONT_SHIN_VISUAL_PATH,
 	"Hips/FrontThigh/FrontShin/VisualFrontKneeCover",
 	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
@@ -348,10 +349,22 @@ func _test_rig_scene_contract() -> void:
 					elif visual_path == CLEANED_PELVIS_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.45)
 					elif visual_path == CLEANED_FRONT_THIGH_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								THIGH_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips", "../Hips/FrontThigh"]
+						)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.30)
 						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
 						_assert_front_thigh_has_soft_outer_edge(visual_texture, visual_path)
 					elif visual_path == CLEANED_BACK_THIGH_VISUAL_PATH:
+						_assert_limb_visual_is_weighted_mesh(
+								visual,
+								visual_path,
+								THIGH_MESH_MIN_INTERNAL_VERTICES,
+								["../Hips", "../Hips/BackThigh"]
+						)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
 						_assert_back_thigh_has_soft_lower_edges(visual_texture, visual_path)
@@ -412,7 +425,7 @@ func _test_rig_scene_contract() -> void:
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as CanvasItem
 		var front_elbow_visual := skeleton.get_node_or_null(FRONT_ELBOW_VISUAL_PATH) as Sprite2D
-		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as Sprite2D
+		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as CanvasItem
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
 		assert_true(front_hand_empty_visual != null, "Player skeleton must keep empty front hand visual for no-flashlight variant")
 		assert_true(flashlight_visual != null, "Player skeleton must keep flashlight visual for layering")
