@@ -66,6 +66,9 @@ const NECK_COLLAR_MIN_LOCAL_X := -24.0
 const NECK_COLLAR_MAX_LOCAL_X := 0.0
 const NECK_COLLAR_MIN_LOCAL_Y := -108.0
 const NECK_COLLAR_MAX_LOCAL_Y := -84.0
+const FRONT_SHIN_DETACHED_STRIP_MIN_X := 71
+const FRONT_SHIN_DETACHED_STRIP_MIN_Y := 8
+const FRONT_SHIN_DETACHED_STRIP_MAX_Y := 150
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
@@ -268,6 +271,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
 					elif visual_path == CLEANED_FRONT_SHIN_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.32)
+						_assert_front_shin_does_not_keep_detached_side_strip(visual.texture, visual_path)
 					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.24)
 					elif visual_path == CLEANED_FRONT_HAND_VISUAL_PATH:
@@ -562,6 +566,18 @@ func _assert_thigh_does_not_own_moving_waistband(texture: Texture2D, visual_path
 			assert_true(
 					image.get_pixel(x, y).a <= 0.05,
 					"Player skeleton thigh cutout must not keep moving waistband/pelvis pixels: %s" % visual_path
+			)
+
+func _assert_front_shin_does_not_keep_detached_side_strip(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton front shin texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(FRONT_SHIN_DETACHED_STRIP_MIN_Y, mini(FRONT_SHIN_DETACHED_STRIP_MAX_Y, image.get_height())):
+		for x in range(FRONT_SHIN_DETACHED_STRIP_MIN_X, image.get_width()):
+			assert_true(
+					image.get_pixel(x, y).a <= 0.05,
+					"Player skeleton front shin must not keep the detached dark source-gap strip: %s" % visual_path
 			)
 
 func _assert_flashlight_cutout_has_completed_handle(texture: Texture2D, visual_path: String) -> void:
