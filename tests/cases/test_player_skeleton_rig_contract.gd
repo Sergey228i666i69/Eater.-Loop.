@@ -154,6 +154,8 @@ const WALK_MIN_ARM_SWING_RANGE := 0.06
 const WALK_MAX_ARM_SWING_RANGE := 0.075
 const WALK_MIN_FOREARM_FOLLOW_RANGE := 0.035
 const WALK_MAX_FOREARM_FOLLOW_RANGE := 0.045
+const WALK_MIN_FLASHLIGHT_BOB_RANGE := 0.085
+const WALK_MAX_FLASHLIGHT_BOB_RANGE := 0.095
 const WALK_MIN_CHEST_COUNTER_RANGE := 0.03
 const WALK_MAX_CHEST_COUNTER_RANGE := 0.04
 const WALK_MIN_SPINE_SWAY_RANGE := 0.03
@@ -174,6 +176,8 @@ const LIGHT_RUN_MIN_ARM_SWING_RANGE := 0.10
 const LIGHT_RUN_MAX_ARM_SWING_RANGE := 0.115
 const LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE := 0.06
 const LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE := 0.07
+const LIGHT_RUN_MIN_FLASHLIGHT_BOB_RANGE := 0.17
+const LIGHT_RUN_MAX_FLASHLIGHT_BOB_RANGE := 0.19
 const LIGHT_RUN_MIN_CHEST_COUNTER_RANGE := 0.055
 const LIGHT_RUN_MAX_CHEST_COUNTER_RANGE := 0.065
 const LIGHT_RUN_MIN_SPINE_SWAY_RANGE := 0.04
@@ -211,6 +215,7 @@ const HEAD_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/Neck/Head:rot
 const FRONT_UPPER_ARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm:rotation")
 const FRONT_FOREARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm:rotation")
 const BACK_FOREARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/BackUpperArm/BackForearm:rotation")
+const FLASHLIGHT_MOUNT_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount:rotation")
 const FRONT_FOOT_POSITION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot:position")
 const BACK_FOOT_POSITION_TRACK := NodePath("Skeleton2D/Hips/BackThigh/BackShin/BackFoot:position")
 const FRONT_FOOT_ROTATION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh/FrontShin/FrontFoot:rotation")
@@ -318,6 +323,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_ARM_SWING_RANGE, WALK_MAX_ARM_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_FOREARM_ROTATION_TRACK, WALK_MIN_FOREARM_FOLLOW_RANGE, WALK_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_FOREARM_ROTATION_TRACK, WALK_MIN_FOREARM_FOLLOW_RANGE, WALK_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FLASHLIGHT_MOUNT_ROTATION_TRACK, WALK_MIN_FLASHLIGHT_BOB_RANGE, WALK_MAX_FLASHLIGHT_BOB_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_FOOT_ROTATION_TRACK, WALK_MIN_FOOT_ROLL_RANGE, WALK_MAX_FOOT_ROLL_RANGE, String(animation_name))
@@ -340,6 +346,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_ARM_SWING_RANGE, LIGHT_RUN_MAX_ARM_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_FOREARM_ROTATION_TRACK, LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE, LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_FOREARM_ROTATION_TRACK, LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE, LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FLASHLIGHT_MOUNT_ROTATION_TRACK, LIGHT_RUN_MIN_FLASHLIGHT_BOB_RANGE, LIGHT_RUN_MAX_FLASHLIGHT_BOB_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_vector2_x_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE, String(animation_name))

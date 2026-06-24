@@ -410,6 +410,18 @@ tracks/19/keys = {
 "update": 0,
 "values": [0.0, -0.01, 0.0, 0.012, 0.0]
 }
+tracks/20/type = "value"
+tracks/20/imported = false
+tracks/20/enabled = true
+tracks/20/path = NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount:rotation")
+tracks/20/interp = 2
+tracks/20/loop_wrap = true
+tracks/20/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [-0.045, -0.015, 0.045, 0.015, -0.045]
+}
 
 [sub_resource type="Animation" id="Animation_player_skeleton_light_run"]
 resource_name = "light_run"
@@ -654,6 +666,18 @@ tracks/19/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 0,
 "values": [0.0, -0.014, 0.0, 0.016, 0.0]
+}
+tracks/20/type = "value"
+tracks/20/imported = false
+tracks/20/enabled = true
+tracks/20/path = NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount:rotation")
+tracks/20/interp = 2
+tracks/20/loop_wrap = true
+tracks/20/keys = {
+"times": PackedFloat32Array(0, 0.1375, 0.275, 0.4125, 0.55),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [-0.09, -0.03, 0.09, 0.03, -0.09]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_player_skeleton"]
