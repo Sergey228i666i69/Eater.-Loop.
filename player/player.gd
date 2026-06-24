@@ -63,6 +63,8 @@ signal flashlight_activation_denied(charge_ratio: float)
 @export var skeleton_idle_animation: StringName = &"idle"
 ## Имя скелетной анимации ходьбы.
 @export var skeleton_walk_animation: StringName = &"walk"
+## Имя скелетной анимации ходьбы с фонариком.
+@export var skeleton_light_walk_animation: StringName = &"light_walk"
 ## Имя скелетной анимации бега без фонарика.
 @export var skeleton_run_animation: StringName = &"run"
 ## Имя скелетной анимации лёгкого бега с фонариком.
@@ -71,6 +73,8 @@ signal flashlight_activation_denied(charge_ratio: float)
 @export var skeleton_animation_blend_time: float = 0.08
 ## Моменты касания стопы пола внутри walk-клипа. Держать синхронно с ключами стоп в PlayerSkeletonRig.
 @export var skeleton_walk_step_times: PackedFloat32Array = PackedFloat32Array([0.2, 0.6])
+## Моменты касания стопы пола внутри light_walk-клипа. Держать синхронно с ключами стоп в PlayerSkeletonRig.
+@export var skeleton_light_walk_step_times: PackedFloat32Array = PackedFloat32Array([0.2, 0.6])
 ## Моменты касания стопы пола внутри run-клипа. Держать синхронно с ключами стоп в PlayerSkeletonRig.
 @export var skeleton_run_step_times: PackedFloat32Array = PackedFloat32Array([0.1375, 0.4125])
 ## Моменты касания стопы пола внутри light_run-клипа. Держать синхронно с ключами стоп в PlayerSkeletonRig.
@@ -515,7 +519,7 @@ func _update_skeleton_motion_animation(is_moving: bool) -> void:
 		if _is_running:
 			target_animation = skeleton_light_run_animation if has_flashlight_available() else skeleton_run_animation
 		else:
-			target_animation = skeleton_walk_animation
+			target_animation = skeleton_light_walk_animation if has_flashlight_available() else skeleton_walk_animation
 	_play_skeleton_animation(target_animation)
 
 func _play_skeleton_animation(animation_name: StringName) -> void:
@@ -561,6 +565,8 @@ func _update_skeleton_step_audio(is_moving: bool) -> void:
 func _resolve_skeleton_step_times(animation_name: StringName) -> PackedFloat32Array:
 	if animation_name == skeleton_walk_animation:
 		return skeleton_walk_step_times
+	if animation_name == skeleton_light_walk_animation:
+		return skeleton_light_walk_step_times
 	if animation_name == skeleton_run_animation:
 		return skeleton_run_step_times
 	if animation_name == skeleton_light_run_animation:
