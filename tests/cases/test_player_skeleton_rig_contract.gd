@@ -4,6 +4,7 @@ const PLAYER_SCENE_PATH := "res://player/player.tscn"
 const LEGACY_PLAYER_SCENE_PATH := "res://player/LEGASY-ANIMATIONS-CHARACTER.tscn"
 const PLAYER_RIG_SCENE_PATH := "res://player/player_skeleton_rig.tscn"
 const LEVEL_DIR := "res://levels/cycles"
+const ACTIVE_FRONT_FOREARM_MESH_PATH := "MeshFrontForearm"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
 const HEAD_VISUAL_PATH := "Hips/Spine/Chest/Neck/Head/VisualHead"
 const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
@@ -544,6 +545,7 @@ func _test_rig_scene_contract() -> void:
 		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as CanvasItem
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as CanvasItem
+		var front_forearm_mesh := rig.get_node_or_null(ACTIVE_FRONT_FOREARM_MESH_PATH) as Polygon2D
 		var front_elbow_visual := skeleton.get_node_or_null(FRONT_ELBOW_VISUAL_PATH) as Sprite2D
 		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as CanvasItem
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
@@ -554,9 +556,14 @@ func _test_rig_scene_contract() -> void:
 		assert_true(head_visual != null, "Player skeleton must keep head visual for photo-cutout layering")
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
-		assert_true(front_forearm_visual != null, "Player skeleton must keep deformable front forearm visual for layering")
+		assert_true(front_forearm_visual != null, "Player skeleton must keep legacy front forearm Sprite2D anchor while the mesh rollout is partial")
+		assert_true(front_forearm_mesh != null, "Player skeleton must use an active weighted Polygon2D mesh for the front forearm")
 		assert_true(front_elbow_visual != null, "Player skeleton must keep front elbow cover for the upper-arm/forearm seam")
 		assert_true(front_thigh_visual != null, "Player skeleton must keep front thigh visual for photo-cutout layering")
+		if front_forearm_visual != null:
+			assert_true(not front_forearm_visual.visible, "Player skeleton legacy front forearm Sprite2D anchor must stay hidden behind the weighted mesh")
+		if front_forearm_mesh != null:
+			_assert_active_front_forearm_mesh(front_forearm_mesh)
 		if front_hand_visual != null and front_hand_visual.texture != null:
 			assert_true(not front_hand_visual.visible, "Player skeleton held-hand cutout must stay hidden before flashlight unlock")
 			assert_true(
@@ -574,10 +581,10 @@ func _test_rig_scene_contract() -> void:
 			_assert_flashlight_visual_sits_inside_front_grip(front_hand_visual, flashlight_visual)
 		if torso_visual != null and front_upper_arm_visual != null:
 			assert_true(torso_visual.z_index > front_upper_arm_visual.z_index, "Player skeleton torso must hide the front upper-arm photo seam")
-		if torso_visual != null and front_forearm_visual != null:
-			assert_true(front_forearm_visual.z_index > torso_visual.z_index, "Player skeleton front forearm must remain visible over the torso")
-		if front_forearm_visual != null and front_elbow_visual != null:
-			assert_true(front_elbow_visual.z_index > front_forearm_visual.z_index, "Player skeleton front elbow cover must sit over the forearm seam")
+		if torso_visual != null and front_forearm_mesh != null:
+			assert_true(front_forearm_mesh.z_index > torso_visual.z_index, "Player skeleton front forearm mesh must remain visible over the torso")
+		if front_forearm_mesh != null and front_elbow_visual != null:
+			assert_true(front_elbow_visual.z_index > front_forearm_mesh.z_index, "Player skeleton front elbow cover must sit over the forearm mesh seam")
 			_assert_front_elbow_cover_stays_subtle(front_elbow_visual)
 		if torso_visual != null and neck_collar_visual != null and head_visual != null:
 			_assert_neck_collar_cover_sits_between_torso_and_head(torso_visual, neck_collar_visual, head_visual)
@@ -992,6 +999,41 @@ func _assert_limb_visual_is_bone_sprite(visual: CanvasItem, visual_path: String)
 	if sprite == null:
 		return
 	assert_true(sprite.get_parent() is Bone2D, "Active player skeleton limb Sprite2D must be parented to a Bone2D: %s" % visual_path)
+
+func _assert_active_front_forearm_mesh(mesh: Polygon2D) -> void:
+	assert_true(mesh.visible, "Active player front forearm mesh must render instead of the legacy Sprite2D anchor")
+	assert_true(mesh.texture != null, "Active player front forearm mesh must keep the front-forearm texture")
+	if mesh.texture != null:
+		assert_true(String(mesh.texture.resource_path).ends_with("/front_forearm.png"), "Active player front forearm mesh must use front_forearm.png")
+	assert_true(mesh.skeleton == NodePath("../Skeleton2D"), "Active player front forearm mesh must bind to the sibling Skeleton2D")
+	assert_true(mesh.polygon.size() == mesh.uv.size(), "Active player front forearm mesh polygon and UV arrays must match")
+	assert_true(mesh.polygon.size() == 12, "Active player front forearm mesh must keep four outline vertices and eight internal vertices")
+	assert_true(mesh.internal_vertex_count == 8, "Active player front forearm mesh must keep internal vertices for non-rigid deformation")
+	assert_true(mesh.polygons.size() > 0, "Active player front forearm mesh must keep explicit polygons for stable native rendering")
+	assert_true(mesh.get_bone_count() == 2, "Active player front forearm mesh must blend across upper-arm and forearm bones")
+	_assert_polygon_bone_weights(
+			mesh,
+			0,
+			NodePath("../Skeleton2D/Hips/Spine/Chest/FrontUpperArm"),
+			true
+	)
+	_assert_polygon_bone_weights(
+			mesh,
+			1,
+			NodePath("../Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"),
+			false
+	)
+
+func _assert_polygon_bone_weights(mesh: Polygon2D, bone_index: int, expected_path: NodePath, stronger_at_top: bool) -> void:
+	assert_true(mesh.get_bone_path(bone_index) == expected_path, "Active player front forearm mesh must keep the expected weighted bone path")
+	var weights := mesh.get_bone_weights(bone_index)
+	assert_true(weights.size() == mesh.polygon.size(), "Active player front forearm mesh bone weights must match polygon vertices")
+	if weights.size() < 4:
+		return
+	if stronger_at_top:
+		assert_true(weights[0] > weights[2], "Active player front forearm mesh upper-arm influence must be stronger near the elbow")
+	else:
+		assert_true(weights[2] > weights[0], "Active player front forearm mesh forearm influence must be stronger near the wrist")
 
 func _assert_back_forearm_does_not_keep_hand_tail(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()

@@ -35,6 +35,7 @@ func _test_forearm_mesh_prototype_contract() -> void:
 		assert_true(mesh.skeleton == NodePath("../Skeleton2D"), "Player forearm mesh prototype must bind Polygon2D to the sibling Skeleton2D")
 		assert_true(mesh.polygon.size() == mesh.uv.size(), "Player forearm mesh prototype polygon and UV arrays must match")
 		assert_true(mesh.internal_vertex_count >= MIN_INTERNAL_VERTEX_COUNT, "Player forearm mesh prototype must keep internal vertices for non-rigid deformation")
+		assert_true(mesh.polygons.size() > 0, "Player forearm mesh prototype must keep explicit polygons for stable internal-vertex rendering")
 		assert_true(mesh.get_bone_count() == 2, "Player forearm mesh prototype must blend across upper-arm and forearm bones")
 		_assert_mesh_weights(mesh, 0, NodePath(UPPER_ARM_BONE_PATH), true)
 		_assert_mesh_weights(mesh, 1, NodePath(FOREARM_BONE_PATH), false)
