@@ -154,7 +154,13 @@ func _deferred_dump() -> void:
 \troot.add_child(rig)
 \tawait process_frame
 \tvar animation_player := rig.get_node("SkeletonAnimationPlayer") as AnimationPlayer
+\tvar held_hand := rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/VisualFrontHand") as CanvasItem
+\tvar empty_hand := rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/VisualFrontHandEmpty") as CanvasItem
 \tvar flashlight := rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount/VisualFlashlight") as CanvasItem
+\tif held_hand != null:
+\t\theld_hand.visible = SHOW_FLASHLIGHT
+\tif empty_hand != null:
+\t\tempty_hand.visible = not SHOW_FLASHLIGHT
 \tif flashlight != null:
 \t\tflashlight.visible = SHOW_FLASHLIGHT
 \tvar visuals := _collect_visuals(rig)

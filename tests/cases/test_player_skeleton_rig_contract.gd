@@ -12,6 +12,7 @@ const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
 const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
 const FRONT_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm"
 const FRONT_HAND_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHand"
+const FRONT_HAND_EMPTY_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHandEmpty"
 const FLASHLIGHT_VISUAL_PATH := FRONT_HAND_PATH + "/FlashlightMount/VisualFlashlight"
 const FOOT_VISUAL_PATHS: Array[String] = [
 	"Hips/BackThigh/BackShin/BackFoot/VisualBackFoot",
@@ -22,6 +23,7 @@ const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",
 	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
 	FRONT_HAND_VISUAL_PATH,
+	FRONT_HAND_EMPTY_VISUAL_PATH,
 ]
 const CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/VisualPelvis",
@@ -37,6 +39,7 @@ const CLEANED_BACK_THIGH_VISUAL_PATH := "Hips/BackThigh/VisualBackThigh"
 const CLEANED_FRONT_SHIN_VISUAL_PATH := "Hips/FrontThigh/FrontShin/VisualFrontShin"
 const CLEANED_BACK_SHIN_VISUAL_PATH := "Hips/BackThigh/BackShin/VisualBackShin"
 const CLEANED_FRONT_HAND_VISUAL_PATH := FRONT_HAND_VISUAL_PATH
+const CLEANED_FRONT_HAND_EMPTY_VISUAL_PATH := FRONT_HAND_EMPTY_VISUAL_PATH
 const CLEANED_BACK_HAND_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand"
 const SAFE_ALPHA_MARGIN_VISUAL_PATHS: Array[String] = [
 	HEAD_VISUAL_PATH,
@@ -170,6 +173,7 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/Spine/Chest/FrontUpperArm/VisualFrontShoulderCover",
 	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
 	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontElbowCover",
+	FRONT_HAND_EMPTY_VISUAL_PATH,
 	FRONT_HAND_PATH + "/VisualFrontHand",
 	FLASHLIGHT_VISUAL_PATH,
 	"Hips/BackThigh/VisualBackThigh",
@@ -283,6 +287,8 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.24)
 					elif visual_path == CLEANED_FRONT_HAND_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.62)
+					elif visual_path == CLEANED_FRONT_HAND_EMPTY_VISUAL_PATH:
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.58)
 					elif visual_path == CLEANED_BACK_HAND_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.68)
 					elif visual_path == FLASHLIGHT_VISUAL_PATH:
@@ -295,6 +301,7 @@ func _test_rig_scene_contract() -> void:
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.23)
 		var front_hand_visual := skeleton.get_node_or_null(FRONT_HAND_VISUAL_PATH) as Sprite2D
+		var front_hand_empty_visual := skeleton.get_node_or_null(FRONT_HAND_EMPTY_VISUAL_PATH) as Sprite2D
 		var flashlight_visual := skeleton.get_node_or_null(FLASHLIGHT_VISUAL_PATH) as Sprite2D
 		var torso_visual := skeleton.get_node_or_null(TORSO_VISUAL_PATH) as Sprite2D
 		var neck_collar_visual := skeleton.get_node_or_null(NECK_COLLAR_VISUAL_PATH) as Sprite2D
@@ -303,6 +310,7 @@ func _test_rig_scene_contract() -> void:
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as Sprite2D
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
+		assert_true(front_hand_empty_visual != null, "Player skeleton must keep empty front hand visual for no-flashlight variant")
 		assert_true(flashlight_visual != null, "Player skeleton must keep flashlight visual for layering")
 		assert_true(torso_visual != null, "Player skeleton must keep torso visual for photo-cutout layering")
 		assert_true(neck_collar_visual != null, "Player skeleton must keep neck/collar cover for head-torso seam")
@@ -310,6 +318,18 @@ func _test_rig_scene_contract() -> void:
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
 		assert_true(front_forearm_visual != null, "Player skeleton must keep front forearm visual for photo-cutout layering")
+		if front_hand_visual != null and front_hand_visual.texture != null:
+			assert_true(not front_hand_visual.visible, "Player skeleton held-hand cutout must stay hidden before flashlight unlock")
+			assert_true(
+					String(front_hand_visual.texture.resource_path).ends_with("/front_hand.png"),
+					"Player skeleton held-hand cutout must use the flashlight-grip hand texture"
+			)
+		if front_hand_empty_visual != null and front_hand_empty_visual.texture != null:
+			assert_true(front_hand_empty_visual.visible, "Player skeleton empty-hand cutout must be the default no-flashlight hand")
+			assert_true(
+					String(front_hand_empty_visual.texture.resource_path).ends_with("/front_hand_empty.png"),
+					"Player skeleton empty-hand cutout must use the base Andry hand texture"
+			)
 		if front_hand_visual != null and flashlight_visual != null:
 			assert_true(flashlight_visual.z_index < front_hand_visual.z_index, "Player skeleton flashlight must render behind the gripping hand")
 			_assert_flashlight_visual_sits_inside_front_grip(front_hand_visual, flashlight_visual)
@@ -375,14 +395,26 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 		assert_true(_almost_eq(absf(rig.scale.x), 0.44800887), "PlayerSkeletonRig x-scale must keep the old player visual scale")
 		assert_true(_almost_eq(rig.scale.y, 0.44800875), "PlayerSkeletonRig y-scale must keep the old player visual scale")
 		var flashlight_visual := rig.get_node_or_null("Skeleton2D/" + FLASHLIGHT_VISUAL_PATH) as Sprite2D
+		var front_hand_visual := rig.get_node_or_null("Skeleton2D/" + FRONT_HAND_VISUAL_PATH) as Sprite2D
+		var front_hand_empty_visual := rig.get_node_or_null("Skeleton2D/" + FRONT_HAND_EMPTY_VISUAL_PATH) as Sprite2D
 		assert_true(flashlight_visual != null, "Player skeleton must keep optional flashlight cutout")
+		assert_true(front_hand_visual != null, "Player skeleton must keep held-hand cutout")
+		assert_true(front_hand_empty_visual != null, "Player skeleton must keep empty-hand cutout")
 		if flashlight_visual != null:
 			assert_true(not flashlight_visual.visible, "Player skeleton flashlight cutout must be hidden before flashlight unlock")
+		if front_hand_visual != null:
+			assert_true(not front_hand_visual.visible, "Player skeleton held-hand cutout must be hidden before flashlight unlock")
+		if front_hand_empty_visual != null:
+			assert_true(front_hand_empty_visual.visible, "Player skeleton empty-hand cutout must show before flashlight unlock")
 		if CycleState != null and CycleState.has_method("collect_flashlight_for_cycle"):
 			CycleState.collect_flashlight_for_cycle()
 			player.call("_update_skeleton_flashlight_visibility")
 			if flashlight_visual != null:
 				assert_true(flashlight_visual.visible, "Player skeleton flashlight cutout must appear after flashlight unlock")
+			if front_hand_visual != null:
+				assert_true(front_hand_visual.visible, "Player skeleton held-hand cutout must appear with the flashlight")
+			if front_hand_empty_visual != null:
+				assert_true(not front_hand_empty_visual.visible, "Player skeleton empty-hand cutout must hide when the flashlight hand is active")
 		player.call("apply_checkpoint_state", {"facing_dir": -1.0})
 		assert_true(rig.scale.x < 0.0, "PlayerSkeletonRig must mirror with the player facing direction")
 		if animation_player != null:

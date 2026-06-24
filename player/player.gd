@@ -82,6 +82,8 @@ var keys: Dictionary = {}
 var step_audio: StepAudioComponent = null
 var skeleton_animation_player: AnimationPlayer = null
 var skeleton_flashlight_visual: CanvasItem = null
+var skeleton_front_hand_visual: CanvasItem = null
+var skeleton_front_hand_empty_visual: CanvasItem = null
 
 # Внутренние переменные
 var _facing_dir: float = 1.0
@@ -145,6 +147,8 @@ func _ready() -> void:
 	if skeleton_rig:
 		_skeleton_rig_base_scale = skeleton_rig.scale
 		skeleton_animation_player = skeleton_rig.get_node_or_null("SkeletonAnimationPlayer") as AnimationPlayer
+		skeleton_front_hand_visual = skeleton_rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/VisualFrontHand") as CanvasItem
+		skeleton_front_hand_empty_visual = skeleton_rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/VisualFrontHandEmpty") as CanvasItem
 		skeleton_flashlight_visual = skeleton_rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount/VisualFlashlight") as CanvasItem
 	
 	if sprite:
@@ -344,9 +348,13 @@ func _update_flashlight_charge(delta: float) -> void:
 		_emit_flashlight_recharged()
 
 func _update_skeleton_flashlight_visibility() -> void:
-	if skeleton_flashlight_visual == null:
-		return
-	skeleton_flashlight_visual.visible = has_flashlight_available()
+	var has_flashlight := has_flashlight_available()
+	if skeleton_flashlight_visual != null:
+		skeleton_flashlight_visual.visible = has_flashlight
+	if skeleton_front_hand_visual != null:
+		skeleton_front_hand_visual.visible = has_flashlight
+	if skeleton_front_hand_empty_visual != null:
+		skeleton_front_hand_empty_visual.visible = not has_flashlight
 
 func _toggle_flashlight() -> void:
 	if flashlight == null:

@@ -26,6 +26,7 @@
 [ext_resource type="Texture2D" path="res://player/skeleton/covers/front_elbow.png" id="22_front_elbow"]
 [ext_resource type="Texture2D" path="res://player/skeleton/covers/front_knee.png" id="23_front_knee"]
 [ext_resource type="Texture2D" path="res://player/skeleton/covers/front_ankle.png" id="24_front_ankle"]
+[ext_resource type="Texture2D" path="res://player/skeleton/cutouts/front_hand_empty.png" id="26_front_hand_empty"]
 
 [sub_resource type="Animation" id="Animation_player_skeleton_idle"]
 resource_name = "idle"
@@ -930,7 +931,14 @@ light_mask = 2
 z_index = 5
 texture = ExtResource("22_front_elbow")
 
+[node name="VisualFrontHandEmpty" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("26_front_hand_empty")
+position = Vector2(0, 34)
+
 [node name="VisualFrontHand" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"]
+visible = false
 light_mask = 2
 z_index = 4
 texture = ExtResource("9_front_hand")

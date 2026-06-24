@@ -17,4 +17,7 @@ func run() -> Array[String]:
 	assert_true(source.find("PLAYER_ROOT_Z + int(visual[\"z_index\"])") != -1, "Scene-context preview must sort individual player visuals by effective z-index")
 	assert_true(source.find("_build_godot_dump_script") != -1, "Scene-context preview must sample real Godot skeleton transforms")
 	assert_true(source.find("--flashlight") != -1, "Scene-context preview must support the flashlight variant")
+	var montage_source := FileAccess.get_file_as_string("res://tools/player_rig_preview/export_player_rig_montage.py")
+	assert_true(montage_source.find("VisualFrontHandEmpty") != -1, "Rig preview dump must switch the empty-hand cutout for no-flashlight previews")
+	assert_true(montage_source.find("held_hand.visible = SHOW_FLASHLIGHT") != -1, "Rig preview dump must show the held hand only with flashlight previews")
 	return get_failures()

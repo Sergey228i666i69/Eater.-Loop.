@@ -1380,6 +1380,8 @@
 │   │       ├── front_forearm.png.import
 │   │       ├── front_hand.png
 │   │       ├── front_hand.png.import
+│   │       ├── front_hand_empty.png
+│   │       ├── front_hand_empty.png.import
 │   │       ├── front_shin.png
 │   │       ├── front_shin.png.import
 │   │       ├── front_thigh.png
@@ -1612,4 +1614,4 @@
 ├── project.godot
 └── structure.txt
 
-129 directories, 1484 files
+129 directories, 1486 files
