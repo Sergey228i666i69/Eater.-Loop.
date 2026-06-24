@@ -150,6 +150,12 @@ const IDLE_MIN_EMPTY_HAND_BREATH_RANGE := 0.008
 const IDLE_MAX_EMPTY_HAND_BREATH_RANGE := 0.012
 const IDLE_MIN_FLASHLIGHT_BOB_RANGE := 0.02
 const IDLE_MAX_FLASHLIGHT_BOB_RANGE := 0.03
+const LIGHT_IDLE_MIN_HELD_HAND_BREATH_RANGE := 0.01
+const LIGHT_IDLE_MAX_HELD_HAND_BREATH_RANGE := 0.017
+const LIGHT_IDLE_MIN_FLASHLIGHT_BOB_RANGE := 0.026
+const LIGHT_IDLE_MAX_FLASHLIGHT_BOB_RANGE := 0.032
+const LIGHT_IDLE_MIN_FLASHLIGHT_HOLD_BIAS := -0.03
+const LIGHT_IDLE_MAX_FLASHLIGHT_HOLD_BIAS := -0.018
 const WALK_MIN_HIPS_BOUNCE_RANGE := 2.5
 const WALK_MAX_HIPS_BOUNCE_RANGE := 3.5
 const WALK_MIN_LEG_SWING_RANGE := 0.055
@@ -329,7 +335,7 @@ func _test_rig_scene_contract() -> void:
 	var animation_player := rig.get_node_or_null("SkeletonAnimationPlayer") as AnimationPlayer
 	assert_true(animation_player != null, "Player skeleton rig must keep SkeletonAnimationPlayer")
 	if animation_player != null:
-		for animation_name in [&"idle", &"walk", &"light_walk", &"run", &"light_run"]:
+		for animation_name in [&"idle", &"light_idle", &"walk", &"light_walk", &"run", &"light_run"]:
 			assert_true(animation_player.has_animation(animation_name), "Player skeleton rig must keep %s animation" % animation_name)
 			var animation := animation_player.get_animation(animation_name)
 			assert_true(animation != null, "Player skeleton animation must load: %s" % animation_name)
@@ -344,6 +350,12 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, IDLE_MIN_HAND_BREATH_RANGE, IDLE_MAX_HAND_BREATH_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_EMPTY_VISUAL_ROTATION_TRACK, IDLE_MIN_EMPTY_HAND_BREATH_RANGE, IDLE_MAX_EMPTY_HAND_BREATH_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FLASHLIGHT_MOUNT_ROTATION_TRACK, IDLE_MIN_FLASHLIGHT_BOB_RANGE, IDLE_MAX_FLASHLIGHT_BOB_RANGE, String(animation_name))
+				elif animation_name == &"light_idle":
+					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_IDLE_MIN_HELD_HAND_BREATH_RANGE, LIGHT_IDLE_MAX_HELD_HAND_BREATH_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_FOREARM_ROTATION_TRACK, LIGHT_IDLE_MIN_HELD_HAND_BREATH_RANGE, LIGHT_IDLE_MAX_HELD_HAND_BREATH_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, LIGHT_IDLE_MIN_HELD_HAND_BREATH_RANGE, LIGHT_IDLE_MAX_HELD_HAND_BREATH_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FLASHLIGHT_MOUNT_ROTATION_TRACK, LIGHT_IDLE_MIN_FLASHLIGHT_BOB_RANGE, LIGHT_IDLE_MAX_FLASHLIGHT_BOB_RANGE, String(animation_name))
+					_assert_animation_track_mean_in_range(animation, FLASHLIGHT_MOUNT_ROTATION_TRACK, LIGHT_IDLE_MIN_FLASHLIGHT_HOLD_BIAS, LIGHT_IDLE_MAX_FLASHLIGHT_HOLD_BIAS, String(animation_name))
 				elif animation_name == &"walk":
 					_assert_animation_vector2_y_range(animation, HIPS_POSITION_TRACK, WALK_MIN_HIPS_BOUNCE_RANGE, WALK_MAX_HIPS_BOUNCE_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LEG_SWING_RANGE, WALK_MAX_LEG_SWING_RANGE, String(animation_name))
@@ -706,6 +718,9 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 				assert_true(front_hand_visual.visible, "Player skeleton held-hand cutout must appear with the flashlight")
 			if front_hand_empty_visual != null:
 				assert_true(not front_hand_empty_visual.visible, "Player skeleton empty-hand cutout must hide when the flashlight hand is active")
+			if animation_player != null:
+				player.call("_update_walk_animation", 0.016, 0.0)
+				assert_eq(animation_player.current_animation, "light_idle", "Player skeleton animation must use light_idle while standing with flashlight")
 		player.call("apply_checkpoint_state", {"facing_dir": -1.0})
 		assert_true(rig.scale.x < 0.0, "PlayerSkeletonRig must mirror with the player facing direction")
 		if animation_player != null:
@@ -720,7 +735,7 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 			_assert_skeleton_steps_follow_contact_times(player, animation_player, "light_run", 0.275, 0.405, 0.42)
 			player.set("_is_running", false)
 			player.call("_update_walk_animation", 0.016, 0.0)
-			assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must return to idle when stopped")
+			assert_eq(animation_player.current_animation, "light_idle", "Player skeleton animation must return to light_idle when stopped with flashlight")
 
 	root.queue_free()
 	await tree.process_frame

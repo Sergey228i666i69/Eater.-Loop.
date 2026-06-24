@@ -52,11 +52,11 @@ NO_FLASHLIGHT_SCENE_POSES: list[tuple[str, str, float, bool]] = [
     ("run contact", "run", 0.1375, False),
 ]
 FLASHLIGHT_SCENE_POSES: list[tuple[str, str, float, bool]] = [
-    ("idle flashlight", "idle", 0.0, True),
+    ("light_idle flashlight", "light_idle", 0.0, True),
     ("light_walk contact", "light_walk", 0.2, True),
     ("light_run contact", "light_run", 0.1375, True),
 ]
-POSE_ANIMATIONS = ("idle", "walk", "light_walk", "run", "light_run")
+POSE_ANIMATIONS = ("idle", "light_idle", "walk", "light_walk", "run", "light_run")
 
 WALL_TEXTURE = "objects/environment/background/BackWalls.png"
 FLOOR_TEXTURE = "objects/environment/background/Floor.png"

@@ -27,6 +27,7 @@ DEFAULT_RIG_PATH = "res://player/player_skeleton_rig.tscn"
 DEFAULT_ANIMATION_PLAYER_PATH = "SkeletonAnimationPlayer"
 ANIMATION_LENGTHS: dict[str, float] = {
     "idle": 1.6,
+    "light_idle": 1.6,
     "walk": 0.8,
     "light_walk": 0.8,
     "run": 0.55,
@@ -37,6 +38,8 @@ ANIMATION_LENGTHS: dict[str, float] = {
 DEFAULT_MONTAGE_POSES: list[tuple[str, str, float]] = [
     ("idle 0.0", "idle", 0.0),
     ("idle 0.8", "idle", 0.8),
+    ("light_idle 0.0", "light_idle", 0.0),
+    ("light_idle 0.8", "light_idle", 0.8),
     ("walk 0.0", "walk", 0.0),
     ("walk 0.1", "walk", 0.1),
     ("walk 0.2", "walk", 0.2),
@@ -61,8 +64,8 @@ DEFAULT_MONTAGE_POSES: list[tuple[str, str, float]] = [
 RUNTIME_MOTION_POSES: list[tuple[str, str, float, bool]] = [
     ("idle no-flash 0.0", "idle", 0.0, False),
     ("idle no-flash 0.8", "idle", 0.8, False),
-    ("idle flashlight 0.0", "idle", 0.0, True),
-    ("idle flashlight 0.8", "idle", 0.8, True),
+    ("light_idle flashlight 0.0", "light_idle", 0.0, True),
+    ("light_idle flashlight 0.8", "light_idle", 0.8, True),
     ("walk no-flash 0.0", "walk", 0.0, False),
     ("walk no-flash 0.2", "walk", 0.2, False),
     ("walk no-flash 0.4", "walk", 0.4, False),

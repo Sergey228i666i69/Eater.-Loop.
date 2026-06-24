@@ -61,6 +61,8 @@ signal flashlight_activation_denied(charge_ratio: float)
 @export_group("Skeleton Animation")
 ## Имя скелетной анимации простоя.
 @export var skeleton_idle_animation: StringName = &"idle"
+## Имя скелетной анимации простоя с фонариком.
+@export var skeleton_light_idle_animation: StringName = &"light_idle"
 ## Имя скелетной анимации ходьбы.
 @export var skeleton_walk_animation: StringName = &"walk"
 ## Имя скелетной анимации ходьбы с фонариком.
@@ -514,7 +516,7 @@ func _update_walk_animation(_delta: float, direction: float) -> void:
 	_update_skeleton_motion_animation(is_moving)
 
 func _update_skeleton_motion_animation(is_moving: bool) -> void:
-	var target_animation := skeleton_idle_animation
+	var target_animation := skeleton_light_idle_animation if has_flashlight_available() else skeleton_idle_animation
 	if is_moving:
 		if _is_running:
 			target_animation = skeleton_light_run_animation if has_flashlight_available() else skeleton_run_animation
