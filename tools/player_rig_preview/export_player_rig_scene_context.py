@@ -46,12 +46,17 @@ PLAYER_VISUAL_SCALE = 0.4480088
 PLAYER_FLOOR_Y = 650
 DARK_CLOSEUP_PLAYER_SCALE = 0.70
 DARK_CLOSEUP_PLAYER_FLOOR_Y = 660
-SCENE_POSES: list[tuple[str, str, float]] = [
-    ("idle", "idle", 0.0),
-    ("walk contact", "walk", 0.2),
-    ("run contact", "light_run", 0.1375),
+NO_FLASHLIGHT_SCENE_POSES: list[tuple[str, str, float, bool]] = [
+    ("idle no-flash", "idle", 0.0, False),
+    ("walk contact", "walk", 0.2, False),
+    ("run contact", "run", 0.1375, False),
 ]
-POSE_ANIMATIONS = ("idle", "walk", "light_run")
+FLASHLIGHT_SCENE_POSES: list[tuple[str, str, float, bool]] = [
+    ("idle flashlight", "idle", 0.0, True),
+    ("light_walk contact", "light_walk", 0.2, True),
+    ("light_run contact", "light_run", 0.1375, True),
+]
+POSE_ANIMATIONS = ("idle", "walk", "light_walk", "run", "light_run")
 
 WALL_TEXTURE = "objects/environment/background/BackWalls.png"
 FLOOR_TEXTURE = "objects/environment/background/Floor.png"
@@ -125,7 +130,7 @@ def main() -> int:
     output_path = Path(args.output).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    poses = _resolve_scene_poses(args.dark_closeup, args.pose_animation, args.pose_time)
+    poses = _resolve_scene_poses(args.dark_closeup, args.pose_animation, args.pose_time, args.flashlight)
 
     with tempfile.TemporaryDirectory(prefix="andry-rig-scene-context-") as temp_dir_name:
         temp_dir = Path(temp_dir_name)
@@ -135,7 +140,6 @@ def main() -> int:
                 temp_dir,
                 DEFAULT_RIG_PATH,
                 DEFAULT_ANIMATION_PLAYER_PATH,
-                args.flashlight,
                 poses,
             ),
             encoding="utf-8",
@@ -156,18 +160,23 @@ def main() -> int:
     else:
         panels = [
             _render_scene_panel(repo_root, pose_data[index], label, args.scale, args.layer_overlay)
-            for index, (label, _, _) in enumerate(poses)
+            for index, (label, _, _, _) in enumerate(poses)
         ]
         _save_scene_sheet(panels, output_path)
     print(output_path)
     return 0
 
 
-def _resolve_scene_poses(dark_closeup: bool, pose_animation: str, pose_time: float) -> list[tuple[str, str, float]]:
+def _resolve_scene_poses(
+    dark_closeup: bool,
+    pose_animation: str,
+    pose_time: float,
+    show_flashlight: bool,
+) -> list[tuple[str, str, float, bool]]:
     if not dark_closeup:
-        return SCENE_POSES
+        return FLASHLIGHT_SCENE_POSES if show_flashlight else NO_FLASHLIGHT_SCENE_POSES
     label = f"{pose_animation} {pose_time:.3f}"
-    return [(label, pose_animation, pose_time)]
+    return [(label, pose_animation, pose_time, show_flashlight or pose_animation.startswith("light_"))]
 
 
 def _render_scene_panel(repo_root: Path, data: dict, label: str, scale: float, layer_overlay: bool = False) -> Image.Image:
