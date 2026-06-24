@@ -9,6 +9,7 @@ const HEAD_VISUAL_PATH := "Hips/Spine/Chest/Neck/Head/VisualHead"
 const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
 const NECK_COLLAR_VISUAL_PATH := "Hips/Spine/Chest/VisualNeckCollarCover"
 const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
+const BACK_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/VisualBackUpperArm"
 const BACK_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm"
 const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
 const FRONT_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm"
@@ -89,6 +90,9 @@ const FRONT_THIGH_MAX_LEFT_EDGE_STEP := 2
 const FRONT_THIGH_SOFT_EDGE_MIN_Y := 96
 const FRONT_THIGH_SOFT_EDGE_MAX_Y := 206
 const FRONT_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
+const BACK_UPPER_ARM_TORSO_TAIL_MIN_Y := 104
+const BACK_UPPER_ARM_TORSO_TAIL_MIN_LEFT_X := 22
+const BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH := 29
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
 const BACK_FOREARM_WRIST_TAPER_MAX_Y := 128
 const BACK_FOREARM_WRIST_TAPER_MAX_WIDTH := 22
@@ -311,6 +315,9 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.68)
 					elif visual_path == FLASHLIGHT_VISUAL_PATH:
 						_assert_flashlight_cutout_has_completed_handle(visual.texture, visual_path)
+					elif visual_path == BACK_UPPER_ARM_VISUAL_PATH:
+						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
 						_assert_back_forearm_does_not_keep_hand_tail(visual.texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
@@ -711,6 +718,30 @@ func _assert_back_forearm_does_not_keep_hand_tail(texture: Texture2D, visual_pat
 					image.get_pixel(x, y).a <= 0.05,
 					"Player skeleton back forearm must leave the hand to the separate back-hand cutout: %s" % visual_path
 			)
+
+func _assert_back_upper_arm_does_not_keep_lower_torso_tail(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton back upper-arm texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(mini(BACK_UPPER_ARM_TORSO_TAIL_MIN_Y, image.get_height()), image.get_height()):
+		var min_x := image.get_width()
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		assert_true(
+				min_x >= BACK_UPPER_ARM_TORSO_TAIL_MIN_LEFT_X,
+				"Player skeleton back upper arm must not rotate the lower torso/shirt tail with the arm: %s" % visual_path
+		)
+		assert_true(
+				max_x - min_x + 1 <= BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH,
+				"Player skeleton back upper arm lower edge must stay a narrow arm/sleeve shape: %s" % visual_path
+		)
 
 func _assert_back_thigh_has_soft_lower_edges(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
