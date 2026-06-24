@@ -1650,6 +1650,7 @@ texture = ExtResource("2_torso")
 position = Vector2(-7.5, 13.5)
 
 [node name="VisualNeckCollarCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest"]
+visible = false
 light_mask = 2
 z_index = 2
 texture = ExtResource("25_neck_collar")

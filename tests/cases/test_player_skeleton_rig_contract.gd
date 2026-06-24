@@ -574,7 +574,7 @@ func _test_rig_scene_contract() -> void:
 		assert_true(front_hand_empty_visual != null, "Player skeleton must keep empty front hand visual for no-flashlight variant")
 		assert_true(flashlight_visual != null, "Player skeleton must keep flashlight visual for layering")
 		assert_true(torso_visual != null, "Player skeleton must keep torso visual for photo-cutout layering")
-		assert_true(neck_collar_visual != null, "Player skeleton must keep neck/collar cover for head-torso seam")
+		assert_true(neck_collar_visual != null, "Player skeleton must keep the optional neck/collar cover anchor for controlled QA")
 		assert_true(head_visual != null, "Player skeleton must keep head visual for photo-cutout layering")
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
 		assert_true(back_leg_underlay_visual != null, "Player skeleton must keep the optional back-leg underlay anchor for controlled QA")
@@ -621,7 +621,7 @@ func _test_rig_scene_contract() -> void:
 			assert_true(front_elbow_visual.z_index > front_forearm_mesh.z_index, "Player skeleton front elbow cover must sit over the forearm mesh seam")
 			_assert_front_elbow_cover_stays_subtle(front_elbow_visual)
 		if torso_visual != null and neck_collar_visual != null and head_visual != null:
-			_assert_neck_collar_cover_sits_between_torso_and_head(torso_visual, neck_collar_visual, head_visual)
+			_assert_neck_collar_cover_is_disabled_anchor(torso_visual, neck_collar_visual, head_visual)
 		if pelvis_visual != null and torso_visual != null:
 			assert_true(pelvis_visual.z_index >= torso_visual.z_index, "Player skeleton pelvis must cover torso/lower-body seams")
 		if pelvis_visual != null and front_thigh_visual != null:
@@ -822,34 +822,35 @@ func _assert_head_cutout_keeps_source_head_shape(texture: Texture2D, visual_path
 			"Player skeleton head cutout must keep Andry's rounded upper head instead of a diagonal crop: %s" % visual_path
 	)
 
-func _assert_neck_collar_cover_sits_between_torso_and_head(torso_visual: Sprite2D, neck_collar_visual: Sprite2D, head_visual: Sprite2D) -> void:
-	assert_true(neck_collar_visual.texture != null, "Player skeleton neck/collar cover must keep a compact texture")
+func _assert_neck_collar_cover_is_disabled_anchor(torso_visual: Sprite2D, neck_collar_visual: Sprite2D, head_visual: Sprite2D) -> void:
+	assert_true(not neck_collar_visual.visible, "Player skeleton neck/collar cover must stay hidden now that head and torso cutouts carry the seam cleanly")
+	assert_true(neck_collar_visual.texture != null, "Player skeleton neck/collar cover anchor must keep a compact texture")
 	if neck_collar_visual.texture != null:
 		assert_true(
 				neck_collar_visual.texture.get_width() <= NECK_COLLAR_MAX_TEXTURE_SIZE.x
 						and neck_collar_visual.texture.get_height() <= NECK_COLLAR_MAX_TEXTURE_SIZE.y,
-				"Player skeleton neck/collar cover must stay compact instead of duplicating the full torso"
+				"Player skeleton neck/collar cover anchor must stay compact instead of duplicating the full torso"
 		)
 		_assert_cutout_has_alpha_negative_space(neck_collar_visual.texture, NECK_COLLAR_VISUAL_PATH, NECK_COLLAR_MIN_TRANSPARENT_RATIO)
 		_assert_cutout_has_single_alpha_component(neck_collar_visual.texture, NECK_COLLAR_VISUAL_PATH)
 	assert_true(
 			neck_collar_visual.z_index > 0,
-			"Player skeleton neck/collar cover must stay above back-layer seams"
+			"Player skeleton neck/collar cover anchor must retain its old seam-layer z-index for QA toggles"
 	)
 	assert_true(
 			neck_collar_visual.z_index >= torso_visual.z_index,
-			"Player skeleton neck/collar cover must sit at the shirt seam level so it can hide the head-torso gap"
+			"Player skeleton neck/collar cover anchor must stay at the shirt seam level for QA toggles"
 	)
 	assert_true(
 			neck_collar_visual.z_index < head_visual.z_index,
-			"Player skeleton neck/collar cover must stay under the rotating head"
+			"Player skeleton neck/collar cover anchor must stay under the rotating head if it is temporarily enabled"
 	)
 	assert_true(
 			neck_collar_visual.position.x >= NECK_COLLAR_MIN_LOCAL_X
 					and neck_collar_visual.position.x <= NECK_COLLAR_MAX_LOCAL_X
 					and neck_collar_visual.position.y >= NECK_COLLAR_MIN_LOCAL_Y
 					and neck_collar_visual.position.y <= NECK_COLLAR_MAX_LOCAL_Y,
-			"Player skeleton neck/collar cover must stay on the chest-side head seam"
+			"Player skeleton neck/collar cover anchor must stay on the chest-side head seam"
 	)
 
 func _assert_cutout_has_single_alpha_component(texture: Texture2D, visual_path: String) -> void:
