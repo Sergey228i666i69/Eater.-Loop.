@@ -79,6 +79,9 @@ const SEAM_FILL_WAIST_BRIDGE_MIN_WIDTH := 58
 const CUTOUT_MIN_SAFE_ALPHA_MARGIN := 6
 const HEAD_MAX_LOWER_LEFT_SHOULDER_PIXELS := 20
 const HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS := 680
+const HEAD_SHIRT_TAIL_MIN_Y := 144
+const HEAD_MAX_LOWER_SHIRT_TAIL_PIXELS := 4
+const HEAD_SHIRT_TAIL_MAX_SATURATION := 0.18
 const NECK_COLLAR_MAX_TEXTURE_SIZE := Vector2i(96, 88)
 const NECK_COLLAR_MIN_TRANSPARENT_RATIO := 0.15
 const NECK_COLLAR_MIN_LOCAL_X := -24.0
@@ -872,6 +875,27 @@ func _assert_head_cutout_keeps_source_head_shape(texture: Texture2D, visual_path
 			upper_right_hair_pixels >= HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS,
 			"Player skeleton head cutout must keep Andry's rounded upper head instead of a diagonal crop: %s" % visual_path
 	)
+
+	var lower_shirt_tail_pixels := 0
+	for y in range(mini(HEAD_SHIRT_TAIL_MIN_Y, image.get_height()), image.get_height()):
+		for x in range(image.get_width()):
+			var color := image.get_pixel(x, y)
+			if _is_visible_low_saturation_shirt_pixel(color):
+				lower_shirt_tail_pixels += 1
+	assert_true(
+			lower_shirt_tail_pixels <= HEAD_MAX_LOWER_SHIRT_TAIL_PIXELS,
+			"Player skeleton head cutout must not carry a lower shirt/collar tail that rotates with the head: %s" % visual_path
+	)
+
+func _is_visible_low_saturation_shirt_pixel(color: Color) -> bool:
+	if color.a <= 0.1:
+		return false
+	var max_channel := maxf(color.r, maxf(color.g, color.b))
+	var min_channel := minf(color.r, minf(color.g, color.b))
+	if max_channel <= 0.0:
+		return false
+	var saturation := (max_channel - min_channel) / max_channel
+	return saturation <= HEAD_SHIRT_TAIL_MAX_SATURATION and max_channel >= 0.27 and max_channel <= 0.88
 
 func _assert_neck_collar_cover_is_disabled_anchor(torso_visual: Sprite2D, neck_collar_visual: Sprite2D, head_visual: Sprite2D) -> void:
 	assert_true(not neck_collar_visual.visible, "Player skeleton neck/collar cover must stay hidden now that head and torso cutouts carry the seam cleanly")
