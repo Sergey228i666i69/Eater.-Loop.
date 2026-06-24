@@ -12,7 +12,7 @@ const PELVIS_VISUAL_PATH := "Hips/VisualPelvis"
 const BACK_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/VisualBackUpperArm"
 const BACK_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm"
 const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
-const FRONT_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm"
+const FRONT_FOREARM_VISUAL_PATH := "VisualFrontForearm"
 const FRONT_ELBOW_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontElbowCover"
 const FRONT_HAND_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHand"
 const FRONT_HAND_EMPTY_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHandEmpty"
@@ -24,7 +24,7 @@ const FOOT_VISUAL_PATHS: Array[String] = [
 const CLEANED_ARM_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/VisualBackForearm",
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",
-	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
+	FRONT_FOREARM_VISUAL_PATH,
 	FRONT_HAND_VISUAL_PATH,
 	FRONT_HAND_EMPTY_VISUAL_PATH,
 ]
@@ -124,6 +124,7 @@ const BACK_FOREARM_HAND_TAIL_CLEAR_Y := 130
 const FRONT_FOREARM_SOFT_TOP_CLEAR_ROWS := 11
 const FRONT_FOREARM_SOFT_TOP_SAMPLE_ROW := 20
 const FRONT_FOREARM_SOFT_TOP_MAX_ALPHA := 0.45
+const FRONT_FOREARM_MESH_MIN_INTERNAL_VERTICES := 8
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
@@ -226,7 +227,7 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	"Hips/Spine/Chest/BackUpperArm/BackForearm/BackHand/VisualBackHand",
 	"Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm",
 	"Hips/Spine/Chest/FrontUpperArm/VisualFrontShoulderCover",
-	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm",
+	FRONT_FOREARM_VISUAL_PATH,
 	"Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontElbowCover",
 	FRONT_HAND_EMPTY_VISUAL_PATH,
 	FRONT_HAND_PATH + "/VisualFrontHand",
@@ -323,69 +324,71 @@ func _test_rig_scene_contract() -> void:
 			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"light_run", LIGHT_RUN_CONTACT_TIMES, LIGHT_RUN_SAMPLE_TIMES)
 	if skeleton != null:
 		for visual_path in EXPECTED_CUTOUT_VISUAL_PATHS:
-			var visual := skeleton.get_node_or_null(visual_path) as Sprite2D
-			assert_true(visual != null, "Player skeleton rig must keep Sprite2D cutout visual: %s" % visual_path)
+			var visual := skeleton.get_node_or_null(visual_path) as CanvasItem
+			assert_true(visual != null, "Player skeleton rig must keep CanvasItem cutout visual: %s" % visual_path)
 			if visual != null:
-				assert_true(visual.texture != null, "Player skeleton cutout visual must keep texture: %s" % visual_path)
+				var visual_texture := _get_visual_texture(visual)
+				assert_true(visual_texture != null, "Player skeleton cutout visual must keep texture: %s" % visual_path)
 				assert_true(visual.z_index >= 0, "Player skeleton visual z-index must not fall behind level objects: %s" % visual_path)
-				if visual.texture != null:
-					assert_true(_is_player_skeleton_texture_path(String(visual.texture.resource_path)), "Player skeleton visual must use Andry cutout/cover texture: %s" % visual_path)
-					assert_true(_is_tight_cutout_texture(visual.texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
+				if visual_texture != null:
+					assert_true(_is_player_skeleton_texture_path(String(visual_texture.resource_path)), "Player skeleton visual must use Andry cutout/cover texture: %s" % visual_path)
+					assert_true(_is_tight_cutout_texture(visual_texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
 					if SAFE_ALPHA_MARGIN_VISUAL_PATHS.has(visual_path):
-						_assert_cutout_has_safe_alpha_margin(visual.texture, visual_path, CUTOUT_MIN_SAFE_ALPHA_MARGIN)
+						_assert_cutout_has_safe_alpha_margin(visual_texture, visual_path, CUTOUT_MIN_SAFE_ALPHA_MARGIN)
 					if visual_path == HEAD_VISUAL_PATH:
-						_assert_head_cutout_keeps_source_head_shape(visual.texture, visual_path)
+						_assert_head_cutout_keeps_source_head_shape(visual_texture, visual_path)
 					if SINGLE_ALPHA_COMPONENT_VISUAL_PATHS.has(visual_path):
-						_assert_cutout_has_single_alpha_component(visual.texture, visual_path)
+						_assert_cutout_has_single_alpha_component(visual_texture, visual_path)
 					if visual_path == TORSO_VISUAL_PATH:
-						_assert_torso_does_not_keep_static_side_arms(visual.texture, visual_path)
+						_assert_torso_does_not_keep_static_side_arms(visual_texture, visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.70)
-						_assert_seam_fill_is_internal_strip(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.70)
+						_assert_seam_fill_is_internal_strip(visual_texture, visual_path)
 					elif visual_path == CLEANED_PELVIS_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.45)
 					elif visual_path == CLEANED_FRONT_THIGH_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.30)
-						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
-						_assert_front_thigh_has_soft_outer_edge(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.30)
+						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
+						_assert_front_thigh_has_soft_outer_edge(visual_texture, visual_path)
 					elif visual_path == CLEANED_BACK_THIGH_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
-						_assert_thigh_does_not_own_moving_waistband(visual.texture, visual_path)
-						_assert_back_thigh_has_soft_lower_edges(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
+						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
+						_assert_back_thigh_has_soft_lower_edges(visual_texture, visual_path)
 					elif visual_path == CLEANED_FRONT_SHIN_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.32)
-						_assert_front_shin_does_not_keep_detached_side_strip(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.32)
+						_assert_front_shin_does_not_keep_detached_side_strip(visual_texture, visual_path)
 					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.24)
-						_assert_back_shin_has_soft_inner_edge(visual.texture, visual_path)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.24)
+						_assert_back_shin_has_soft_inner_edge(visual_texture, visual_path)
 					elif visual_path == CLEANED_FRONT_HAND_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.62)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.62)
 					elif visual_path == CLEANED_FRONT_HAND_EMPTY_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.58)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.58)
 					elif visual_path == CLEANED_BACK_HAND_VISUAL_PATH:
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.68)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.68)
 					elif visual_path == FLASHLIGHT_VISUAL_PATH:
-						_assert_flashlight_cutout_has_completed_handle(visual.texture, visual_path)
+						_assert_flashlight_cutout_has_completed_handle(visual_texture, visual_path)
 					elif visual_path == BACK_UPPER_ARM_VISUAL_PATH:
-						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual.texture, visual_path)
-						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
+						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual_texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.45)
 					elif visual_path == FRONT_UPPER_ARM_VISUAL_PATH:
-						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual.texture, visual_path)
-						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.40)
+						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual_texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.40)
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
-						_assert_back_forearm_does_not_keep_hand_tail(visual.texture, visual_path)
-						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
+						_assert_back_forearm_does_not_keep_hand_tail(visual_texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif visual_path == FRONT_FOREARM_VISUAL_PATH:
-						_assert_front_forearm_has_soft_elbow_taper(visual.texture, visual_path)
-						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
+						_assert_front_forearm_is_weighted_mesh(visual, visual_path)
+						_assert_front_forearm_has_soft_elbow_taper(visual_texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
-						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.23)
+						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.23)
 		var front_hand_visual := skeleton.get_node_or_null(FRONT_HAND_VISUAL_PATH) as Sprite2D
 		var front_hand_empty_visual := skeleton.get_node_or_null(FRONT_HAND_EMPTY_VISUAL_PATH) as Sprite2D
 		var flashlight_visual := skeleton.get_node_or_null(FLASHLIGHT_VISUAL_PATH) as Sprite2D
@@ -394,7 +397,7 @@ func _test_rig_scene_contract() -> void:
 		var head_visual := skeleton.get_node_or_null(HEAD_VISUAL_PATH) as Sprite2D
 		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as Sprite2D
-		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as Sprite2D
+		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as CanvasItem
 		var front_elbow_visual := skeleton.get_node_or_null(FRONT_ELBOW_VISUAL_PATH) as Sprite2D
 		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as Sprite2D
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
@@ -405,7 +408,7 @@ func _test_rig_scene_contract() -> void:
 		assert_true(head_visual != null, "Player skeleton must keep head visual for photo-cutout layering")
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
-		assert_true(front_forearm_visual != null, "Player skeleton must keep front forearm visual for photo-cutout layering")
+		assert_true(front_forearm_visual != null, "Player skeleton must keep deformable front forearm visual for layering")
 		assert_true(front_elbow_visual != null, "Player skeleton must keep front elbow cover for the upper-arm/forearm seam")
 		assert_true(front_thigh_visual != null, "Player skeleton must keep front thigh visual for photo-cutout layering")
 		if front_hand_visual != null and front_hand_visual.texture != null:
@@ -531,6 +534,15 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 
 func _almost_eq(left: float, right: float, epsilon: float = 0.0001) -> bool:
 	return absf(left - right) <= epsilon
+
+func _get_visual_texture(visual: CanvasItem) -> Texture2D:
+	var sprite := visual as Sprite2D
+	if sprite != null:
+		return sprite.texture
+	var polygon := visual as Polygon2D
+	if polygon != null:
+		return polygon.texture
+	return null
 
 func _is_tight_cutout_texture(texture: Texture2D) -> bool:
 	return texture.get_width() < SOURCE_ANDRY_TEXTURE_SIZE.x and texture.get_height() < SOURCE_ANDRY_TEXTURE_SIZE.y
@@ -811,6 +823,43 @@ func _assert_front_forearm_has_soft_elbow_taper(texture: Texture2D, visual_path:
 			max_alpha <= FRONT_FOREARM_SOFT_TOP_MAX_ALPHA,
 			"Player skeleton front forearm must fade in under the upper arm instead of covering it with an opaque strip: %s" % visual_path
 	)
+
+func _assert_front_forearm_is_weighted_mesh(visual: CanvasItem, visual_path: String) -> void:
+	var mesh := visual as Polygon2D
+	assert_true(mesh != null, "Player skeleton front forearm must be a weighted Polygon2D mesh: %s" % visual_path)
+	if mesh == null:
+		return
+	assert_eq(mesh.skeleton, NodePath(".."), "Player skeleton front forearm mesh must bind to the parent Skeleton2D")
+	assert_true(
+			mesh.internal_vertex_count >= FRONT_FOREARM_MESH_MIN_INTERNAL_VERTICES,
+			"Player skeleton front forearm mesh must keep internal vertices for smooth deformation"
+	)
+	assert_true(mesh.polygon.size() == mesh.uv.size(), "Player skeleton front forearm mesh polygon and UV vertex counts must match")
+	assert_true(mesh.get_bone_count() >= 2, "Player skeleton front forearm mesh must use upper-arm and forearm bone weights")
+	var bone_paths: Array[String] = []
+	for bone_index in range(mesh.get_bone_count()):
+		var bone_path := String(mesh.get_bone_path(bone_index))
+		bone_paths.append(bone_path)
+		var weights := mesh.get_bone_weights(bone_index)
+		assert_eq(weights.size(), mesh.polygon.size(), "Player skeleton front forearm mesh bone weights must cover every vertex: %s" % bone_path)
+	assert_true(
+			bone_paths.has("../Hips/Spine/Chest/FrontUpperArm"),
+			"Player skeleton front forearm mesh must include FrontUpperArm weights"
+	)
+	assert_true(
+			bone_paths.has("../Hips/Spine/Chest/FrontUpperArm/FrontForearm"),
+			"Player skeleton front forearm mesh must include FrontForearm weights"
+	)
+	for vertex_index in range(mesh.polygon.size()):
+		var total_weight := 0.0
+		for bone_index in range(mesh.get_bone_count()):
+			var weights := mesh.get_bone_weights(bone_index)
+			if vertex_index < weights.size():
+				total_weight += weights[vertex_index]
+		assert_true(
+				total_weight >= 0.99 and total_weight <= 1.01,
+				"Player skeleton front forearm mesh vertex weights must sum to 1.0"
+		)
 
 func _assert_back_forearm_does_not_keep_hand_tail(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()

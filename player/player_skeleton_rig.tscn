@@ -666,6 +666,17 @@ _data = {
 
 [node name="Skeleton2D" type="Skeleton2D" parent="."]
 
+[node name="VisualFrontForearm" type="Polygon2D" parent="Skeleton2D"]
+light_mask = 2
+z_index = 4
+texture = ExtResource("8_front_forearm")
+position = Vector2(-49, -39.5)
+skeleton = NodePath("..")
+polygon = PackedVector2Array(-33, -91.5, 33, -91.5, 33, 91.5, -33, 91.5, -16.5, -55, 16.5, -55, -16.5, -18, 16.5, -18, -16.5, 18, 16.5, 18, -16.5, 55, 16.5, 55)
+uv = PackedVector2Array(0, 0, 66, 0, 66, 183, 0, 183, 16.5, 36.5, 49.5, 36.5, 16.5, 73.5, 49.5, 73.5, 16.5, 109.5, 49.5, 109.5, 16.5, 146.5, 49.5, 146.5)
+internal_vertex_count = 8
+bones = ["../Hips/Spine/Chest/FrontUpperArm", PackedFloat32Array(0.85, 0.85, 0, 0, 0.7, 0.7, 0.45, 0.45, 0.2, 0.2, 0.05, 0.05), "../Hips/Spine/Chest/FrontUpperArm/FrontForearm", PackedFloat32Array(0.15, 0.15, 1, 1, 0.3, 0.3, 0.55, 0.55, 0.8, 0.8, 0.95, 0.95)]
+
 [node name="Hips" type="Bone2D" parent="Skeleton2D"]
 position = Vector2(0, 50)
 rest = Transform2D(1, 0, 0, 1, 0, 50)
@@ -919,12 +930,6 @@ light_mask = 2
 z_index = 5
 texture = ExtResource("21_front_shoulder")
 position = Vector2(-3, 13)
-
-[node name="VisualFrontForearm" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
-light_mask = 2
-z_index = 4
-texture = ExtResource("8_front_forearm")
-position = Vector2(0, 71.5)
 
 [node name="VisualFrontElbowCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"]
 light_mask = 2
