@@ -94,6 +94,8 @@ const BACK_THIGH_SOFT_EDGE_MIN_Y := 70
 const BACK_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const BACK_SHIN_SOFT_INNER_EDGE_MIN_Y := 44
 const BACK_SHIN_SOFT_SIDE_EDGE_MAX_ALPHA := 0.50
+const BACK_SHIN_LOWER_TAPER_SAMPLE_ROWS: Array[int] = [144, 162, 180, 198]
+const BACK_SHIN_LOWER_TAPER_MAX_WIDTHS: Array[int] = [54, 51, 45, 39]
 const FRONT_THIGH_SMOOTH_HIP_MIN_Y := 88
 const FRONT_THIGH_SMOOTH_HIP_MAX_Y := 132
 const FRONT_THIGH_MAX_LEFT_EDGE_STEP := 2
@@ -133,6 +135,10 @@ const WALK_MIN_HIPS_BOUNCE_RANGE := 2.5
 const WALK_MAX_HIPS_BOUNCE_RANGE := 3.5
 const WALK_MIN_LEG_SWING_RANGE := 0.055
 const WALK_MAX_LEG_SWING_RANGE := 0.07
+const WALK_MIN_BACK_THIGH_SWING_RANGE := 0.04
+const WALK_MAX_BACK_THIGH_SWING_RANGE := 0.05
+const WALK_MIN_BACK_SHIN_SWING_RANGE := 0.06
+const WALK_MAX_BACK_SHIN_SWING_RANGE := 0.075
 const WALK_MIN_ARM_SWING_RANGE := 0.06
 const WALK_MAX_ARM_SWING_RANGE := 0.075
 const WALK_MIN_SPINE_SWAY_RANGE := 0.03
@@ -143,6 +149,10 @@ const LIGHT_RUN_MIN_HIPS_BOUNCE_RANGE := 5.0
 const LIGHT_RUN_MAX_HIPS_BOUNCE_RANGE := 6.5
 const LIGHT_RUN_MIN_LEG_SWING_RANGE := 0.115
 const LIGHT_RUN_MAX_LEG_SWING_RANGE := 0.13
+const LIGHT_RUN_MIN_BACK_THIGH_SWING_RANGE := 0.08
+const LIGHT_RUN_MAX_BACK_THIGH_SWING_RANGE := 0.09
+const LIGHT_RUN_MIN_BACK_SHIN_SWING_RANGE := 0.095
+const LIGHT_RUN_MAX_BACK_SHIN_SWING_RANGE := 0.105
 const LIGHT_RUN_MIN_ARM_SWING_RANGE := 0.10
 const LIGHT_RUN_MAX_ARM_SWING_RANGE := 0.115
 const LIGHT_RUN_MIN_SPINE_SWAY_RANGE := 0.04
@@ -165,8 +175,12 @@ const WALK_MIN_WRIST_SWING_RANGE := 0.03
 const WALK_MAX_WRIST_SWING_RANGE := 0.05
 const LIGHT_RUN_MIN_WRIST_SWING_RANGE := 0.08
 const LIGHT_RUN_MAX_WRIST_SWING_RANGE := 0.095
+const WALK_FOOT_PASSING_KEY_COUNT := 9
+const LIGHT_RUN_FOOT_PASSING_KEY_COUNT := 9
 const HIPS_POSITION_TRACK := NodePath("Skeleton2D/Hips:position")
 const FRONT_THIGH_ROTATION_TRACK := NodePath("Skeleton2D/Hips/FrontThigh:rotation")
+const BACK_THIGH_ROTATION_TRACK := NodePath("Skeleton2D/Hips/BackThigh:rotation")
+const BACK_SHIN_ROTATION_TRACK := NodePath("Skeleton2D/Hips/BackThigh/BackShin:rotation")
 const SPINE_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine:rotation")
 const NECK_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/Neck:rotation")
 const FRONT_UPPER_ARM_ROTATION_TRACK := NodePath("Skeleton2D/Hips/Spine/Chest/FrontUpperArm:rotation")
@@ -269,6 +283,8 @@ func _test_rig_scene_contract() -> void:
 				elif animation_name == &"walk":
 					_assert_animation_vector2_y_range(animation, HIPS_POSITION_TRACK, WALK_MIN_HIPS_BOUNCE_RANGE, WALK_MAX_HIPS_BOUNCE_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, WALK_MIN_LEG_SWING_RANGE, WALK_MAX_LEG_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_THIGH_ROTATION_TRACK, WALK_MIN_BACK_THIGH_SWING_RANGE, WALK_MAX_BACK_THIGH_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_SHIN_ROTATION_TRACK, WALK_MIN_BACK_SHIN_SWING_RANGE, WALK_MAX_BACK_SHIN_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, SPINE_ROTATION_TRACK, WALK_MIN_SPINE_SWAY_RANGE, WALK_MAX_SPINE_SWAY_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, WALK_MIN_NECK_COUNTER_RANGE, WALK_MAX_NECK_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, WALK_MIN_ARM_SWING_RANGE, WALK_MAX_ARM_SWING_RANGE, String(animation_name))
@@ -276,11 +292,17 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, WALK_MIN_FOOT_LIFT_RANGE, WALK_MAX_FOOT_LIFT_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_FOOT_ROTATION_TRACK, WALK_MIN_FOOT_ROLL_RANGE, WALK_MAX_FOOT_ROLL_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_FOOT_ROTATION_TRACK, WALK_MIN_FOOT_ROLL_RANGE, WALK_MAX_FOOT_ROLL_RANGE, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, FRONT_FOOT_POSITION_TRACK, WALK_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, BACK_FOOT_POSITION_TRACK, WALK_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, FRONT_FOOT_ROTATION_TRACK, WALK_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, BACK_FOOT_ROTATION_TRACK, WALK_FOOT_PASSING_KEY_COUNT, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
 				elif animation_name == &"light_run":
 					_assert_animation_vector2_y_range(animation, HIPS_POSITION_TRACK, LIGHT_RUN_MIN_HIPS_BOUNCE_RANGE, LIGHT_RUN_MAX_HIPS_BOUNCE_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_LEG_SWING_RANGE, LIGHT_RUN_MAX_LEG_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_THIGH_SWING_RANGE, LIGHT_RUN_MAX_BACK_THIGH_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_SHIN_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_SHIN_SWING_RANGE, LIGHT_RUN_MAX_BACK_SHIN_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, SPINE_ROTATION_TRACK, LIGHT_RUN_MIN_SPINE_SWAY_RANGE, LIGHT_RUN_MAX_SPINE_SWAY_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, LIGHT_RUN_MIN_NECK_COUNTER_RANGE, LIGHT_RUN_MAX_NECK_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_ARM_SWING_RANGE, LIGHT_RUN_MAX_ARM_SWING_RANGE, String(animation_name))
@@ -290,6 +312,10 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_vector2_x_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_FOOT_ROTATION_TRACK, LIGHT_RUN_MIN_FOOT_ROLL_RANGE, LIGHT_RUN_MAX_FOOT_ROLL_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_FOOT_ROTATION_TRACK, LIGHT_RUN_MIN_FOOT_ROLL_RANGE, LIGHT_RUN_MAX_FOOT_ROLL_RANGE, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, FRONT_FOOT_ROTATION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, BACK_FOOT_ROTATION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 		if skeleton != null:
@@ -955,6 +981,27 @@ func _assert_back_shin_has_soft_inner_edge(texture: Texture2D, visual_path: Stri
 				image.get_pixel(right_edge_x, y).a <= BACK_SHIN_SOFT_SIDE_EDGE_MAX_ALPHA,
 				"Player skeleton back shin outer edge must stay alpha-tapered instead of reading as a hard cut: %s" % visual_path
 		)
+	_assert_back_shin_lower_contour_tapers(image, visual_path)
+
+func _assert_back_shin_lower_contour_tapers(image: Image, visual_path: String) -> void:
+	for index in range(BACK_SHIN_LOWER_TAPER_SAMPLE_ROWS.size()):
+		var y := BACK_SHIN_LOWER_TAPER_SAMPLE_ROWS[index]
+		if y < 0 or y >= image.get_height():
+			continue
+		var min_x := image.get_width()
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		var row_width := max_x - min_x + 1
+		assert_true(
+				row_width <= BACK_SHIN_LOWER_TAPER_MAX_WIDTHS[index],
+				"Player skeleton back shin lower contour must taper instead of keeping a rectangular side slab: %s" % visual_path
+		)
 
 func _assert_front_thigh_has_soft_outer_edge(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
@@ -1032,6 +1079,20 @@ func _assert_animation_track_value_range(animation: Animation, track_path: NodeP
 	var value_range := max_value - min_value
 	assert_true(value_range >= min_range, "Player skeleton animation %s track %s must keep visible limb swing" % [animation_name, track_path])
 	assert_true(value_range <= max_range, "Player skeleton animation %s track %s must avoid excessive cutout-breaking swing" % [animation_name, track_path])
+
+func _assert_animation_track_key_count_at_least(animation: Animation, track_path: NodePath, min_key_count: int, animation_name: String) -> void:
+	var track_index := -1
+	for candidate_index in range(animation.get_track_count()):
+		if animation.track_get_path(candidate_index) == track_path:
+			track_index = candidate_index
+			break
+	assert_true(track_index >= 0, "Player skeleton animation %s must animate track %s" % [animation_name, track_path])
+	if track_index < 0:
+		return
+	assert_true(
+			animation.track_get_key_count(track_index) >= min_key_count,
+			"Player skeleton animation %s track %s must keep intermediate passing keys for smoother foot arcs" % [animation_name, track_path]
+	)
 
 func _assert_animation_vector2_y_range(animation: Animation, track_path: NodePath, min_range: float, max_range: float, animation_name: String) -> void:
 	var track_index := -1
