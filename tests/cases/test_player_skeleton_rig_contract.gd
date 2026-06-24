@@ -16,6 +16,7 @@ const BACK_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/BackUpperArm/BackForearm/Vis
 const FRONT_UPPER_ARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/VisualFrontUpperArm"
 const FRONT_FOREARM_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontForearm"
 const FRONT_ELBOW_VISUAL_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/VisualFrontElbowCover"
+const FRONT_ANKLE_VISUAL_PATH := "Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontAnkleCover"
 const FRONT_HAND_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHand"
 const FRONT_HAND_EMPTY_VISUAL_PATH := FRONT_HAND_PATH + "/VisualFrontHandEmpty"
 const FLASHLIGHT_VISUAL_PATH := FRONT_HAND_PATH + "/FlashlightMount/VisualFlashlight"
@@ -140,6 +141,12 @@ const FRONT_ELBOW_COVER_MIN_LOCAL_X := 1.0
 const FRONT_ELBOW_COVER_MAX_LOCAL_X := 3.0
 const FRONT_ELBOW_COVER_MIN_LOCAL_Y := 6.0
 const FRONT_ELBOW_COVER_MAX_LOCAL_Y := 10.0
+const FRONT_ANKLE_COVER_MIN_CUFF_ALPHA := 0.70
+const FRONT_ANKLE_COVER_CUFF_SAMPLE_Y := 24
+const FRONT_ANKLE_COVER_LOWER_FADE_START_Y := 44
+const FRONT_ANKLE_COVER_LOWER_MAX_ALPHA := 0.30
+const FRONT_ANKLE_COVER_BOTTOM_SAMPLE_Y := 50
+const FRONT_ANKLE_COVER_BOTTOM_MAX_ALPHA := 0.05
 const FRONT_FOREARM_ELBOW_OVERLAP_TOP_RIGHT_X := -10.0
 const FRONT_FOREARM_ELBOW_OVERLAP_MID_RIGHT_X := -12.0
 const FRONT_FOREARM_ELBOW_OVERLAP_LOW_RIGHT_X := -14.0
@@ -328,7 +335,7 @@ const EXPECTED_CUTOUT_VISUAL_PATHS: Array[String] = [
 	CLEANED_FRONT_SHIN_VISUAL_PATH,
 	"Hips/FrontThigh/FrontShin/VisualFrontKneeCover",
 	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontFoot",
-	"Hips/FrontThigh/FrontShin/FrontFoot/VisualFrontAnkleCover",
+	FRONT_ANKLE_VISUAL_PATH,
 ]
 const CONVERTED_LIMB_VISUAL_PATHS: Array[String] = [
 	BACK_UPPER_ARM_VISUAL_PATH,
@@ -595,6 +602,8 @@ func _test_rig_scene_contract() -> void:
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
+					elif visual_path == FRONT_ANKLE_VISUAL_PATH:
+						_assert_front_ankle_cover_fades_above_foot(visual_texture, visual_path)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 					elif CLEANED_LOWER_BODY_CUTOUT_VISUAL_PATHS.has(visual_path):
@@ -1449,6 +1458,33 @@ func _assert_front_elbow_cover_stays_subtle(visual: Sprite2D) -> void:
 			float(visible_pixels) / float(total_pixels) <= FRONT_ELBOW_COVER_MAX_VISIBLE_RATIO,
 			"Player skeleton front elbow cover must stay compact enough to hide the seam without reading as a separate oval"
 	)
+
+func _assert_front_ankle_cover_fades_above_foot(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton front ankle cover texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	assert_true(
+			_get_max_alpha_in_row(image, FRONT_ANKLE_COVER_CUFF_SAMPLE_Y) >= FRONT_ANKLE_COVER_MIN_CUFF_ALPHA,
+			"Player skeleton front ankle cover must keep a visible cuff at the trouser seam: %s" % visual_path
+	)
+	for y in range(FRONT_ANKLE_COVER_LOWER_FADE_START_Y, image.get_height()):
+		assert_true(
+				_get_max_alpha_in_row(image, y) <= FRONT_ANKLE_COVER_LOWER_MAX_ALPHA,
+				"Player skeleton front ankle cover must fade before it reads as a cloth slab over the foot: %s" % visual_path
+		)
+	assert_true(
+			_get_max_alpha_in_row(image, FRONT_ANKLE_COVER_BOTTOM_SAMPLE_Y) <= FRONT_ANKLE_COVER_BOTTOM_MAX_ALPHA,
+			"Player skeleton front ankle cover must be almost transparent at the lower foot edge: %s" % visual_path
+	)
+
+func _get_max_alpha_in_row(image: Image, y: int) -> float:
+	if y < 0 or y >= image.get_height():
+		return 0.0
+	var max_alpha := 0.0
+	for x in range(image.get_width()):
+		max_alpha = maxf(max_alpha, image.get_pixel(x, y).a)
+	return max_alpha
 
 func _assert_upper_arm_does_not_keep_duplicate_sleeve(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
