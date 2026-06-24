@@ -28,6 +28,8 @@ DEFAULT_ANIMATION_PLAYER_PATH = "SkeletonAnimationPlayer"
 ANIMATION_LENGTHS: dict[str, float] = {
     "idle": 1.6,
     "walk": 0.8,
+    "light_walk": 0.8,
+    "run": 0.55,
     "light_run": 0.55,
     "forearm_mesh_flex": 0.8,
 }
@@ -42,13 +44,41 @@ DEFAULT_MONTAGE_POSES: list[tuple[str, str, float]] = [
     ("walk 0.4", "walk", 0.4),
     ("walk 0.5", "walk", 0.5),
     ("walk 0.6", "walk", 0.6),
-    ("run 0.0", "light_run", 0.0),
-    ("run 0.068", "light_run", 0.06875),
-    ("run 0.137", "light_run", 0.1375),
-    ("run 0.206", "light_run", 0.20625),
-    ("run 0.275", "light_run", 0.275),
-    ("run 0.343", "light_run", 0.34375),
-    ("run 0.412", "light_run", 0.4125),
+    ("light_walk 0.0", "light_walk", 0.0),
+    ("light_walk 0.2", "light_walk", 0.2),
+    ("light_walk 0.4", "light_walk", 0.4),
+    ("light_walk 0.6", "light_walk", 0.6),
+    ("run 0.0", "run", 0.0),
+    ("run 0.137", "run", 0.1375),
+    ("run 0.275", "run", 0.275),
+    ("run 0.412", "run", 0.4125),
+    ("light_run 0.0", "light_run", 0.0),
+    ("light_run 0.137", "light_run", 0.1375),
+    ("light_run 0.275", "light_run", 0.275),
+    ("light_run 0.412", "light_run", 0.4125),
+]
+
+RUNTIME_MOTION_POSES: list[tuple[str, str, float, bool]] = [
+    ("idle no-flash 0.0", "idle", 0.0, False),
+    ("idle no-flash 0.8", "idle", 0.8, False),
+    ("idle flashlight 0.0", "idle", 0.0, True),
+    ("idle flashlight 0.8", "idle", 0.8, True),
+    ("walk no-flash 0.0", "walk", 0.0, False),
+    ("walk no-flash 0.2", "walk", 0.2, False),
+    ("walk no-flash 0.4", "walk", 0.4, False),
+    ("walk no-flash 0.6", "walk", 0.6, False),
+    ("light_walk flashlight 0.0", "light_walk", 0.0, True),
+    ("light_walk flashlight 0.2", "light_walk", 0.2, True),
+    ("light_walk flashlight 0.4", "light_walk", 0.4, True),
+    ("light_walk flashlight 0.6", "light_walk", 0.6, True),
+    ("run no-flash 0.0", "run", 0.0, False),
+    ("run no-flash 0.137", "run", 0.1375, False),
+    ("run no-flash 0.275", "run", 0.275, False),
+    ("run no-flash 0.412", "run", 0.4125, False),
+    ("light_run flashlight 0.0", "light_run", 0.0, True),
+    ("light_run flashlight 0.137", "light_run", 0.1375, True),
+    ("light_run flashlight 0.275", "light_run", 0.275, True),
+    ("light_run flashlight 0.412", "light_run", 0.4125, True),
 ]
 
 
@@ -84,6 +114,11 @@ def main() -> int:
         help="Export evenly sampled frames for one animation instead of the default pose montage.",
     )
     parser.add_argument(
+        "--runtime-motion-set",
+        action="store_true",
+        help="Export runtime-real idle/walk/run poses for no-flashlight and flashlight states in one montage.",
+    )
+    parser.add_argument(
         "--sequence-length",
         type=float,
         help="Animation length for custom --sequence-animation values.",
@@ -111,13 +146,22 @@ def main() -> int:
     repo_root = Path(__file__).resolve().parents[2]
     output_path = Path(args.output).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    poses = _resolve_poses(args.sequence_animation, args.sequence_frames, args.sequence_length)
+    if args.sequence_animation and args.runtime_motion_set:
+        raise SystemExit("--runtime-motion-set cannot be combined with --sequence-animation")
+
+    poses = _resolve_poses(
+        args.sequence_animation,
+        args.sequence_frames,
+        args.sequence_length,
+        args.flashlight,
+        args.runtime_motion_set,
+    )
 
     with tempfile.TemporaryDirectory(prefix="andry-rig-preview-") as temp_dir_name:
         temp_dir = Path(temp_dir_name)
         dump_script = temp_dir / "dump_player_rig_pose.gd"
         dump_script.write_text(
-            _build_godot_dump_script(temp_dir, args.rig_path, args.animation_player_path, args.flashlight, poses),
+            _build_godot_dump_script(temp_dir, args.rig_path, args.animation_player_path, poses),
             encoding="utf-8",
         )
         subprocess.run(
@@ -129,7 +173,7 @@ def main() -> int:
         shared_bounds = _calculate_shared_bounds(repo_root, pose_data) if args.sequence_animation else None
         pose_images = [
             _render_pose(repo_root, pose_data[index], label, args.scale, shared_bounds)
-            for index, (label, _, _) in enumerate(poses)
+            for index, (label, _, _, _) in enumerate(poses)
         ]
         if args.sequence_animation and output_path.suffix.lower() == ".gif":
             _save_sequence_gif(pose_images, output_path, args.fps)
@@ -140,14 +184,22 @@ def main() -> int:
     return 0
 
 
-def _resolve_poses(sequence_animation: str | None, sequence_frames: int, sequence_length: float | None) -> list[tuple[str, str, float]]:
+def _resolve_poses(
+    sequence_animation: str | None,
+    sequence_frames: int,
+    sequence_length: float | None,
+    show_flashlight: bool,
+    runtime_motion_set: bool,
+) -> list[tuple[str, str, float, bool]]:
+    if runtime_motion_set:
+        return RUNTIME_MOTION_POSES
     if not sequence_animation:
-        return DEFAULT_MONTAGE_POSES
+        return [(label, animation, time, show_flashlight) for label, animation, time in DEFAULT_MONTAGE_POSES]
     animation_length = sequence_length if sequence_length is not None else ANIMATION_LENGTHS.get(sequence_animation)
     if animation_length is None:
         raise SystemExit("--sequence-length is required for custom --sequence-animation values")
     return [
-        (f"{sequence_animation} {index:02d}", sequence_animation, animation_length * index / sequence_frames)
+        (f"{sequence_animation} {index:02d}", sequence_animation, animation_length * index / sequence_frames, show_flashlight)
         for index in range(sequence_frames)
     ]
 
@@ -156,19 +208,17 @@ def _build_godot_dump_script(
     temp_dir: Path,
     rig_path: str,
     animation_player_path: str,
-    show_flashlight: bool,
-    poses: list[tuple[str, str, float]],
+    poses: list[tuple[str, str, float, bool]],
 ) -> str:
     pose_rows = ",\n\t".join(
-        '{"animation": "%s", "time": %.8f, "path": "%s"}'
-        % (animation, time, str((temp_dir / f"pose_{index}.json").as_posix()))
-        for index, (_, animation, time) in enumerate(poses)
+        '{"animation": "%s", "time": %.8f, "show_flashlight": %s, "path": "%s"}'
+        % (animation, time, str(show_flashlight).lower(), str((temp_dir / f"pose_{index}.json").as_posix()))
+        for index, (_, animation, time, show_flashlight) in enumerate(poses)
     )
     return f'''extends SceneTree
 
 const RIG_PATH := "{rig_path}"
 const ANIMATION_PLAYER_PATH := "{animation_player_path}"
-const SHOW_FLASHLIGHT := {str(show_flashlight).lower()}
 const POSES := [
 \t{pose_rows}
 ]
@@ -186,14 +236,15 @@ func _deferred_dump() -> void:
 \tvar held_hand := rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/VisualFrontHand") as CanvasItem
 \tvar empty_hand := rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/VisualFrontHandEmpty") as CanvasItem
 \tvar flashlight := rig.get_node_or_null("Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand/FlashlightMount/VisualFlashlight") as CanvasItem
-\tif held_hand != null:
-\t\theld_hand.visible = SHOW_FLASHLIGHT
-\tif empty_hand != null:
-\t\tempty_hand.visible = not SHOW_FLASHLIGHT
-\tif flashlight != null:
-\t\tflashlight.visible = SHOW_FLASHLIGHT
 \tvar visuals := _collect_visuals(rig)
 \tfor pose in POSES:
+\t\tvar show_flashlight := bool(pose["show_flashlight"])
+\t\tif held_hand != null:
+\t\t\theld_hand.visible = show_flashlight
+\t\tif empty_hand != null:
+\t\t\tempty_hand.visible = not show_flashlight
+\t\tif flashlight != null:
+\t\t\tflashlight.visible = show_flashlight
 \t\tanimation_player.play(StringName(pose["animation"]))
 \t\tanimation_player.seek(float(pose["time"]), true)
 \t\tawait process_frame
