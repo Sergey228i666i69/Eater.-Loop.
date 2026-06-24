@@ -210,6 +210,8 @@ const LIGHT_RUN_MIN_CHEST_COUNTER_RANGE := 0.055
 const LIGHT_RUN_MAX_CHEST_COUNTER_RANGE := 0.065
 const LIGHT_RUN_MIN_SPINE_SWAY_RANGE := 0.04
 const LIGHT_RUN_MAX_SPINE_SWAY_RANGE := 0.05
+const RUN_MIN_SPINE_FORWARD_BIAS := 0.01
+const RUN_MAX_SPINE_FORWARD_BIAS := 0.02
 const LIGHT_RUN_MIN_NECK_COUNTER_RANGE := 0.025
 const LIGHT_RUN_MAX_NECK_COUNTER_RANGE := 0.035
 const LIGHT_RUN_MIN_HEAD_COUNTER_RANGE := 0.035
@@ -395,6 +397,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, BACK_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_THIGH_SWING_RANGE, LIGHT_RUN_MAX_BACK_THIGH_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_SHIN_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_SHIN_SWING_RANGE, LIGHT_RUN_MAX_BACK_SHIN_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, SPINE_ROTATION_TRACK, LIGHT_RUN_MIN_SPINE_SWAY_RANGE, LIGHT_RUN_MAX_SPINE_SWAY_RANGE, String(animation_name))
+					_assert_animation_track_mean_in_range(animation, SPINE_ROTATION_TRACK, RUN_MIN_SPINE_FORWARD_BIAS, RUN_MAX_SPINE_FORWARD_BIAS, String(animation_name))
 					_assert_animation_track_value_range(animation, CHEST_ROTATION_TRACK, LIGHT_RUN_MIN_CHEST_COUNTER_RANGE, LIGHT_RUN_MAX_CHEST_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, LIGHT_RUN_MIN_NECK_COUNTER_RANGE, LIGHT_RUN_MAX_NECK_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, HEAD_ROTATION_TRACK, LIGHT_RUN_MIN_HEAD_COUNTER_RANGE, LIGHT_RUN_MAX_HEAD_COUNTER_RANGE, String(animation_name))
@@ -420,6 +423,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, BACK_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_THIGH_SWING_RANGE, LIGHT_RUN_MAX_BACK_THIGH_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_SHIN_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_SHIN_SWING_RANGE, LIGHT_RUN_MAX_BACK_SHIN_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, SPINE_ROTATION_TRACK, LIGHT_RUN_MIN_SPINE_SWAY_RANGE, LIGHT_RUN_MAX_SPINE_SWAY_RANGE, String(animation_name))
+					_assert_animation_track_mean_in_range(animation, SPINE_ROTATION_TRACK, RUN_MIN_SPINE_FORWARD_BIAS, RUN_MAX_SPINE_FORWARD_BIAS, String(animation_name))
 					_assert_animation_track_value_range(animation, CHEST_ROTATION_TRACK, LIGHT_RUN_MIN_CHEST_COUNTER_RANGE, LIGHT_RUN_MAX_CHEST_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, LIGHT_RUN_MIN_NECK_COUNTER_RANGE, LIGHT_RUN_MAX_NECK_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, HEAD_ROTATION_TRACK, LIGHT_RUN_MIN_HEAD_COUNTER_RANGE, LIGHT_RUN_MAX_HEAD_COUNTER_RANGE, String(animation_name))
@@ -1407,6 +1411,23 @@ func _assert_animation_track_value_range(animation: Animation, track_path: NodeP
 	var value_range := max_value - min_value
 	assert_true(value_range >= min_range, "Player skeleton animation %s track %s must keep visible limb swing" % [animation_name, track_path])
 	assert_true(value_range <= max_range, "Player skeleton animation %s track %s must avoid excessive cutout-breaking swing" % [animation_name, track_path])
+
+func _assert_animation_track_mean_in_range(animation: Animation, track_path: NodePath, min_mean: float, max_mean: float, animation_name: String) -> void:
+	var track_index := -1
+	for candidate_index in range(animation.get_track_count()):
+		if animation.track_get_path(candidate_index) == track_path:
+			track_index = candidate_index
+			break
+	assert_true(track_index >= 0, "Player skeleton animation %s must animate track %s" % [animation_name, track_path])
+	if track_index < 0:
+		return
+	var value_sum := 0.0
+	var key_count := animation.track_get_key_count(track_index)
+	for key_index in range(key_count):
+		value_sum += float(animation.track_get_key_value(track_index, key_index))
+	var value_mean := value_sum / float(key_count)
+	assert_true(value_mean >= min_mean, "Player skeleton animation %s track %s must keep its forward run lean" % [animation_name, track_path])
+	assert_true(value_mean <= max_mean, "Player skeleton animation %s track %s must avoid excessive forward run lean" % [animation_name, track_path])
 
 func _assert_animation_track_key_count_at_least(animation: Animation, track_path: NodePath, min_key_count: int, animation_name: String) -> void:
 	var track_index := -1
