@@ -88,7 +88,11 @@ const TORSO_STATIC_SIDE_ARM_RIGHT_MIN_X := 145
 const TORSO_STATIC_SIDE_ARM_LOWER_LEFT_MAX_X := 78
 const TORSO_STATIC_SIDE_ARM_LOWER_RIGHT_MIN_X := 132
 const TORSO_STATIC_SIDE_ARM_MAX_SKIN_PIXELS := 100
+const TORSO_STATIC_PAJAMA_MIN_Y := 277
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
+const THIGH_TOP_FADE_START_Y := 20
+const THIGH_TOP_FADE_END_Y := 44
+const THIGH_TOP_FADE_ALPHA_TOLERANCE := 0.04
 const FLASHLIGHT_HANDLE_GAP_X_RANGE := Vector2i(22, 62)
 const FLASHLIGHT_HANDLE_GAP_Y_RANGE := Vector2i(25, 34)
 const FLASHLIGHT_MIN_FILLED_GAP_COLUMNS := 32
@@ -493,6 +497,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_single_alpha_component(visual_texture, visual_path)
 					if visual_path == TORSO_VISUAL_PATH:
 						_assert_torso_does_not_keep_static_side_arms(visual_texture, visual_path)
+						_assert_torso_does_not_keep_static_pajama_waist(visual_texture, visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.70)
 						_assert_seam_fill_is_internal_strip(visual_texture, visual_path)
@@ -503,6 +508,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.30)
 						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
+						_assert_thigh_top_fades_under_shirt(visual_texture, visual_path)
 						_assert_front_thigh_has_soft_outer_edge(visual_texture, visual_path)
 					elif visual_path == BACK_LEG_UNDERLAY_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
@@ -512,6 +518,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.25)
 						_assert_thigh_does_not_own_moving_waistband(visual_texture, visual_path)
+						_assert_thigh_top_fades_under_shirt(visual_texture, visual_path)
 						_assert_back_thigh_has_soft_lower_edges(visual_texture, visual_path)
 					elif visual_path == CLEANED_FRONT_SHIN_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
@@ -917,6 +924,34 @@ func _assert_thigh_does_not_own_moving_waistband(texture: Texture2D, visual_path
 					image.get_pixel(x, y).a <= 0.05,
 					"Player skeleton thigh cutout must not keep moving waistband/pelvis pixels: %s" % visual_path
 			)
+
+func _assert_torso_does_not_keep_static_pajama_waist(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton torso texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(mini(TORSO_STATIC_PAJAMA_MIN_Y, image.get_height()), image.get_height()):
+		for x in range(image.get_width()):
+			assert_true(
+					image.get_pixel(x, y).a <= 0.05,
+					"Player skeleton torso must not keep the static pajama strip below the shirt hem: %s" % visual_path
+			)
+
+func _assert_thigh_top_fades_under_shirt(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton thigh texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(THIGH_TOP_FADE_START_Y, mini(THIGH_TOP_FADE_END_Y, image.get_height())):
+		var max_alpha := 0.0
+		for x in range(image.get_width()):
+			max_alpha = maxf(max_alpha, image.get_pixel(x, y).a)
+		var fade_progress := float(y - THIGH_TOP_FADE_START_Y) / float(THIGH_TOP_FADE_END_Y - THIGH_TOP_FADE_START_Y)
+		var expected_max_alpha := smoothstep(0.0, 1.0, fade_progress) + THIGH_TOP_FADE_ALPHA_TOLERANCE
+		assert_true(
+				max_alpha <= expected_max_alpha,
+				"Player skeleton thigh top must fade under the shirt instead of starting as a blocky pajama strip: %s" % visual_path
+		)
 
 func _assert_front_shin_does_not_keep_detached_side_strip(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
