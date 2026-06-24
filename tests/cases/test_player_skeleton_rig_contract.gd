@@ -92,7 +92,7 @@ const FLASHLIGHT_GRIP_MAX_LOCAL_Y_OFFSET := 12.0
 const BACK_THIGH_SOFT_EDGE_MIN_Y := 70
 const BACK_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const BACK_SHIN_SOFT_INNER_EDGE_MIN_Y := 44
-const BACK_SHIN_SOFT_INNER_EDGE_MAX_ALPHA := 0.65
+const BACK_SHIN_SOFT_SIDE_EDGE_MAX_ALPHA := 0.50
 const FRONT_THIGH_SMOOTH_HIP_MIN_Y := 88
 const FRONT_THIGH_SMOOTH_HIP_MAX_Y := 132
 const FRONT_THIGH_MAX_LEFT_EDGE_STEP := 2
@@ -102,6 +102,10 @@ const FRONT_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_Y := 104
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_LEFT_X := 22
 const BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH := 29
+const UPPER_ARM_SOFT_EDGE_MIN_Y := 68
+const UPPER_ARM_SOFT_EDGE_MAX_ALPHA := 0.68
+const FOREARM_SOFT_SIDE_EDGE_MIN_Y := 16
+const FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA := 0.65
 const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
 const FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X := 58
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
@@ -331,15 +335,19 @@ func _test_rig_scene_contract() -> void:
 						_assert_flashlight_cutout_has_completed_handle(visual.texture, visual_path)
 					elif visual_path == BACK_UPPER_ARM_VISUAL_PATH:
 						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual.texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.45)
 					elif visual_path == FRONT_UPPER_ARM_VISUAL_PATH:
 						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual.texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.40)
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
 						_assert_back_forearm_does_not_keep_hand_tail(visual.texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif visual_path == FRONT_FOREARM_VISUAL_PATH:
 						_assert_front_forearm_has_soft_elbow_taper(visual.texture, visual_path)
+						_assert_arm_cutout_has_soft_side_edges(visual.texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
 					elif CLEANED_ARM_CUTOUT_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_alpha_negative_space(visual.texture, visual_path, 0.25)
@@ -792,6 +800,30 @@ func _assert_back_forearm_does_not_keep_hand_tail(texture: Texture2D, visual_pat
 					"Player skeleton back forearm must leave the hand to the separate back-hand cutout: %s" % visual_path
 			)
 
+func _assert_arm_cutout_has_soft_side_edges(texture: Texture2D, visual_path: String, min_y: int, max_edge_alpha: float) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton arm texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(min_y, image.get_height()):
+		var min_x := image.get_width()
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		assert_true(
+				image.get_pixel(min_x, y).a <= max_edge_alpha,
+				"Player skeleton arm side edge must stay alpha-tapered instead of reading as a cutout slab: %s" % visual_path
+		)
+		assert_true(
+				image.get_pixel(max_x, y).a <= max_edge_alpha,
+				"Player skeleton arm side edge must stay alpha-tapered instead of reading as a cutout slab: %s" % visual_path
+		)
+
 func _assert_back_upper_arm_does_not_keep_lower_torso_tail(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
 	assert_true(image != null, "Player skeleton back upper-arm texture must expose alpha pixels: %s" % visual_path)
@@ -868,8 +900,15 @@ func _assert_back_shin_has_soft_inner_edge(texture: Texture2D, visual_path: Stri
 		if edge_x < 0:
 			continue
 		assert_true(
-				image.get_pixel(edge_x, y).a <= BACK_SHIN_SOFT_INNER_EDGE_MAX_ALPHA,
+				image.get_pixel(edge_x, y).a <= BACK_SHIN_SOFT_SIDE_EDGE_MAX_ALPHA,
 				"Player skeleton back shin inner edge must stay alpha-tapered instead of reading as a hard cut: %s" % visual_path
+		)
+		var right_edge_x := _find_right_visible_pixel_in_row(image, y)
+		if right_edge_x < 0:
+			continue
+		assert_true(
+				image.get_pixel(right_edge_x, y).a <= BACK_SHIN_SOFT_SIDE_EDGE_MAX_ALPHA,
+				"Player skeleton back shin outer edge must stay alpha-tapered instead of reading as a hard cut: %s" % visual_path
 		)
 
 func _assert_front_thigh_has_soft_outer_edge(texture: Texture2D, visual_path: String) -> void:
@@ -899,6 +938,12 @@ func _assert_front_thigh_has_soft_outer_edge(texture: Texture2D, visual_path: St
 
 func _find_left_visible_pixel_in_row(image: Image, y: int) -> int:
 	for x in range(image.get_width()):
+		if image.get_pixel(x, y).a > 0.05:
+			return x
+	return -1
+
+func _find_right_visible_pixel_in_row(image: Image, y: int) -> int:
+	for x in range(image.get_width() - 1, -1, -1):
 		if image.get_pixel(x, y).a > 0.05:
 			return x
 	return -1
