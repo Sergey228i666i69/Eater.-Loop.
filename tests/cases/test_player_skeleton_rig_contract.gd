@@ -51,6 +51,10 @@ const SAFE_ALPHA_MARGIN_VISUAL_PATHS: Array[String] = [
 	CLEANED_FRONT_HAND_VISUAL_PATH,
 	CLEANED_BACK_HAND_VISUAL_PATH,
 ]
+const HIDDEN_STATIC_PATCH_VISUAL_PATHS: Array[String] = [
+	CLEANED_PELVIS_VISUAL_PATH,
+	BACK_LEG_UNDERLAY_VISUAL_PATH,
+]
 const SINGLE_ALPHA_COMPONENT_VISUAL_PATHS: Array[String] = [
 	TORSO_VISUAL_PATH,
 	CLEANED_PELVIS_VISUAL_PATH,
@@ -110,6 +114,7 @@ const FRONT_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_Y := 104
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_LEFT_X := 22
 const BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH := 29
+const UPPER_ARM_DUPLICATE_SLEEVE_CLEAR_ROWS := 56
 const UPPER_ARM_SOFT_EDGE_MIN_Y := 68
 const UPPER_ARM_SOFT_EDGE_MAX_ALPHA := 0.68
 const FOREARM_SOFT_SIDE_EDGE_MIN_Y := 16
@@ -478,6 +483,8 @@ func _test_rig_scene_contract() -> void:
 				if visual_texture != null:
 					assert_true(_is_player_skeleton_texture_path(String(visual_texture.resource_path)), "Player skeleton visual must use Andry cutout/cover texture: %s" % visual_path)
 					assert_true(_is_tight_cutout_texture(visual_texture), "Player skeleton cutout texture must not keep the full Andry canvas: %s" % visual_path)
+					if HIDDEN_STATIC_PATCH_VISUAL_PATHS.has(visual_path) and not visual.visible:
+						continue
 					if SAFE_ALPHA_MARGIN_VISUAL_PATHS.has(visual_path):
 						_assert_cutout_has_safe_alpha_margin(visual_texture, visual_path, CUTOUT_MIN_SAFE_ALPHA_MARGIN)
 					if visual_path == HEAD_VISUAL_PATH:
@@ -524,11 +531,13 @@ func _test_rig_scene_contract() -> void:
 						_assert_flashlight_cutout_has_completed_handle(visual_texture, visual_path)
 					elif visual_path == BACK_UPPER_ARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
+						_assert_upper_arm_does_not_keep_duplicate_sleeve(visual_texture, visual_path)
 						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.45)
 					elif visual_path == FRONT_UPPER_ARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
+						_assert_upper_arm_does_not_keep_duplicate_sleeve(visual_texture, visual_path)
 						_assert_front_upper_arm_does_not_keep_side_torso_tail(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.40)
@@ -1259,6 +1268,21 @@ func _assert_front_elbow_cover_stays_subtle(visual: Sprite2D) -> void:
 	assert_true(
 			float(visible_pixels) / float(total_pixels) <= FRONT_ELBOW_COVER_MAX_VISIBLE_RATIO,
 			"Player skeleton front elbow cover must stay compact enough to hide the seam without reading as a separate oval"
+	)
+
+func _assert_upper_arm_does_not_keep_duplicate_sleeve(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton upper-arm texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var duplicate_sleeve_pixels := 0
+	for y in range(mini(UPPER_ARM_DUPLICATE_SLEEVE_CLEAR_ROWS, image.get_height())):
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a > 0.05:
+				duplicate_sleeve_pixels += 1
+	assert_true(
+			duplicate_sleeve_pixels == 0,
+			"Player skeleton upper arm must not keep the duplicate shirt sleeve that rotates with the arm: %s" % visual_path
 	)
 
 func _assert_back_upper_arm_does_not_keep_lower_torso_tail(texture: Texture2D, visual_path: String) -> void:
