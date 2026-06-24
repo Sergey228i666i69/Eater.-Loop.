@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import os
 import subprocess
 import sys
@@ -28,9 +27,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from export_player_rig_montage import (  # noqa: E402
+    DEFAULT_ANIMATION_PLAYER_PATH,
+    DEFAULT_RIG_PATH,
     _build_godot_dump_script,
     _load_texture,
-    _transformed_corners,
+    _render_visual,
+    _visual_points,
 )
 
 
@@ -127,7 +129,16 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="andry-rig-scene-context-") as temp_dir_name:
         temp_dir = Path(temp_dir_name)
         dump_script = temp_dir / "dump_player_rig_scene_context.gd"
-        dump_script.write_text(_build_godot_dump_script(temp_dir, args.flashlight, poses), encoding="utf-8")
+        dump_script.write_text(
+            _build_godot_dump_script(
+                temp_dir,
+                DEFAULT_RIG_PATH,
+                DEFAULT_ANIMATION_PLAYER_PATH,
+                args.flashlight,
+                poses,
+            ),
+            encoding="utf-8",
+        )
         subprocess.run(
             [args.godot, "--headless", "--path", str(repo_root), "-s", str(dump_script)],
             cwd=repo_root,
@@ -240,7 +251,7 @@ def _build_player_visual_layers(
     points: list[tuple[float, float]] = []
     for visual in visuals:
         texture = _load_texture(repo_root, texture_cache, visual["texture"])
-        points.extend(_transformed_corners(texture, visual))
+        points.extend(_visual_points(texture, visual))
     min_x = min(x for x, _ in points)
     max_x = max(x for x, _ in points)
     max_y = max(y for _, y in points)
@@ -253,10 +264,9 @@ def _build_player_visual_layers(
         texture = _load_texture(repo_root, texture_cache, visual["texture"])
         if layer_overlay:
             texture = _build_layer_overlay_texture(texture, visual["name"])
-        transformed = _transform_texture(texture, visual, scale)
-        origin_x, origin_y = visual["origin"]
-        x = int(player_x + (origin_x - center_x) * scale - transformed.width / 2)
-        y = int(floor_y + (origin_y - max_y) * scale - transformed.height / 2)
+        transformed, visual_min_x, visual_min_y = _render_visual_layer(texture, visual, scale)
+        x = int(player_x + (visual_min_x - center_x) * scale)
+        y = int(floor_y + (visual_min_y - max_y) * scale)
         layers.append((PLAYER_ROOT_Z + int(visual["z_index"]), transformed, (x, y)))
     return layers
 
@@ -273,16 +283,23 @@ def _build_layer_overlay_texture(texture: Image.Image, visual_name: str) -> Imag
     return overlay
 
 
-def _transform_texture(texture: Image.Image, visual: dict, scale: float) -> Image.Image:
-    x_axis = visual["x"]
-    y_axis = visual["y"]
-    angle = math.degrees(math.atan2(x_axis[1], x_axis[0]))
-    sx = math.hypot(x_axis[0], x_axis[1]) * scale
-    sy = math.hypot(y_axis[0], y_axis[1]) * scale
-    return texture.resize(
-        (max(1, int(texture.width * sx)), max(1, int(texture.height * sy))),
-        Image.Resampling.BICUBIC,
-    ).rotate(angle, expand=True, resample=Image.Resampling.BICUBIC)
+def _render_visual_layer(texture: Image.Image, visual: dict, scale: float) -> tuple[Image.Image, float, float]:
+    points = _visual_points(texture, visual)
+    min_x = min(x for x, _ in points)
+    min_y = min(y for _, y in points)
+    max_x = max(x for x, _ in points)
+    max_y = max(y for _, y in points)
+    padding = 2
+    layer = Image.new(
+        "RGBA",
+        (
+            max(1, int((max_x - min_x) * scale) + padding * 2),
+            max(1, int((max_y - min_y) * scale) + padding * 2),
+        ),
+        (0, 0, 0, 0),
+    )
+    _render_visual(layer, texture, visual, scale, min_x, min_y, padding)
+    return layer, min_x - padding / scale, min_y - padding / scale
 
 
 def _scaled_asset(repo_root: Path, resource_path: str, scale: float) -> Image.Image:
