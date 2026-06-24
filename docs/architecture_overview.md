@@ -182,3 +182,4 @@
 - `FrontHand` получил отдельный `front_hand_empty.png` из `Andry.png`: no-flashlight модель больше не использует сжатую кисть-хват от flashlight исходника, при этом скелет и анимационные клипы остаются общими.
 - Нижние боковые края `back_thigh.png` дополнительно alpha-taper-нуты, чтобы второй шаг в walk/light_run не выглядел отдельной прямоугольной плашкой сбоку от основной ноги.
 - `VisualFrontThigh` рендерится ниже `VisualPelvis`, а внешний левый край `front_thigh.png` alpha-taper-нут плавным hip-contour: верх бедра уходит под пояс, и крайние walk/light_run фазы больше не показывают переднюю штанину как отдельную прямоугольную плитку.
+- `light_run` усилен относительно `walk`: шире stride и foot-roll, заметнее arm/wrist follow-through и spine sway, но contact-times шаговых звуков сохранены на прежних 0.1375/0.4125.
