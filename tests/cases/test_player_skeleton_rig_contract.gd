@@ -137,6 +137,8 @@ const THIGH_MESH_MIN_INTERNAL_VERTICES := 8
 const SHIN_MESH_MIN_INTERNAL_VERTICES := 8
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
+const RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
+const RUN_SAMPLE_TIMES: Array[float] = [0.0, 0.06875, 0.1375, 0.20625, 0.275, 0.34375, 0.4125, 0.48125]
 const LIGHT_RUN_CONTACT_TIMES: Array[float] = [0.1375, 0.4125]
 const LIGHT_RUN_SAMPLE_TIMES: Array[float] = [0.0, 0.06875, 0.1375, 0.20625, 0.275, 0.34375, 0.4125, 0.48125]
 const FOOT_CONTACT_GROUND_TOLERANCE := 12.0
@@ -174,6 +176,14 @@ const LIGHT_RUN_MIN_HIPS_BOUNCE_RANGE := 5.0
 const LIGHT_RUN_MAX_HIPS_BOUNCE_RANGE := 6.5
 const LIGHT_RUN_MIN_LEG_SWING_RANGE := 0.115
 const LIGHT_RUN_MAX_LEG_SWING_RANGE := 0.13
+const RUN_MIN_ARM_SWING_RANGE := 0.14
+const RUN_MAX_ARM_SWING_RANGE := 0.15
+const RUN_MIN_FOREARM_FOLLOW_RANGE := 0.085
+const RUN_MAX_FOREARM_FOLLOW_RANGE := 0.095
+const RUN_MIN_EMPTY_HAND_SWAY_RANGE := 0.10
+const RUN_MAX_EMPTY_HAND_SWAY_RANGE := 0.11
+const RUN_MIN_WRIST_SWING_RANGE := 0.13
+const RUN_MAX_WRIST_SWING_RANGE := 0.14
 const LIGHT_RUN_MIN_BACK_THIGH_SWING_RANGE := 0.08
 const LIGHT_RUN_MAX_BACK_THIGH_SWING_RANGE := 0.09
 const LIGHT_RUN_MIN_BACK_SHIN_SWING_RANGE := 0.095
@@ -307,7 +317,7 @@ func _test_rig_scene_contract() -> void:
 	var animation_player := rig.get_node_or_null("SkeletonAnimationPlayer") as AnimationPlayer
 	assert_true(animation_player != null, "Player skeleton rig must keep SkeletonAnimationPlayer")
 	if animation_player != null:
-		for animation_name in [&"idle", &"walk", &"light_run"]:
+		for animation_name in [&"idle", &"walk", &"run", &"light_run"]:
 			assert_true(animation_player.has_animation(animation_name), "Player skeleton rig must keep %s animation" % animation_name)
 			var animation := animation_player.get_animation(animation_name)
 			assert_true(animation != null, "Player skeleton animation must load: %s" % animation_name)
@@ -346,6 +356,31 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_key_count_at_least(animation, BACK_FOOT_ROTATION_TRACK, WALK_FOOT_PASSING_KEY_COUNT, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, WALK_MIN_WRIST_SWING_RANGE, WALK_MAX_WRIST_SWING_RANGE, String(animation_name))
+				elif animation_name == &"run":
+					_assert_animation_vector2_y_range(animation, HIPS_POSITION_TRACK, LIGHT_RUN_MIN_HIPS_BOUNCE_RANGE, LIGHT_RUN_MAX_HIPS_BOUNCE_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_LEG_SWING_RANGE, LIGHT_RUN_MAX_LEG_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_THIGH_SWING_RANGE, LIGHT_RUN_MAX_BACK_THIGH_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_SHIN_ROTATION_TRACK, LIGHT_RUN_MIN_BACK_SHIN_SWING_RANGE, LIGHT_RUN_MAX_BACK_SHIN_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, SPINE_ROTATION_TRACK, LIGHT_RUN_MIN_SPINE_SWAY_RANGE, LIGHT_RUN_MAX_SPINE_SWAY_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, CHEST_ROTATION_TRACK, LIGHT_RUN_MIN_CHEST_COUNTER_RANGE, LIGHT_RUN_MAX_CHEST_COUNTER_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, LIGHT_RUN_MIN_NECK_COUNTER_RANGE, LIGHT_RUN_MAX_NECK_COUNTER_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, HEAD_ROTATION_TRACK, LIGHT_RUN_MIN_HEAD_COUNTER_RANGE, LIGHT_RUN_MAX_HEAD_COUNTER_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, RUN_MIN_ARM_SWING_RANGE, RUN_MAX_ARM_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_FOREARM_ROTATION_TRACK, RUN_MIN_FOREARM_FOLLOW_RANGE, RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_FOREARM_ROTATION_TRACK, LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE, LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_HAND_EMPTY_VISUAL_ROTATION_TRACK, RUN_MIN_EMPTY_HAND_SWAY_RANGE, RUN_MAX_EMPTY_HAND_SWAY_RANGE, String(animation_name))
+					_assert_animation_vector2_y_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
+					_assert_animation_vector2_y_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FOOT_LIFT_RANGE, LIGHT_RUN_MAX_FOOT_LIFT_RANGE, String(animation_name))
+					_assert_animation_vector2_x_range(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_FRONT_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_FRONT_FOOT_STRIDE_RANGE, String(animation_name))
+					_assert_animation_vector2_x_range(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_MIN_BACK_FOOT_STRIDE_RANGE, LIGHT_RUN_MAX_BACK_FOOT_STRIDE_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_FOOT_ROTATION_TRACK, LIGHT_RUN_MIN_FOOT_ROLL_RANGE, LIGHT_RUN_MAX_FOOT_ROLL_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_FOOT_ROTATION_TRACK, LIGHT_RUN_MIN_FOOT_ROLL_RANGE, LIGHT_RUN_MAX_FOOT_ROLL_RANGE, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, FRONT_FOOT_POSITION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, BACK_FOOT_POSITION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, FRONT_FOOT_ROTATION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_key_count_at_least(animation, BACK_FOOT_ROTATION_TRACK, LIGHT_RUN_FOOT_PASSING_KEY_COUNT, String(animation_name))
+					_assert_animation_track_value_range(animation, FRONT_HAND_ROTATION_TRACK, RUN_MIN_WRIST_SWING_RANGE, RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
+					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 				elif animation_name == &"light_run":
 					_assert_animation_vector2_y_range(animation, HIPS_POSITION_TRACK, LIGHT_RUN_MIN_HIPS_BOUNCE_RANGE, LIGHT_RUN_MAX_HIPS_BOUNCE_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_THIGH_ROTATION_TRACK, LIGHT_RUN_MIN_LEG_SWING_RANGE, LIGHT_RUN_MAX_LEG_SWING_RANGE, String(animation_name))
@@ -374,6 +409,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, BACK_HAND_ROTATION_TRACK, LIGHT_RUN_MIN_WRIST_SWING_RANGE, LIGHT_RUN_MAX_WRIST_SWING_RANGE, String(animation_name))
 		if skeleton != null:
 			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"walk", WALK_CONTACT_TIMES, WALK_SAMPLE_TIMES)
+			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"run", RUN_CONTACT_TIMES, RUN_SAMPLE_TIMES)
 			_assert_foot_contact_keys_reach_ground(skeleton, animation_player, &"light_run", LIGHT_RUN_CONTACT_TIMES, LIGHT_RUN_SAMPLE_TIMES)
 	if skeleton != null:
 		for visual_path in EXPECTED_CUTOUT_VISUAL_PATHS:
@@ -610,6 +646,15 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 			assert_true(not front_hand_visual.visible, "Player skeleton held-hand cutout must be hidden before flashlight unlock")
 		if front_hand_empty_visual != null:
 			assert_true(front_hand_empty_visual.visible, "Player skeleton empty-hand cutout must show before flashlight unlock")
+		if animation_player != null:
+			player.set("_is_running", true)
+			player.call("_update_walk_animation", 0.016, 1.0)
+			assert_eq(animation_player.current_animation, "run", "Player skeleton animation must use no-flashlight run before flashlight unlock")
+			_assert_skeleton_steps_follow_contact_times(player, animation_player, "run", 0.0, 0.13, 0.145)
+			_assert_skeleton_steps_follow_contact_times(player, animation_player, "run", 0.275, 0.405, 0.42)
+			player.set("_is_running", false)
+			player.call("_update_walk_animation", 0.016, 0.0)
+			assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must return to idle after no-flashlight run")
 		if CycleState != null and CycleState.has_method("collect_flashlight_for_cycle"):
 			CycleState.collect_flashlight_for_cycle()
 			player.call("_update_skeleton_flashlight_visibility")
@@ -628,7 +673,7 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 			_assert_skeleton_steps_follow_contact_times(player, animation_player, "walk", 0.4, 0.59, 0.61)
 			player.set("_is_running", true)
 			player.call("_update_walk_animation", 0.016, 1.0)
-			assert_eq(animation_player.current_animation, "light_run", "Player skeleton animation must switch to light_run while running")
+			assert_eq(animation_player.current_animation, "light_run", "Player skeleton animation must switch to light_run while running with flashlight")
 			_assert_skeleton_steps_follow_contact_times(player, animation_player, "light_run", 0.0, 0.13, 0.145)
 			_assert_skeleton_steps_follow_contact_times(player, animation_player, "light_run", 0.275, 0.405, 0.42)
 			player.set("_is_running", false)
