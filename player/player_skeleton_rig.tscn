@@ -1650,9 +1650,9 @@ position = Vector2(-7.5, 13.5)
 
 [node name="VisualNeckCollarCover" type="Sprite2D" parent="Skeleton2D/Hips/Spine/Chest"]
 light_mask = 2
-z_index = 1
+z_index = 2
 texture = ExtResource("25_neck_collar")
-position = Vector2(-12, -96)
+position = Vector2(-22, -94)
 
 [node name="VisualPelvis" type="Sprite2D" parent="Skeleton2D/Hips"]
 light_mask = 2

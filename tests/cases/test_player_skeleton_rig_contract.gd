@@ -822,8 +822,8 @@ func _assert_neck_collar_cover_sits_between_torso_and_head(torso_visual: Sprite2
 			"Player skeleton neck/collar cover must stay above back-layer seams"
 	)
 	assert_true(
-			neck_collar_visual.z_index < torso_visual.z_index,
-			"Player skeleton neck/collar cover must stay under the torso so it does not overlay the shirt"
+			neck_collar_visual.z_index >= torso_visual.z_index,
+			"Player skeleton neck/collar cover must sit at the shirt seam level so it can hide the head-torso gap"
 	)
 	assert_true(
 			neck_collar_visual.z_index < head_visual.z_index,
