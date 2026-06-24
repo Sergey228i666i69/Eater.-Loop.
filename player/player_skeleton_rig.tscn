@@ -1575,6 +1575,7 @@ texture = ExtResource("0_seam_fill")
 position = Vector2(8, 117)
 
 [node name="VisualBackLegUnderlay" type="Sprite2D" parent="Skeleton2D/Hips"]
+visible = false
 light_mask = 2
 z_index = 0
 texture = ExtResource("27_back_leg_underlay")
@@ -1655,6 +1656,7 @@ texture = ExtResource("25_neck_collar")
 position = Vector2(-22, -94)
 
 [node name="VisualPelvis" type="Sprite2D" parent="Skeleton2D/Hips"]
+visible = false
 light_mask = 2
 z_index = 2
 texture = ExtResource("3_pelvis")

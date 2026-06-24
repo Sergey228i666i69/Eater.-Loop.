@@ -555,6 +555,7 @@ func _test_rig_scene_contract() -> void:
 		var neck_collar_visual := skeleton.get_node_or_null(NECK_COLLAR_VISUAL_PATH) as Sprite2D
 		var head_visual := skeleton.get_node_or_null(HEAD_VISUAL_PATH) as Sprite2D
 		var pelvis_visual := skeleton.get_node_or_null(PELVIS_VISUAL_PATH) as Sprite2D
+		var back_leg_underlay_visual := skeleton.get_node_or_null(BACK_LEG_UNDERLAY_VISUAL_PATH) as Sprite2D
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as CanvasItem
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as CanvasItem
 		var front_forearm_mesh := rig.get_node_or_null(ACTIVE_FRONT_FOREARM_MESH_PATH) as Polygon2D
@@ -567,11 +568,16 @@ func _test_rig_scene_contract() -> void:
 		assert_true(neck_collar_visual != null, "Player skeleton must keep neck/collar cover for head-torso seam")
 		assert_true(head_visual != null, "Player skeleton must keep head visual for photo-cutout layering")
 		assert_true(pelvis_visual != null, "Player skeleton must keep pelvis visual for photo-cutout layering")
+		assert_true(back_leg_underlay_visual != null, "Player skeleton must keep the optional back-leg underlay anchor for controlled QA")
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
 		assert_true(front_forearm_visual != null, "Player skeleton must keep legacy front forearm Sprite2D anchor while the mesh rollout is partial")
 		assert_true(front_forearm_mesh != null, "Player skeleton must use an active weighted Polygon2D mesh for the front forearm")
 		assert_true(front_elbow_visual != null, "Player skeleton must keep front elbow cover for the upper-arm/forearm seam")
 		assert_true(front_thigh_visual != null, "Player skeleton must keep front thigh visual for photo-cutout layering")
+		if back_leg_underlay_visual != null:
+			assert_true(not back_leg_underlay_visual.visible, "Player skeleton back-leg underlay must stay hidden now that weighted leg meshes carry the lower-body continuity")
+		if pelvis_visual != null:
+			assert_true(not pelvis_visual.visible, "Player skeleton pelvis block must stay hidden now that weighted thigh meshes carry the waist/lower-body continuity")
 		if front_forearm_visual != null:
 			assert_true(not front_forearm_visual.visible, "Player skeleton legacy front forearm Sprite2D anchor must stay hidden behind the weighted mesh")
 		for converted_visual_path in CONVERTED_LIMB_VISUAL_PATHS:
