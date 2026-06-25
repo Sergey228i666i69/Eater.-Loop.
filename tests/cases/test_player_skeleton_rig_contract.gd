@@ -113,6 +113,13 @@ const TORSO_TOP_RIGHT_HEAD_SHARD_MAX_Y := 12
 const TORSO_TOP_RIGHT_HEAD_SHARD_MAX_PIXELS := 2
 const TORSO_HEAD_SHARD_MIN_SATURATION := 0.18
 const TORSO_STATIC_PAJAMA_MIN_Y := 277
+const TORSO_SIDE_EDGE_DARK_MATTE_MIN_Y := 108
+const TORSO_SIDE_EDGE_DARK_MATTE_MAX_Y := 278
+const TORSO_SIDE_EDGE_DARK_MATTE_SAMPLE_WIDTH := 6
+const TORSO_LEFT_EDGE_MAX_DARK_MATTE_PIXELS := 112
+const TORSO_RIGHT_EDGE_MAX_DARK_MATTE_PIXELS := 28
+const TORSO_EDGE_DARK_MATTE_MIN_ALPHA := 0.235
+const TORSO_EDGE_DARK_MATTE_MAX_LUMINANCE := 0.23
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const THIGH_TOP_FADE_START_Y := 20
 const THIGH_TOP_FADE_END_Y := 44
@@ -539,6 +546,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_torso_does_not_keep_static_side_arms(visual_texture, visual_path)
 						_assert_torso_does_not_keep_top_right_head_shard(visual_texture, visual_path)
 						_assert_torso_does_not_keep_static_pajama_waist(visual_texture, visual_path)
+						_assert_torso_side_edges_do_not_keep_dark_matte(visual_texture, visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.70)
 						_assert_seam_fill_is_internal_strip(visual_texture, visual_path)
@@ -1113,6 +1121,44 @@ func _assert_torso_does_not_keep_static_side_arms(texture: Texture2D, visual_pat
 			side_arm_skin_pixels <= TORSO_STATIC_SIDE_ARM_MAX_SKIN_PIXELS,
 			"Player skeleton torso must not keep static side-arm skin that duplicates skeletal arms: %s" % visual_path
 	)
+
+func _assert_torso_side_edges_do_not_keep_dark_matte(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton torso texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var left_dark_edge_pixels := 0
+	var right_dark_edge_pixels := 0
+	for y in range(TORSO_SIDE_EDGE_DARK_MATTE_MIN_Y, mini(TORSO_SIDE_EDGE_DARK_MATTE_MAX_Y, image.get_height())):
+		var min_x := image.get_width()
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		for x in range(min_x, mini(image.get_width(), min_x + TORSO_SIDE_EDGE_DARK_MATTE_SAMPLE_WIDTH)):
+			if _is_torso_dark_matte_edge_pixel(image.get_pixel(x, y)):
+				left_dark_edge_pixels += 1
+		for x in range(maxi(0, max_x - TORSO_SIDE_EDGE_DARK_MATTE_SAMPLE_WIDTH + 1), max_x + 1):
+			if _is_torso_dark_matte_edge_pixel(image.get_pixel(x, y)):
+				right_dark_edge_pixels += 1
+	assert_true(
+			left_dark_edge_pixels <= TORSO_LEFT_EDGE_MAX_DARK_MATTE_PIXELS,
+			"Player skeleton torso left side edge must not keep a dark source-matte line beside the arm: %s" % visual_path
+	)
+	assert_true(
+			right_dark_edge_pixels <= TORSO_RIGHT_EDGE_MAX_DARK_MATTE_PIXELS,
+			"Player skeleton torso right side edge must not keep a dark source-matte line beside the arm: %s" % visual_path
+	)
+
+func _is_torso_dark_matte_edge_pixel(color: Color) -> bool:
+	if color.a <= TORSO_EDGE_DARK_MATTE_MIN_ALPHA:
+		return false
+	var luminance := 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b
+	return luminance < TORSO_EDGE_DARK_MATTE_MAX_LUMINANCE
 
 func _assert_torso_does_not_keep_top_right_head_shard(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
