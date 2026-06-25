@@ -5,6 +5,7 @@ const LEGACY_PLAYER_SCENE_PATH := "res://player/LEGASY-ANIMATIONS-CHARACTER.tscn
 const PLAYER_RIG_SCENE_PATH := "res://player/player_skeleton_rig.tscn"
 const LEVEL_DIR := "res://levels/cycles"
 const ACTIVE_FRONT_FOREARM_MESH_PATH := "MeshFrontForearm"
+const ACTIVE_FRONT_ARM_SIDE_SHADOW_MESH_PATH := "MeshFrontArmSideShadow"
 const FRONT_HAND_PATH := "Hips/Spine/Chest/FrontUpperArm/FrontForearm/FrontHand"
 const HEAD_VISUAL_PATH := "Hips/Spine/Chest/Neck/Head/VisualHead"
 const TORSO_VISUAL_PATH := "Hips/Spine/Chest/VisualTorso"
@@ -181,8 +182,15 @@ const FRONT_UPPER_ARM_TORSO_UNDERLAP_MID_RIGHT_X := -2.0
 const FRONT_UPPER_ARM_TORSO_UNDERLAP_LOW_RIGHT_X := -8.0
 const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
 const FRONT_UPPER_ARM_TORSO_TAIL_MAX_SOLID_RIGHT_X := 58
-const FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_RIGHT_X := 66
+const FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_RIGHT_X := 74
 const FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_ALPHA := 0.45
+const FRONT_ARM_SIDE_SHADOW_MIN_ALPHA := 0.20
+const FRONT_ARM_SIDE_SHADOW_MAX_ALPHA := 0.38
+const FRONT_ARM_SIDE_SHADOW_MIN_X := -42.0
+const FRONT_ARM_SIDE_SHADOW_MAX_X := -6.0
+const FRONT_ARM_SIDE_SHADOW_MIN_Y := -130.0
+const FRONT_ARM_SIDE_SHADOW_MAX_Y := 54.0
+const FRONT_ARM_SIDE_SHADOW_MAX_WIDTH := 34.0
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
 const BACK_FOREARM_WRIST_TAPER_MAX_Y := 128
 const BACK_FOREARM_WRIST_TAPER_MAX_WIDTH := 22
@@ -682,6 +690,7 @@ func _test_rig_scene_contract() -> void:
 		var front_upper_arm_visual := skeleton.get_node_or_null(FRONT_UPPER_ARM_VISUAL_PATH) as CanvasItem
 		var front_forearm_visual := skeleton.get_node_or_null(FRONT_FOREARM_VISUAL_PATH) as CanvasItem
 		var front_forearm_mesh := rig.get_node_or_null(ACTIVE_FRONT_FOREARM_MESH_PATH) as Polygon2D
+		var front_arm_side_shadow_mesh := rig.get_node_or_null(ACTIVE_FRONT_ARM_SIDE_SHADOW_MESH_PATH) as Polygon2D
 		var front_elbow_visual := skeleton.get_node_or_null(FRONT_ELBOW_VISUAL_PATH) as Sprite2D
 		var front_thigh_visual := skeleton.get_node_or_null(CLEANED_FRONT_THIGH_VISUAL_PATH) as CanvasItem
 		assert_true(front_hand_visual != null, "Player skeleton must keep front hand visual for flashlight layering")
@@ -695,6 +704,7 @@ func _test_rig_scene_contract() -> void:
 		assert_true(front_upper_arm_visual != null, "Player skeleton must keep front upper arm visual for photo-cutout layering")
 		assert_true(front_forearm_visual != null, "Player skeleton must keep legacy front forearm Sprite2D anchor while the mesh rollout is partial")
 		assert_true(front_forearm_mesh != null, "Player skeleton must use an active weighted Polygon2D mesh for the front forearm")
+		assert_true(front_arm_side_shadow_mesh != null, "Player skeleton must keep a skinned front arm side shadow mesh to hide torso/arm background slits")
 		assert_true(front_elbow_visual != null, "Player skeleton must keep front elbow cover for the upper-arm/forearm seam")
 		assert_true(front_thigh_visual != null, "Player skeleton must keep front thigh visual for photo-cutout layering")
 		if back_leg_underlay_visual != null:
@@ -712,6 +722,8 @@ func _test_rig_scene_contract() -> void:
 			assert_true(mesh != null, "Player skeleton must keep weighted limb mesh: %s" % mesh_spec["path"])
 			if mesh != null:
 				_assert_active_limb_mesh(mesh, mesh_spec)
+		if front_arm_side_shadow_mesh != null and torso_visual != null and front_forearm_mesh != null:
+			_assert_front_arm_side_shadow_mesh(front_arm_side_shadow_mesh, torso_visual, front_forearm_mesh)
 		if front_hand_visual != null and front_hand_visual.texture != null:
 			assert_true(not front_hand_visual.visible, "Player skeleton held-hand cutout must stay hidden before flashlight unlock")
 			assert_true(
@@ -1451,6 +1463,37 @@ func _assert_front_forearm_mesh_keeps_elbow_overlap(mesh: Polygon2D) -> void:
 					and mesh.polygon[6].x <= FRONT_FOREARM_GRIP_RIGHT_X,
 			"Player skeleton front forearm mesh must not widen the lower grip/flashlight hand area"
 	)
+
+func _assert_front_arm_side_shadow_mesh(mesh: Polygon2D, torso_visual: CanvasItem, front_forearm_mesh: Polygon2D) -> void:
+	assert_true(mesh.visible, "Player skeleton front arm side shadow mesh must render in the arm/torso slit")
+	assert_true(mesh.texture == null, "Player skeleton front arm side shadow mesh must stay a flat shadow, not another photo cutout")
+	assert_true(
+			mesh.color.a >= FRONT_ARM_SIDE_SHADOW_MIN_ALPHA and mesh.color.a <= FRONT_ARM_SIDE_SHADOW_MAX_ALPHA,
+			"Player skeleton front arm side shadow mesh must stay subtle instead of becoming an opaque patch"
+	)
+	assert_true(mesh.z_index < torso_visual.z_index, "Player skeleton front arm side shadow mesh must sit under the torso cutout")
+	assert_true(mesh.z_index < front_forearm_mesh.z_index, "Player skeleton front arm side shadow mesh must sit under the forearm cutout")
+	assert_true(mesh.skeleton == NodePath("../Skeleton2D"), "Player skeleton front arm side shadow mesh must bind to the sibling Skeleton2D")
+	assert_true(mesh.polygon.size() == 12, "Player skeleton front arm side shadow mesh must keep contour strip vertices")
+	assert_true(mesh.internal_vertex_count == 0, "Player skeleton front arm side shadow mesh must avoid internal center vertices")
+	assert_true(mesh.polygons.size() == 5, "Player skeleton front arm side shadow mesh must keep explicit contour strip polygons")
+	assert_true(mesh.get_bone_count() == 2, "Player skeleton front arm side shadow mesh must blend with the front arm bones")
+	_assert_polygon_bone_weights(mesh, 0, NodePath("../Skeleton2D/Hips/Spine/Chest/FrontUpperArm"), true)
+	_assert_polygon_bone_weights(mesh, 1, NodePath("../Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm"), false)
+	var min_x := INF
+	var max_x := -INF
+	var min_y := INF
+	var max_y := -INF
+	for point in mesh.polygon:
+		min_x = minf(min_x, point.x)
+		max_x = maxf(max_x, point.x)
+		min_y = minf(min_y, point.y)
+		max_y = maxf(max_y, point.y)
+	assert_true(min_x >= FRONT_ARM_SIDE_SHADOW_MIN_X, "Player skeleton front arm side shadow mesh must stay narrow on the outer side")
+	assert_true(max_x <= FRONT_ARM_SIDE_SHADOW_MAX_X, "Player skeleton front arm side shadow mesh must not spread over the torso")
+	assert_true(min_y >= FRONT_ARM_SIDE_SHADOW_MIN_Y, "Player skeleton front arm side shadow mesh must not climb into the sleeve")
+	assert_true(max_y <= FRONT_ARM_SIDE_SHADOW_MAX_Y, "Player skeleton front arm side shadow mesh must not extend into the hand")
+	assert_true(max_x - min_x <= FRONT_ARM_SIDE_SHADOW_MAX_WIDTH, "Player skeleton front arm side shadow mesh must stay a narrow occlusion strip")
 
 func _assert_polygon_bone_weights(mesh: Polygon2D, bone_index: int, expected_path: NodePath, stronger_at_top: bool) -> void:
 	assert_true(mesh.get_bone_path(bone_index) == expected_path, "Active player limb mesh must keep the expected weighted bone path: %s" % mesh.name)

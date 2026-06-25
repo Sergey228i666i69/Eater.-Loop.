@@ -31,6 +31,7 @@ func run() -> Array[String]:
 	assert_true(source.find("--layer-overlay") != -1, "Scene-context preview must support colored layer overlays for cutout diagnosis")
 	assert_true(source.find("LAYER_OVERLAY_COLORS") != -1, "Scene-context preview must keep stable colors for Visual* layer diagnosis")
 	assert_true(source.find("\"MeshFrontForearm\"") != -1, "Scene-context layer overlay must color active Polygon2D mesh layers")
+	assert_true(source.find("\"MeshFrontArmSideShadow\"") != -1, "Scene-context layer overlay must color the front arm side shadow mesh")
 	assert_true(source.find("\"MeshBackThigh\"") != -1, "Scene-context layer overlay must color converted back-leg mesh layers")
 	var montage_source := FileAccess.get_file_as_string("res://tools/player_rig_preview/export_player_rig_montage.py")
 	assert_true(montage_source.find("VisualFrontHandEmpty") != -1, "Rig preview dump must switch the empty-hand cutout for no-flashlight previews")

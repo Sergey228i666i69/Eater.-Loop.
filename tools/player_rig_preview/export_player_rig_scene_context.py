@@ -81,6 +81,7 @@ LAYER_OVERLAY_COLORS: dict[str, tuple[int, int, int, int]] = {
     "VisualFrontHandEmpty": (255, 55, 0, 165),
     "MeshFrontUpperArm": (255, 120, 0, 155),
     "MeshFrontForearm": (255, 220, 0, 155),
+    "MeshFrontArmSideShadow": (80, 35, 10, 180),
     "VisualBackLegUnderlay": (110, 80, 255, 115),
     "VisualBackThigh": (0, 152, 255, 160),
     "VisualBackShin": (0, 220, 255, 160),

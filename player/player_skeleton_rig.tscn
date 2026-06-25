@@ -1836,6 +1836,15 @@ uv = PackedVector2Array(0, 0, 66, 0, 66, 36, 66, 72, 66, 108, 66, 144, 66, 183, 
 polygons = [PackedInt32Array(0, 1, 2, 11), PackedInt32Array(11, 2, 3, 10), PackedInt32Array(10, 3, 4, 9), PackedInt32Array(9, 4, 5, 8), PackedInt32Array(8, 5, 6, 7)]
 bones = ["../Skeleton2D/Hips/Spine/Chest/FrontUpperArm", PackedFloat32Array(0.85, 0.85, 0.7, 0.45, 0.2, 0.05, 0, 0, 0.05, 0.2, 0.45, 0.7), "../Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm", PackedFloat32Array(0.15, 0.15, 0.3, 0.55, 0.8, 0.95, 1, 1, 0.95, 0.8, 0.55, 0.3)]
 
+[node name="MeshFrontArmSideShadow" type="Polygon2D" parent="."]
+light_mask = 2
+z_index = 1
+color = Color(0.22, 0.145, 0.105, 0.32)
+skeleton = NodePath("../Skeleton2D")
+polygon = PackedVector2Array(-28, -122, -7, -122, -7, -86, -9, -50, -12, -14, -15, 18, -22, 48, -40, 48, -35, 18, -31, -14, -28, -50, -27, -86)
+polygons = [PackedInt32Array(0, 1, 2, 11), PackedInt32Array(11, 2, 3, 10), PackedInt32Array(10, 3, 4, 9), PackedInt32Array(9, 4, 5, 8), PackedInt32Array(8, 5, 6, 7)]
+bones = ["../Skeleton2D/Hips/Spine/Chest/FrontUpperArm", PackedFloat32Array(0.85, 0.85, 0.72, 0.45, 0.2, 0.06, 0, 0, 0.06, 0.2, 0.45, 0.72), "../Skeleton2D/Hips/Spine/Chest/FrontUpperArm/FrontForearm", PackedFloat32Array(0.15, 0.15, 0.28, 0.55, 0.8, 0.94, 1, 1, 0.94, 0.8, 0.55, 0.28)]
+
 [node name="SkeletonAnimationPlayer" type="AnimationPlayer" parent="."]
 libraries/ = SubResource("AnimationLibrary_player_skeleton")
 autoplay = &"idle"
