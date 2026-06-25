@@ -197,6 +197,10 @@ const HAND_EDGE_VISIBLE_DARK_FRINGE_MIN_ALPHA := 0.235
 const HAND_EDGE_VISIBLE_DARK_FRINGE_MAX_LUMINANCE := 0.32
 const FRONT_HAND_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 44
 const FRONT_HAND_EMPTY_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 112
+const FRONT_HAND_EMPTY_TOP_FADE_SAMPLE_ROWS: Array[int] = [0, 4, 8, 12, 16]
+const FRONT_HAND_EMPTY_TOP_FADE_MAX_ALPHA: Array[float] = [0.42, 0.55, 0.70, 0.86, 0.96]
+const FRONT_HAND_EMPTY_TOP_FADE_SOLID_ROW := 20
+const FRONT_HAND_EMPTY_TOP_FADE_MIN_SOLID_ALPHA := 0.90
 const BACK_HAND_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 40
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
@@ -608,6 +612,7 @@ func _test_rig_scene_contract() -> void:
 								visual_path,
 								FRONT_HAND_EMPTY_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS
 						)
+						_assert_front_empty_hand_has_soft_wrist_edge(visual_texture, visual_path)
 					elif visual_path == CLEANED_BACK_HAND_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.68)
 						_assert_hand_cutout_does_not_keep_visible_dark_edge_fringe(
@@ -1659,6 +1664,25 @@ func _is_visible_dark_hand_edge_fringe_pixel(color: Color) -> bool:
 		return false
 	var luminance := 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b
 	return luminance < HAND_EDGE_VISIBLE_DARK_FRINGE_MAX_LUMINANCE
+
+func _assert_front_empty_hand_has_soft_wrist_edge(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton empty front hand texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for index in range(FRONT_HAND_EMPTY_TOP_FADE_SAMPLE_ROWS.size()):
+		var sample_y := FRONT_HAND_EMPTY_TOP_FADE_SAMPLE_ROWS[index]
+		if sample_y >= image.get_height():
+			continue
+		assert_true(
+				_get_max_alpha_in_row(image, sample_y) <= FRONT_HAND_EMPTY_TOP_FADE_MAX_ALPHA[index],
+				"Player skeleton empty front hand wrist edge must fade under the forearm instead of starting as a hard crop: %s" % visual_path
+		)
+	if FRONT_HAND_EMPTY_TOP_FADE_SOLID_ROW < image.get_height():
+		assert_true(
+				_get_max_alpha_in_row(image, FRONT_HAND_EMPTY_TOP_FADE_SOLID_ROW) >= FRONT_HAND_EMPTY_TOP_FADE_MIN_SOLID_ALPHA,
+				"Player skeleton empty front hand must become solid below the soft wrist edge: %s" % visual_path
+		)
 
 func _is_visible_dark_edge_fringe_pixel(color: Color) -> bool:
 	if color.a <= ARM_EDGE_VISIBLE_DARK_FRINGE_MIN_ALPHA:
