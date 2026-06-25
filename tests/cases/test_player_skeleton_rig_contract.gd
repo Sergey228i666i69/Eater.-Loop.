@@ -210,6 +210,11 @@ const FRONT_HAND_EMPTY_TOP_FADE_MAX_ALPHA: Array[float] = [0.42, 0.55, 0.70, 0.8
 const FRONT_HAND_EMPTY_TOP_FADE_SOLID_ROW := 20
 const FRONT_HAND_EMPTY_TOP_FADE_MIN_SOLID_ALPHA := 0.90
 const BACK_HAND_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 24
+const FOOT_EDGE_VISIBLE_DARK_FRINGE_SAMPLE_WIDTH := 5
+const FOOT_EDGE_VISIBLE_DARK_FRINGE_MIN_ALPHA := 0.235
+const FOOT_EDGE_VISIBLE_DARK_FRINGE_MAX_LUMINANCE := 0.32
+const FRONT_FOOT_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 390
+const BACK_FOOT_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS := 540
 const WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
 const WALK_SAMPLE_TIMES: Array[float] = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
 const LIGHT_WALK_CONTACT_TIMES: Array[float] = [0.2, 0.6]
@@ -628,6 +633,19 @@ func _test_rig_scene_contract() -> void:
 								visual_path,
 								BACK_HAND_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS
 						)
+					elif FOOT_VISUAL_PATHS.has(visual_path):
+						if visual_path.ends_with("/VisualFrontFoot"):
+							_assert_foot_cutout_does_not_keep_visible_dark_edge_fringe(
+									visual_texture,
+									visual_path,
+									FRONT_FOOT_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS
+							)
+						else:
+							_assert_foot_cutout_does_not_keep_visible_dark_edge_fringe(
+									visual_texture,
+									visual_path,
+									BACK_FOOT_EDGE_MAX_VISIBLE_DARK_FRINGE_PIXELS
+							)
 					elif visual_path == FLASHLIGHT_VISUAL_PATH:
 						_assert_flashlight_cutout_has_completed_handle(visual_texture, visual_path)
 					elif visual_path == BACK_UPPER_ARM_VISUAL_PATH:
@@ -1707,6 +1725,55 @@ func _is_visible_dark_hand_edge_fringe_pixel(color: Color) -> bool:
 		return false
 	var luminance := 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b
 	return luminance < HAND_EDGE_VISIBLE_DARK_FRINGE_MAX_LUMINANCE
+
+func _assert_foot_cutout_does_not_keep_visible_dark_edge_fringe(texture: Texture2D, visual_path: String, max_fringe_pixels: int) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton foot texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var checked_pixels: Dictionary = {}
+	for y in range(image.get_height()):
+		var min_x := image.get_width()
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_x = mini(min_x, x)
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		for x in range(min_x, mini(image.get_width(), min_x + FOOT_EDGE_VISIBLE_DARK_FRINGE_SAMPLE_WIDTH)):
+			checked_pixels[Vector2i(x, y)] = true
+		for x in range(maxi(0, max_x - FOOT_EDGE_VISIBLE_DARK_FRINGE_SAMPLE_WIDTH + 1), max_x + 1):
+			checked_pixels[Vector2i(x, y)] = true
+	for x in range(image.get_width()):
+		var min_y := image.get_height()
+		var max_y := -1
+		for y in range(image.get_height()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			min_y = mini(min_y, y)
+			max_y = maxi(max_y, y)
+		if max_y < 0:
+			continue
+		for y in range(min_y, mini(image.get_height(), min_y + FOOT_EDGE_VISIBLE_DARK_FRINGE_SAMPLE_WIDTH)):
+			checked_pixels[Vector2i(x, y)] = true
+		for y in range(maxi(0, max_y - FOOT_EDGE_VISIBLE_DARK_FRINGE_SAMPLE_WIDTH + 1), max_y + 1):
+			checked_pixels[Vector2i(x, y)] = true
+	var visible_dark_fringe_pixels := 0
+	for point in checked_pixels.keys():
+		if _is_visible_dark_foot_edge_fringe_pixel(image.get_pixel(point.x, point.y)):
+			visible_dark_fringe_pixels += 1
+	assert_true(
+			visible_dark_fringe_pixels <= max_fringe_pixels,
+			"Player skeleton foot cutout edge must not keep visible dark source-matte fringe pixels: %s" % visual_path
+	)
+
+func _is_visible_dark_foot_edge_fringe_pixel(color: Color) -> bool:
+	if color.a <= FOOT_EDGE_VISIBLE_DARK_FRINGE_MIN_ALPHA:
+		return false
+	var luminance := 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b
+	return luminance < FOOT_EDGE_VISIBLE_DARK_FRINGE_MAX_LUMINANCE
 
 func _assert_front_empty_hand_has_soft_wrist_edge(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
