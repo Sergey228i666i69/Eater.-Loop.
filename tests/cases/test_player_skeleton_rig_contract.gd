@@ -252,6 +252,7 @@ const LIGHT_RUN_MIN_LEG_SWING_RANGE := 0.115
 const LIGHT_RUN_MAX_LEG_SWING_RANGE := 0.13
 const RUN_MIN_ARM_SWING_RANGE := 0.14
 const RUN_MAX_ARM_SWING_RANGE := 0.15
+const RUN_MAX_FRONT_UPPER_ARM_BACK_SWING := 0.052
 const RUN_MIN_FOREARM_FOLLOW_RANGE := 0.085
 const RUN_MAX_FOREARM_FOLLOW_RANGE := 0.095
 const RUN_MIN_EMPTY_HAND_SWAY_RANGE := 0.10
@@ -264,6 +265,7 @@ const LIGHT_RUN_MIN_BACK_SHIN_SWING_RANGE := 0.095
 const LIGHT_RUN_MAX_BACK_SHIN_SWING_RANGE := 0.105
 const LIGHT_RUN_MIN_ARM_SWING_RANGE := 0.10
 const LIGHT_RUN_MAX_ARM_SWING_RANGE := 0.115
+const LIGHT_RUN_MAX_FRONT_UPPER_ARM_BACK_SWING := 0.04
 const LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE := 0.06
 const LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE := 0.07
 const LIGHT_RUN_MIN_FLASHLIGHT_BOB_RANGE := 0.17
@@ -483,6 +485,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, LIGHT_RUN_MIN_NECK_COUNTER_RANGE, LIGHT_RUN_MAX_NECK_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, HEAD_ROTATION_TRACK, LIGHT_RUN_MIN_HEAD_COUNTER_RANGE, LIGHT_RUN_MAX_HEAD_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, RUN_MIN_ARM_SWING_RANGE, RUN_MAX_ARM_SWING_RANGE, String(animation_name))
+					_assert_animation_track_max_value_at_most(animation, FRONT_UPPER_ARM_ROTATION_TRACK, RUN_MAX_FRONT_UPPER_ARM_BACK_SWING, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_FOREARM_ROTATION_TRACK, RUN_MIN_FOREARM_FOLLOW_RANGE, RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_FOREARM_ROTATION_TRACK, LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE, LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_HAND_EMPTY_VISUAL_ROTATION_TRACK, RUN_MIN_EMPTY_HAND_SWAY_RANGE, RUN_MAX_EMPTY_HAND_SWAY_RANGE, String(animation_name))
@@ -509,6 +512,7 @@ func _test_rig_scene_contract() -> void:
 					_assert_animation_track_value_range(animation, NECK_ROTATION_TRACK, LIGHT_RUN_MIN_NECK_COUNTER_RANGE, LIGHT_RUN_MAX_NECK_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, HEAD_ROTATION_TRACK, LIGHT_RUN_MIN_HEAD_COUNTER_RANGE, LIGHT_RUN_MAX_HEAD_COUNTER_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MIN_ARM_SWING_RANGE, LIGHT_RUN_MAX_ARM_SWING_RANGE, String(animation_name))
+					_assert_animation_track_max_value_at_most(animation, FRONT_UPPER_ARM_ROTATION_TRACK, LIGHT_RUN_MAX_FRONT_UPPER_ARM_BACK_SWING, String(animation_name))
 					_assert_animation_track_value_range(animation, FRONT_FOREARM_ROTATION_TRACK, LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE, LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, BACK_FOREARM_ROTATION_TRACK, LIGHT_RUN_MIN_FOREARM_FOLLOW_RANGE, LIGHT_RUN_MAX_FOREARM_FOLLOW_RANGE, String(animation_name))
 					_assert_animation_track_value_range(animation, FLASHLIGHT_MOUNT_ROTATION_TRACK, LIGHT_RUN_MIN_FLASHLIGHT_BOB_RANGE, LIGHT_RUN_MAX_FLASHLIGHT_BOB_RANGE, String(animation_name))
@@ -1944,6 +1948,23 @@ func _assert_animation_track_value_range(animation: Animation, track_path: NodeP
 	var value_range := max_value - min_value
 	assert_true(value_range >= min_range, "Player skeleton animation %s track %s must keep visible limb swing" % [animation_name, track_path])
 	assert_true(value_range <= max_range, "Player skeleton animation %s track %s must avoid excessive cutout-breaking swing" % [animation_name, track_path])
+
+func _assert_animation_track_max_value_at_most(animation: Animation, track_path: NodePath, max_allowed_value: float, animation_name: String) -> void:
+	var track_index := -1
+	for candidate_index in range(animation.get_track_count()):
+		if animation.track_get_path(candidate_index) == track_path:
+			track_index = candidate_index
+			break
+	assert_true(track_index >= 0, "Player skeleton animation %s must animate track %s" % [animation_name, track_path])
+	if track_index < 0:
+		return
+	var max_value := -INF
+	for key_index in range(animation.track_get_key_count(track_index)):
+		max_value = maxf(max_value, float(animation.track_get_key_value(track_index, key_index)))
+	assert_true(
+			max_value <= max_allowed_value,
+			"Player skeleton animation %s track %s must limit the front arm back-swing that reopens the torso side gap" % [animation_name, track_path]
+	)
 
 func _assert_animation_track_mean_in_range(animation: Animation, track_path: NodePath, min_mean: float, max_mean: float, animation_name: String) -> void:
 	var track_index := -1
