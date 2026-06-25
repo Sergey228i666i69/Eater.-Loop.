@@ -116,7 +116,7 @@ const TORSO_STATIC_PAJAMA_MIN_Y := 277
 const TORSO_SIDE_EDGE_DARK_MATTE_MIN_Y := 108
 const TORSO_SIDE_EDGE_DARK_MATTE_MAX_Y := 278
 const TORSO_SIDE_EDGE_DARK_MATTE_SAMPLE_WIDTH := 6
-const TORSO_LEFT_EDGE_MAX_DARK_MATTE_PIXELS := 112
+const TORSO_LEFT_EDGE_MAX_DARK_MATTE_PIXELS := 48
 const TORSO_RIGHT_EDGE_MAX_DARK_MATTE_PIXELS := 28
 const TORSO_EDGE_DARK_MATTE_MIN_ALPHA := 0.235
 const TORSO_EDGE_DARK_MATTE_MAX_LUMINANCE := 0.23
@@ -175,6 +175,7 @@ const FRONT_FOREARM_ELBOW_OVERLAP_TOP_RIGHT_X := -10.0
 const FRONT_FOREARM_ELBOW_OVERLAP_MID_RIGHT_X := -12.0
 const FRONT_FOREARM_ELBOW_OVERLAP_LOW_RIGHT_X := -14.0
 const FRONT_FOREARM_GRIP_RIGHT_X := -16.0
+const FRONT_UPPER_ARM_TORSO_UNDERLAP_MIN_RIGHT_X := -28.0
 const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
 const FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X := 58
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
@@ -1391,8 +1392,19 @@ func _assert_active_limb_mesh(mesh: Polygon2D, spec: Dictionary) -> void:
 	assert_true(mesh.get_bone_count() == 2, "Active player limb mesh must blend across two neighboring bones: %s" % mesh_path)
 	_assert_polygon_bone_weights(mesh, 0, spec["first_bone"], true)
 	_assert_polygon_bone_weights(mesh, 1, spec["second_bone"], false)
+	if mesh_path == "MeshFrontUpperArm":
+		_assert_front_upper_arm_mesh_underlaps_torso(mesh)
 	if mesh_path == "MeshFrontForearm":
 		_assert_front_forearm_mesh_keeps_elbow_overlap(mesh)
+
+func _assert_front_upper_arm_mesh_underlaps_torso(mesh: Polygon2D) -> void:
+	if mesh.polygon.size() < 7:
+		return
+	for point_index in [1, 2, 3, 4, 5, 6]:
+		assert_true(
+				mesh.polygon[point_index].x >= FRONT_UPPER_ARM_TORSO_UNDERLAP_MIN_RIGHT_X,
+				"Player skeleton front upper-arm mesh must underlap the torso enough to fill the armpit side gap"
+		)
 
 func _assert_front_forearm_mesh_keeps_elbow_overlap(mesh: Polygon2D) -> void:
 	if mesh.polygon.size() < 7:
