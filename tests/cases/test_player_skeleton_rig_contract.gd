@@ -180,7 +180,9 @@ const FRONT_UPPER_ARM_TORSO_UNDERLAP_TOP_RIGHT_X := -6.0
 const FRONT_UPPER_ARM_TORSO_UNDERLAP_MID_RIGHT_X := -2.0
 const FRONT_UPPER_ARM_TORSO_UNDERLAP_LOW_RIGHT_X := -8.0
 const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
-const FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X := 58
+const FRONT_UPPER_ARM_TORSO_TAIL_MAX_SOLID_RIGHT_X := 58
+const FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_RIGHT_X := 66
+const FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_ALPHA := 0.45
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
 const BACK_FOREARM_WRIST_TAPER_MAX_Y := 128
 const BACK_FOREARM_WRIST_TAPER_MAX_WIDTH := 22
@@ -1781,13 +1783,27 @@ func _assert_front_upper_arm_does_not_keep_side_torso_tail(texture: Texture2D, v
 	for y in range(FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y, image.get_height()):
 		var max_x := -1
 		for x in range(image.get_width()):
-			if image.get_pixel(x, y).a <= 0.05:
+			var color := image.get_pixel(x, y)
+			if color.a <= 0.05:
 				continue
 			max_x = maxi(max_x, x)
+			if x > FRONT_UPPER_ARM_TORSO_TAIL_MAX_SOLID_RIGHT_X:
+				assert_true(
+						x <= FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_RIGHT_X,
+						"Player skeleton front upper arm soft underarm fill must stay narrow: %s" % visual_path
+				)
+				assert_true(
+						color.a <= FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_ALPHA,
+						"Player skeleton front upper arm soft underarm fill must stay translucent: %s" % visual_path
+				)
+				assert_true(
+						_is_forearm_skin_or_shadow_pixel(color),
+						"Player skeleton front upper arm soft underarm fill must stay skin/shadow, not shirt or trouser pixels: %s" % visual_path
+				)
 		if max_x < 0:
 			continue
 		assert_true(
-				max_x <= FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X,
+				max_x <= FRONT_UPPER_ARM_SOFT_UNDERARM_MAX_RIGHT_X,
 				"Player skeleton front upper arm must not rotate the side torso/shirt tail with the arm: %s" % visual_path
 		)
 
