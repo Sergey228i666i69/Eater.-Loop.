@@ -104,6 +104,10 @@ const TORSO_STATIC_SIDE_ARM_RIGHT_MIN_X := 145
 const TORSO_STATIC_SIDE_ARM_LOWER_LEFT_MAX_X := 78
 const TORSO_STATIC_SIDE_ARM_LOWER_RIGHT_MIN_X := 132
 const TORSO_STATIC_SIDE_ARM_MAX_SKIN_PIXELS := 100
+const TORSO_TOP_RIGHT_HEAD_SHARD_MIN_X := 116
+const TORSO_TOP_RIGHT_HEAD_SHARD_MAX_Y := 12
+const TORSO_TOP_RIGHT_HEAD_SHARD_MAX_PIXELS := 2
+const TORSO_HEAD_SHARD_MIN_SATURATION := 0.18
 const TORSO_STATIC_PAJAMA_MIN_Y := 277
 const THIGH_MOVING_WAISTBAND_CLEAR_ROWS := 20
 const THIGH_TOP_FADE_START_Y := 20
@@ -529,6 +533,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_cutout_has_single_alpha_component(visual_texture, visual_path)
 					if visual_path == TORSO_VISUAL_PATH:
 						_assert_torso_does_not_keep_static_side_arms(visual_texture, visual_path)
+						_assert_torso_does_not_keep_top_right_head_shard(visual_texture, visual_path)
 						_assert_torso_does_not_keep_static_pajama_waist(visual_texture, visual_path)
 					if visual_path == CLEANED_SEAM_FILL_VISUAL_PATH:
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.70)
@@ -1081,6 +1086,21 @@ func _assert_torso_does_not_keep_static_side_arms(texture: Texture2D, visual_pat
 			"Player skeleton torso must not keep static side-arm skin that duplicates skeletal arms: %s" % visual_path
 	)
 
+func _assert_torso_does_not_keep_top_right_head_shard(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton torso texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	var head_shard_pixels := 0
+	for y in range(mini(TORSO_TOP_RIGHT_HEAD_SHARD_MAX_Y + 1, image.get_height())):
+		for x in range(TORSO_TOP_RIGHT_HEAD_SHARD_MIN_X, image.get_width()):
+			if _is_torso_top_head_shard_pixel(image.get_pixel(x, y)):
+				head_shard_pixels += 1
+	assert_true(
+			head_shard_pixels <= TORSO_TOP_RIGHT_HEAD_SHARD_MAX_PIXELS,
+			"Player skeleton torso must not keep top-right head/chin pixels that render as a shard behind the rotating head: %s" % visual_path
+	)
+
 func _assert_pelvis_does_not_keep_static_front_hand(texture: Texture2D, visual_path: String) -> void:
 	var image := texture.get_image()
 	assert_true(image != null, "Player skeleton pelvis texture must expose alpha pixels: %s" % visual_path)
@@ -1100,6 +1120,16 @@ func _is_torso_static_side_arm_region(x: int, y: int) -> bool:
 	if y > TORSO_STATIC_SIDE_ARM_LOWER_Y:
 		return x < TORSO_STATIC_SIDE_ARM_LOWER_LEFT_MAX_X or x > TORSO_STATIC_SIDE_ARM_LOWER_RIGHT_MIN_X
 	return x < TORSO_STATIC_SIDE_ARM_LEFT_MAX_X or x > TORSO_STATIC_SIDE_ARM_RIGHT_MIN_X
+
+func _is_torso_top_head_shard_pixel(color: Color) -> bool:
+	if color.a <= 0.1:
+		return false
+	var max_channel := maxf(color.r, maxf(color.g, color.b))
+	var min_channel := minf(color.r, minf(color.g, color.b))
+	if max_channel <= 0.0:
+		return false
+	var saturation := (max_channel - min_channel) / max_channel
+	return saturation >= TORSO_HEAD_SHARD_MIN_SATURATION and color.r >= color.b and max_channel >= 0.18
 
 func _is_skin_toned_pixel(color: Color) -> bool:
 	if color.a <= 0.05:
