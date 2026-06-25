@@ -84,6 +84,11 @@ const HEAD_MIN_UPPER_RIGHT_HAIR_PIXELS := 680
 const HEAD_SHIRT_TAIL_MIN_Y := 144
 const HEAD_MAX_LOWER_SHIRT_TAIL_PIXELS := 4
 const HEAD_SHIRT_TAIL_MAX_SATURATION := 0.18
+const HEAD_RIGHT_COLLAR_TAIL_MIN_X := 96
+const HEAD_RIGHT_COLLAR_TAIL_MIN_Y := 128
+const HEAD_RIGHT_COLLAR_TAIL_MAX_Y := 144
+const HEAD_MAX_RIGHT_COLLAR_TAIL_PIXELS := 130
+const HEAD_RIGHT_COLLAR_TAIL_MAX_SATURATION := 0.24
 const HEAD_NECK_SOLID_SAMPLE_Y := 136
 const HEAD_NECK_SOFT_SAMPLE_Y := 142
 const HEAD_NECK_BOTTOM_SAMPLE_Y := 146
@@ -976,6 +981,17 @@ func _assert_head_cutout_keeps_source_head_shape(texture: Texture2D, visual_path
 			lower_shirt_tail_pixels <= HEAD_MAX_LOWER_SHIRT_TAIL_PIXELS,
 			"Player skeleton head cutout must not carry a lower shirt/collar tail that rotates with the head: %s" % visual_path
 	)
+
+	var right_collar_tail_pixels := 0
+	for y in range(mini(HEAD_RIGHT_COLLAR_TAIL_MIN_Y, image.get_height()), mini(HEAD_RIGHT_COLLAR_TAIL_MAX_Y, image.get_height())):
+		for x in range(mini(HEAD_RIGHT_COLLAR_TAIL_MIN_X, image.get_width()), image.get_width()):
+			var color := image.get_pixel(x, y)
+			if _is_visible_right_collar_tail_pixel(color):
+				right_collar_tail_pixels += 1
+	assert_true(
+			right_collar_tail_pixels <= HEAD_MAX_RIGHT_COLLAR_TAIL_PIXELS,
+			"Player skeleton head cutout must not keep a right-side collar tail that rotates above the torso: %s" % visual_path
+	)
 	assert_true(
 			_get_max_alpha_in_row(image, HEAD_NECK_SOLID_SAMPLE_Y) >= HEAD_NECK_MIN_SOLID_ALPHA,
 			"Player skeleton head cutout must keep enough visible neck before the torso collar seam: %s" % visual_path
@@ -998,6 +1014,16 @@ func _is_visible_low_saturation_shirt_pixel(color: Color) -> bool:
 		return false
 	var saturation := (max_channel - min_channel) / max_channel
 	return saturation <= HEAD_SHIRT_TAIL_MAX_SATURATION and max_channel >= 0.27 and max_channel <= 0.88
+
+func _is_visible_right_collar_tail_pixel(color: Color) -> bool:
+	if color.a <= 0.08:
+		return false
+	var max_channel := maxf(color.r, maxf(color.g, color.b))
+	var min_channel := minf(color.r, minf(color.g, color.b))
+	if max_channel <= 0.0:
+		return false
+	var saturation := (max_channel - min_channel) / max_channel
+	return saturation <= HEAD_RIGHT_COLLAR_TAIL_MAX_SATURATION and max_channel >= 0.24 and max_channel <= 0.88
 
 func _assert_neck_collar_cover_is_disabled_anchor(torso_visual: Sprite2D, neck_collar_visual: Sprite2D, head_visual: Sprite2D) -> void:
 	assert_true(not neck_collar_visual.visible, "Player skeleton neck/collar cover must stay hidden now that head and torso cutouts carry the seam cleanly")
