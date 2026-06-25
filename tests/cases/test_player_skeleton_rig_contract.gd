@@ -176,6 +176,9 @@ const FRONT_FOREARM_ELBOW_OVERLAP_MID_RIGHT_X := -12.0
 const FRONT_FOREARM_ELBOW_OVERLAP_LOW_RIGHT_X := -14.0
 const FRONT_FOREARM_GRIP_RIGHT_X := -16.0
 const FRONT_UPPER_ARM_TORSO_UNDERLAP_MIN_RIGHT_X := -14.0
+const FRONT_UPPER_ARM_TORSO_UNDERLAP_TOP_RIGHT_X := -6.0
+const FRONT_UPPER_ARM_TORSO_UNDERLAP_MID_RIGHT_X := -2.0
+const FRONT_UPPER_ARM_TORSO_UNDERLAP_LOW_RIGHT_X := -8.0
 const FRONT_UPPER_ARM_TORSO_TAIL_MIN_Y := 80
 const FRONT_UPPER_ARM_TORSO_TAIL_MAX_RIGHT_X := 58
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
@@ -1409,6 +1412,19 @@ func _assert_front_upper_arm_mesh_underlaps_torso(mesh: Polygon2D) -> void:
 				mesh.polygon[point_index].x >= FRONT_UPPER_ARM_TORSO_UNDERLAP_MIN_RIGHT_X,
 				"Player skeleton front upper-arm mesh must underlap the torso enough to fill the armpit side gap"
 		)
+	assert_true(
+			mesh.polygon[1].x >= FRONT_UPPER_ARM_TORSO_UNDERLAP_TOP_RIGHT_X,
+			"Player skeleton front upper-arm top contour must underlap the torso without widening the lower hand area"
+	)
+	assert_true(
+			mesh.polygon[2].x >= FRONT_UPPER_ARM_TORSO_UNDERLAP_MID_RIGHT_X
+					and mesh.polygon[3].x >= FRONT_UPPER_ARM_TORSO_UNDERLAP_MID_RIGHT_X,
+			"Player skeleton front upper-arm middle contour must fill the armpit side gap"
+	)
+	assert_true(
+			mesh.polygon[5].x >= FRONT_UPPER_ARM_TORSO_UNDERLAP_LOW_RIGHT_X,
+			"Player skeleton front upper-arm lower contour must keep a small torso underlap taper"
+	)
 
 func _assert_front_forearm_mesh_keeps_elbow_overlap(mesh: Polygon2D) -> void:
 	if mesh.polygon.size() < 7:
