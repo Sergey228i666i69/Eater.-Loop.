@@ -155,6 +155,9 @@ const FRONT_THIGH_SOFT_EDGE_MAX_ALPHA := 0.55
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_Y := 104
 const BACK_UPPER_ARM_TORSO_TAIL_MIN_LEFT_X := 22
 const BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH := 29
+const BACK_UPPER_ARM_INNER_EDGE_TAPER_MIN_Y := 104
+const BACK_UPPER_ARM_INNER_EDGE_TAPER_MAX_Y := 169
+const BACK_UPPER_ARM_INNER_EDGE_MAX_ALPHA := 0.26
 const UPPER_ARM_DUPLICATE_SLEEVE_CLEAR_ROWS := 56
 const UPPER_ARM_SOFT_EDGE_MIN_Y := 68
 const UPPER_ARM_SOFT_EDGE_MAX_ALPHA := 0.68
@@ -196,6 +199,9 @@ const FRONT_ARM_SIDE_SHADOW_MAX_X := -6.0
 const FRONT_ARM_SIDE_SHADOW_MIN_Y := -130.0
 const FRONT_ARM_SIDE_SHADOW_MAX_Y := 54.0
 const FRONT_ARM_SIDE_SHADOW_MAX_WIDTH := 34.0
+const BACK_FOREARM_INNER_EDGE_TAPER_MIN_Y := 18
+const BACK_FOREARM_INNER_EDGE_TAPER_MAX_Y := 128
+const BACK_FOREARM_INNER_EDGE_MAX_ALPHA := 0.22
 const BACK_FOREARM_WRIST_TAPER_MIN_Y := 104
 const BACK_FOREARM_WRIST_TAPER_MAX_Y := 128
 const BACK_FOREARM_WRIST_TAPER_MAX_WIDTH := 22
@@ -657,6 +663,13 @@ func _test_rig_scene_contract() -> void:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_upper_arm_does_not_keep_duplicate_sleeve(visual_texture, visual_path)
 						_assert_back_upper_arm_does_not_keep_lower_torso_tail(visual_texture, visual_path)
+						_assert_cutout_right_edge_alpha_taper(
+								visual_texture,
+								visual_path,
+								BACK_UPPER_ARM_INNER_EDGE_TAPER_MIN_Y,
+								BACK_UPPER_ARM_INNER_EDGE_TAPER_MAX_Y,
+								BACK_UPPER_ARM_INNER_EDGE_MAX_ALPHA
+						)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, UPPER_ARM_SOFT_EDGE_MIN_Y, UPPER_ARM_SOFT_EDGE_MAX_ALPHA)
 						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
 						_assert_arm_cutout_does_not_keep_visible_dark_edge_fringe(
@@ -680,6 +693,13 @@ func _test_rig_scene_contract() -> void:
 					elif visual_path == BACK_FOREARM_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_back_forearm_does_not_keep_hand_tail(visual_texture, visual_path)
+						_assert_cutout_right_edge_alpha_taper(
+								visual_texture,
+								visual_path,
+								BACK_FOREARM_INNER_EDGE_TAPER_MIN_Y,
+								BACK_FOREARM_INNER_EDGE_TAPER_MAX_Y,
+								BACK_FOREARM_INNER_EDGE_MAX_ALPHA
+						)
 						_assert_forearm_does_not_keep_clothing_fragments(visual_texture, visual_path)
 						_assert_arm_cutout_has_soft_side_edges(visual_texture, visual_path, FOREARM_SOFT_SIDE_EDGE_MIN_Y, FOREARM_SOFT_SIDE_EDGE_MAX_ALPHA)
 						_assert_arm_cutout_does_not_keep_opaque_dark_matte_edge(visual_texture, visual_path)
@@ -1933,6 +1953,24 @@ func _assert_back_upper_arm_does_not_keep_lower_torso_tail(texture: Texture2D, v
 		assert_true(
 				max_x - min_x + 1 <= BACK_UPPER_ARM_TORSO_TAIL_MAX_WIDTH,
 				"Player skeleton back upper arm lower edge must stay a narrow arm/sleeve shape: %s" % visual_path
+		)
+
+func _assert_cutout_right_edge_alpha_taper(texture: Texture2D, visual_path: String, min_y: int, max_y: int, max_alpha: float) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton cutout texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(mini(min_y, image.get_height()), mini(max_y + 1, image.get_height())):
+		var max_x := -1
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a <= 0.05:
+				continue
+			max_x = maxi(max_x, x)
+		if max_x < 0:
+			continue
+		assert_true(
+				image.get_pixel(max_x, y).a <= max_alpha,
+				"Player skeleton back arm inner edge must alpha-taper instead of drawing a vertical cutout seam: %s" % visual_path
 		)
 
 func _assert_front_upper_arm_does_not_keep_side_torso_tail(texture: Texture2D, visual_path: String) -> void:
