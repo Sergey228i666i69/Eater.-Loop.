@@ -98,6 +98,9 @@ const NECK_COLLAR_MAX_LOCAL_Y := -84.0
 const FRONT_SHIN_DETACHED_STRIP_MIN_X := 71
 const FRONT_SHIN_DETACHED_STRIP_MIN_Y := 8
 const FRONT_SHIN_DETACHED_STRIP_MAX_Y := 150
+const FRONT_SHIN_LOWER_SOFT_EDGE_MIN_Y := 176
+const FRONT_SHIN_LOWER_SOFT_EDGE_SAMPLE_WIDTH := 8
+const FRONT_SHIN_LOWER_SOFT_EDGE_MAX_ALPHA := 0.67
 const TORSO_STATIC_SIDE_ARM_TOP_Y := 62
 const TORSO_STATIC_SIDE_ARM_LOWER_Y := 115
 const TORSO_STATIC_SIDE_ARM_LEFT_MAX_X := 62
@@ -562,6 +565,7 @@ func _test_rig_scene_contract() -> void:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.32)
 						_assert_front_shin_does_not_keep_detached_side_strip(visual_texture, visual_path)
+						_assert_front_shin_has_soft_lower_outer_edge(visual_texture, visual_path)
 					elif visual_path == CLEANED_BACK_SHIN_VISUAL_PATH:
 						_assert_limb_visual_is_bone_sprite(visual, visual_path)
 						_assert_cutout_has_alpha_negative_space(visual_texture, visual_path, 0.24)
@@ -1073,6 +1077,24 @@ func _assert_front_shin_does_not_keep_detached_side_strip(texture: Texture2D, vi
 			assert_true(
 					image.get_pixel(x, y).a <= 0.05,
 					"Player skeleton front shin must not keep the detached dark source-gap strip: %s" % visual_path
+			)
+
+func _assert_front_shin_has_soft_lower_outer_edge(texture: Texture2D, visual_path: String) -> void:
+	var image := texture.get_image()
+	assert_true(image != null, "Player skeleton front shin texture must expose alpha pixels: %s" % visual_path)
+	if image == null:
+		return
+	for y in range(FRONT_SHIN_LOWER_SOFT_EDGE_MIN_Y, image.get_height()):
+		var min_x := image.get_width()
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a > 0.05:
+				min_x = mini(min_x, x)
+		if min_x >= image.get_width():
+			continue
+		for x in range(min_x, mini(image.get_width(), min_x + FRONT_SHIN_LOWER_SOFT_EDGE_SAMPLE_WIDTH)):
+			assert_true(
+					image.get_pixel(x, y).a <= FRONT_SHIN_LOWER_SOFT_EDGE_MAX_ALPHA,
+					"Player skeleton front shin lower outer edge must fade into the ankle instead of forming a sharp trouser shard: %s" % visual_path
 			)
 
 func _assert_torso_does_not_keep_static_side_arms(texture: Texture2D, visual_path: String) -> void:
