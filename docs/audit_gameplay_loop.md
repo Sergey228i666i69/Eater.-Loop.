@@ -94,7 +94,7 @@ Credits возвращают в меню и ставят только meta-фл�
 
 Практический эффект был такой: production misconfiguration превращался в бесплатный прогресс.
 
-Статус: закрыто. Холодильник fail-closed показывает отказ игроку и не отмечает `ate`; поведение покрыто `test_fridge_chase_interaction.gd`.
+Статус: закрыто. Холодильник fail-closed показывает отказ игроку и не отмечает `ate`; поведение покрыто `test_fridge_chase_interaction.gd`. Новые content-регрессии с частично настроенным холодильником ловит `test_fridge_authoring_contracts.gd`; найденный им cafeteria fridge в `level_13_STU_3` получил полный feeding config.
 
 ## P2/P3: Дублирование И Мёртвый Прогресс
 

@@ -8,7 +8,7 @@
 
 Первичная проблемность аудита: **7.3/10**. Текущая проблемность после ремонтных проходов: **около 5/10**.
 
-Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов, typed dependency/key-source/lab-id conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method/trigger-target/utility-path/level-authoring validators, external state-access guards, private backing для core `CycleState` flags, Godot-aware naming cleanup и первые split pass-ы крупных singleton-ов. Костыльность всё ещё заметна в поддержке: huge STU-сцены и оставшиеся крупные фасады требуют аккуратных будущих refactor-ов.
+Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов, typed dependency/key-source/lab-id conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method/trigger-target/utility-path/level/fridge-authoring validators, external state-access guards, private backing для core `CycleState` flags, Godot-aware naming cleanup и первые split pass-ы крупных singleton-ов. Костыльность всё ещё заметна в поддержке: huge STU-сцены и оставшиеся крупные фасады требуют аккуратных будущих refactor-ов.
 
 ## Сводные Оценки
 
