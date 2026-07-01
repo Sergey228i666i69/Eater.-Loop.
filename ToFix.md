@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 73 теста.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 74 теста.
 
 Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
@@ -53,7 +53,7 @@
 - Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`; STU hardcoded paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`.
 - Пустые target marker STU-двери, которые должны быть недоступны, явно locked; `level_13_stu_3.gd` сделал отсутствующий primary fridge path явным optional default.
 - Naming debt закрыт Godot-aware rename-ами: `chiken` -> `chicken`, `meet` -> `meat`, `Без названия *.png` -> descriptive background names, `toilet and bathroom` -> `toilet_bathroom`, `DoorNSTU_highevel.png` -> `DoorNSTU_highlevel.png`, `FridgeNoizeE.wav` -> `FridgeNoiseE.wav`.
-- Первый god-class split закрыт: `UIMessage` вынес fade/tween state в `ui_fade_controller.gd`, `MinigameController` вынес backdrop registry/presentation в `minigame_backdrop_presenter.gd`, `GameDirector` вынес death-title/glitch presentation в `game_director_death_title_presenter.gd`, stalker spawn/checkpoint service в `game_director_stalker_service.gd`, overlay layer policy в `game_director_overlay_layer_coordinator.gd`, death cursor/input policy в `game_director_death_cursor_coordinator.gd`, death camera capture/restore в `game_director_death_camera_coordinator.gd` и minigame distortion gate в `game_director_distortion_gate.gd`.
+- Первый god-class split закрыт: `UIMessage` вынес fade/tween state в `ui_fade_controller.gd`, `MinigameController` вынес backdrop registry/presentation в `minigame_backdrop_presenter.gd`, `GameDirector` вынес death-title/glitch presentation в `game_director_death_title_presenter.gd`, stalker spawn/checkpoint service в `game_director_stalker_service.gd`, overlay layer policy в `game_director_overlay_layer_coordinator.gd`, death cursor/input policy в `game_director_death_cursor_coordinator.gd`, death camera capture/restore в `game_director_death_camera_coordinator.gd`, minigame distortion gate в `game_director_distortion_gate.gd` и distortion progress/easing math в `game_director_distortion_progress.gd`.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -84,7 +84,7 @@
 - `player/ui_message.gd` больше не владеет fade tween/token state напрямую: это вынесено в `player/ui_fade_controller.gd`, а публичный `UIMessage` facade сохранён.
 - `levels/minigames/minigame_controller.gd` больше не держит backdrop registry/fullscreen-backdrop detection: это вынесено в `levels/minigames/minigame_backdrop_presenter.gd`.
 - `levels/game_director.gd` больше не держит death-title sequence, readable glitch layout и material factory: это вынесено в `levels/game_director_death_title_presenter.gd`.
-- `levels/game_director.gd` больше не держит stalker spawn/checkpoint service, overlay layer policy, death cursor/input policy, death camera capture/restore и minigame distortion gate напрямую: это вынесено в отдельные `game_director_*` helper-ы с focused tests.
+- `levels/game_director.gd` больше не держит stalker spawn/checkpoint service, overlay layer policy, death cursor/input policy, death camera capture/restore, minigame distortion gate и distortion progress/easing math напрямую: это вынесено в отдельные `game_director_*` helper-ы с focused tests.
 - `MusicManager` facade оставлен без распила в этом проходе: он уже защищён private-API тестом, а рискованный широкий audio-stack refactor лучше делать отдельной задачей с audio-regression focus.
 - Оставшаяся крупность `GameDirector`, `MusicManager` и `Player` теперь зафиксирована как future architecture refactor, а не открытый долг этого remediation списка.
 

@@ -684,6 +684,7 @@
 │   ├── game_director_death_title_presenter.gd
 │   ├── game_director_death_title_presenter.gd.uid
 │   ├── game_director_distortion_gate.gd
+│   ├── game_director_distortion_progress.gd
 │   ├── game_director_overlay_layer_coordinator.gd
 │   ├── game_director_stalker_service.gd
 │   ├── interaction_prompts.gd
@@ -1496,6 +1497,7 @@
 │   │   ├── test_game_director_death_camera_coordinator.gd
 │   │   ├── test_game_director_death_cursor_coordinator.gd
 │   │   ├── test_game_director_distortion_gate.gd
+│   │   ├── test_game_director_distortion_progress.gd
 │   │   ├── test_game_director_overlay_layer_coordinator.gd
 │   │   ├── test_game_director_stalker_service.gd
 │   │   ├── test_generator_activates_required_lamps.gd

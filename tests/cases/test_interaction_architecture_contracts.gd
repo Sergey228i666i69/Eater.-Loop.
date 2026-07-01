@@ -56,7 +56,9 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"tween_property(_death_camera",
 	"var _minigame_active: bool",
 	"var _minigame_blocks_distortion",
-	"var _pending_distortion_activation"
+	"var _pending_distortion_activation",
+	"func _ease_out",
+	"pow(1.0 - t, 2.0)"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",

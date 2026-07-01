@@ -6,6 +6,7 @@ const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const DistortionGate = preload("res://levels/game_director_distortion_gate.gd")
+const DistortionProgress = preload("res://levels/game_director_distortion_progress.gd")
 const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
 const StalkerService = preload("res://levels/game_director_stalker_service.gd")
 
@@ -110,6 +111,7 @@ var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
 var _death_title_presenter: RefCounted
 var _distortion_gate: RefCounted
+var _distortion_progress_helper: RefCounted
 var _overlay_layer_coordinator: RefCounted
 var _stalker_service: RefCounted
 
@@ -133,6 +135,7 @@ func _ready() -> void:
 	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
 	_distortion_gate = DistortionGate.new()
+	_distortion_progress_helper = DistortionProgress.new()
 	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	_stalker_service = StalkerService.new()
 	_sync_stalker_service()
@@ -780,32 +783,26 @@ func _apply_transition_strength(strength: float) -> void:
 	# _set_transition_squash(...) — эту строку можно удалить, она больше не нужна
 
 func _advance_distortion(delta: float) -> void:
-	if distortion_ramp_duration <= 0.0:
-		_distortion_progress = 1.0
-	elif _distortion_progress < 1.0:
-		_distortion_progress = min(1.0, _distortion_progress + (delta / distortion_ramp_duration))
-	var eased := _ease_out(_distortion_progress)
+	_distortion_progress = _get_distortion_progress_helper().advance_progress(_distortion_progress, delta, distortion_ramp_duration)
+	var eased: float = _get_distortion_progress_helper().ease_out(_distortion_progress)
 	_apply_distortion_progress(eased)
 
 func _advance_transition(delta: float) -> void:
-	if distortion_transition_duration <= 0.0:
-		_transition_progress = 1.0
-	elif _transition_progress < 1.0:
-		_transition_progress = min(1.0, _transition_progress + (delta / distortion_transition_duration))
-	var t: float = float(clamp(_transition_progress, 0.0, 1.0))
-	var strength := pow(1.0 - t, 2.0)
+	_transition_progress = _get_distortion_progress_helper().advance_progress(_transition_progress, delta, distortion_transition_duration)
+	var strength: float = _get_distortion_progress_helper().transition_strength(_transition_progress)
 	_apply_transition_strength(strength)
 	if _transition_progress >= 1.0:
 		_transition_active = false
 		if _transition_rect:
 			_transition_rect.visible = false
 
-func _ease_out(t: float) -> float:
-	var clamped: float = float(clamp(t, 0.0, 1.0))
-	return 1.0 - pow(1.0 - clamped, 2.0)
-
 func _is_distortion_allowed() -> bool:
 	return _get_distortion_gate().is_distortion_allowed(_in_game_scene)
+
+func _get_distortion_progress_helper() -> RefCounted:
+	if _distortion_progress_helper == null:
+		_distortion_progress_helper = DistortionProgress.new()
+	return _distortion_progress_helper
 
 func _get_distortion_gate() -> RefCounted:
 	if _distortion_gate == null:
