@@ -8,34 +8,42 @@ func _initialize() -> void:
 
 func _run_all_tests() -> void:
     var failures: Array[String] = []
-    var test_paths = _discover_tests()
+    var test_paths := _discover_tests()
     if test_paths.is_empty():
         failures.append("No tests found in %s" % TEST_DIR)
     else:
         for path in test_paths:
-            var test_failures = await _run_test(path)
+            var test_failures := await _run_test(path)
             for message in test_failures:
                 failures.append("%s: %s" % [path.get_file(), message])
 
-    _report(failures)
+    _report(failures, test_paths.size())
     await _drain_pending_work()
     quit(failures.size())
 
 func _discover_tests() -> Array[String]:
     var tests: Array[String] = []
-    var dir = DirAccess.open(TEST_DIR)
+    _discover_tests_recursive(TEST_DIR, tests)
+    tests.sort()
+    return tests
+
+func _discover_tests_recursive(root: String, tests: Array[String]) -> void:
+    var dir = DirAccess.open(root)
     if dir == null:
-        return tests
+        return
     dir.list_dir_begin()
     var name = dir.get_next()
     while name != "":
-        if not dir.current_is_dir() and name.ends_with(".gd"):
-            if name.begins_with("test_"):
-                tests.append(TEST_DIR.path_join(name))
+        if name.begins_with("."):
+            name = dir.get_next()
+            continue
+        var path = root.path_join(name)
+        if dir.current_is_dir():
+            _discover_tests_recursive(path, tests)
+        elif name.ends_with(".gd") and name.begins_with("test_"):
+            tests.append(path)
         name = dir.get_next()
     dir.list_dir_end()
-    tests.sort()
-    return tests
 
 func _run_test(path: String) -> Array[String]:
     var script_resource: Variant = load(path)
@@ -75,9 +83,9 @@ func _run_test(path: String) -> Array[String]:
         return result
     return ["run() returned unexpected value"]
 
-func _report(failures: Array[String]) -> void:
+func _report(failures: Array[String], test_count: int) -> void:
     if failures.is_empty():
-        print("OK: all tests passed (", _discover_tests().size(), ")")
+        print("OK: all tests passed (", test_count, ")")
         return
     printerr("FAIL: ", failures.size(), " failure(s)")
     for message in failures:

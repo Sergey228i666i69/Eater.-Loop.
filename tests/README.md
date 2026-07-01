@@ -2,10 +2,12 @@
 
 These tests are lightweight smoke checks for project health. They run headless and focus on:
 - Main scene is configured and loadable.
+- Project config references loadable editor plugins and translation resources.
 - Autoloads exist and load.
 - Core scenes load and instantiate (excluding archived/trash folders).
 - All scripts compile.
 - Key input actions exist and have events.
+- Localization CSV and runtime text sources do not contain empty required values or mojibake.
 - Runtime regressions for critical audio transitions (including menu -> level start).
 
 ## Run
@@ -34,6 +36,7 @@ Exit code is the number of failures (0 = success).
 ## Notes
 
 - These are smoke tests; they do not simulate gameplay.
+- Test files named `test_*.gd` are discovered recursively under `tests/cases/**`.
 - Runtime tests should clean up their scene/autoload side effects before returning.
 - If you add/remove core input actions, update `tests/cases/test_input_actions.gd`.
 - If you add new scene folders, include them in `tests/cases/test_scenes_load.gd`.

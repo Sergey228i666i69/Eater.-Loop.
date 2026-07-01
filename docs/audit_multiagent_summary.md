@@ -25,7 +25,7 @@
 1. **Огромные STU-сцены требуют аккуратного scene-authoring.** Runtime paths покрыты validators, но сами `.tscn` всё ещё тяжёлые для ревью.
 2. **Оставшиеся крупные фасады требуют отдельного refactor budget.** `MusicManager`, `GameDirector` и `Player` всё ещё большие; `UIMessage`, `MinigameController` и death-title часть `GameDirector` уже получили безопасные helper split-ы.
 3. **Export dry-run не автоматизирован отдельным release job.** Тесты закреплены CI, root preset проверяется suite-ом, но release artifacts пока остаются локальной ответственностью.
-4. **CycleState/public state и localization completeness всё ещё стоит закрывать отдельными задачами.**
+4. **CycleState/public state и полное покрытие player-facing localization keys всё ещё стоит закрывать отдельными задачами.**
 
 ## Что Стоит Сохранить
 

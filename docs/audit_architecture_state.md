@@ -91,18 +91,18 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 
 Следующий ремонт: добавить stable checkpoint ids/validators для важных сценовых участников и явно документировать, какие runtime classes имеют право на factory restore.
 
-## P2: Локализация Неполная
+## P2: Локализация Частично Закрыта
 
-Найдены:
+Изначально были найдены:
 
-- mojibake в [`global/localization/texts.csv`](../global/localization/texts.csv), около строки 3;
+- mojibake в [`global/localization/texts.csv`](../global/localization/texts.csv), около строки 3, и в LLM glitch minigame;
 - транслит-ключи в том же CSV, около строки 32;
 - hardcoded русские строки вне CSV, например в [`objects/interactable/flashlight/pickup_flashlight.tscn`](../objects/interactable/flashlight/pickup_flashlight.tscn), около строки 33;
 - hardcoded prompt в [`objects/interactable/flashlight/pickup_flashlight.tscn`](../objects/interactable/flashlight/pickup_flashlight.tscn), около строки 33.
 
 Риск: английская локаль получит русские fallback-и или битый текст.
 
-Ремонт: добавить localization completeness test и запретить новые player-facing строки без ключа.
+Статус: mojibake исправлен, а [`tests/cases/test_localization_contracts.gd`](../tests/cases/test_localization_contracts.gd) проверяет CSV-колонки `keys`/`ru`/`en`, пустые значения и mojibake в runtime text sources. Оставшийся ремонт: постепенно заменить транслит-ключи и hardcoded player-facing строки на явные localization keys, затем ужесточить validator до полного coverage.
 
 ## Мелкие Smells
 

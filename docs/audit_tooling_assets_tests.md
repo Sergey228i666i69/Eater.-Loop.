@@ -7,7 +7,7 @@
 - Godot: `4.6.1.stable`.
 - `godot --headless --check-only -s res://tests/run_tests.gd` прошёл.
 - Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
-- После ремонтных проходов 2026-06-23 parser-only и полный suite проходят; текущий полный suite содержит 63 теста.
+- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 68 тестов.
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
 - Полный export/build не запускался, чтобы не писать в output paths и импорт-кэш.
 
@@ -43,7 +43,7 @@
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Последующие полные прогоны это не воспроизводят, поэтому пункт остался историческим наблюдением, а не текущим known failure.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (63)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (68)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -78,15 +78,17 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 63 теста.
+- 68 тестов.
 
 Добавлено:
 
 - [`.github/workflows/godot-tests.yml`](../.github/workflows/godot-tests.yml), который делает checkout с LFS, `git lfs pull`, ставит Godot 4.6.1, запускает parser-only и full suite.
+- Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
+- Project-config contract для main scene, включённых editor plugins и configured translations.
+- Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений и mojibake в runtime text sources.
 
 Ограничения:
 
-- discovery тестов нерекурсивный только по `tests/cases`;
 - shell helper вычисляет project root относительно себя и запускает Godot с `--path`, поэтому может запускаться не из корня.
 
-Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.
+Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и базовую localization hygiene; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.

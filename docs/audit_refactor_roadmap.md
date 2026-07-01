@@ -66,7 +66,8 @@ Definition of done: overlapping Area2D больше не вызывает нес
 2. Проверять groups/methods вроде `reactive_light_source`, `turn_on`, `is_point_lit`.
 3. ~~Проверять missing/broken NodePath.~~ Закрыто для active level/interactable scenes and STU hardcoded paths.
 4. ~~Проверять checkpoint participants: capture/apply, stable id, dynamic restore.~~ Базовый и dynamic restore покрыты.
-5. Проверять localization keys для player-facing строк.
+5. ~~Проверять базовый localization CSV/mojibake contract.~~ `test_localization_contracts.gd` проверяет колонки `keys`/`ru`/`en`, пустые значения и mojibake в runtime text sources.
+6. Проверять localization keys для всех player-facing строк.
 
 Definition of done: типовые ошибки сцен падают тестом, а не silently no-op. Крупный visual/DRY-разбор STU-сцен теперь можно делать отдельным scene-authoring refactor поверх этих validators.
 
