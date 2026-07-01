@@ -53,7 +53,10 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"CursorManager.set_in_game",
 	"var _death_camera: Camera2D",
 	"_death_camera_base_",
-	"tween_property(_death_camera"
+	"tween_property(_death_camera",
+	"var _minigame_active: bool",
+	"var _minigame_blocks_distortion",
+	"var _pending_distortion_activation"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",

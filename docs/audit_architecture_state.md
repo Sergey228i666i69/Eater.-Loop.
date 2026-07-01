@@ -55,9 +55,9 @@
 
 Риск не в том, что класс прямо сейчас сломан, а в цене изменений: любая новая механика уровня может задеть смерть, чекпоинт, музыку или курсор.
 
-Статус: частично разгружен. Pause ownership для death screen закрыт через owner-token API `PauseManager`, death-title sequence/glitch layout/material factory вынесены в `levels/game_director_death_title_presenter.gd`, stalker spawn/find/capture/restore вынесен в `levels/game_director_stalker_service.gd`, overlay layer policy вынесена в `levels/game_director_overlay_layer_coordinator.gd`, death cursor/input policy вынесена в `levels/game_director_death_cursor_coordinator.gd`, а death camera capture/restore вынесен в `levels/game_director_death_camera_coordinator.gd`; новые helper-ы покрыты отдельными тестами. Сам класс всё ещё владеет cycle timer, distortion, death retry/reload flow и checkpoint bridge.
+Статус: частично разгружен. Pause ownership для death screen закрыт через owner-token API `PauseManager`, death-title sequence/glitch layout/material factory вынесены в `levels/game_director_death_title_presenter.gd`, stalker spawn/find/capture/restore вынесен в `levels/game_director_stalker_service.gd`, overlay layer policy вынесена в `levels/game_director_overlay_layer_coordinator.gd`, death cursor/input policy вынесена в `levels/game_director_death_cursor_coordinator.gd`, death camera capture/restore вынесен в `levels/game_director_death_camera_coordinator.gd`, а minigame distortion gate вынесен в `levels/game_director_distortion_gate.gd`; новые helper-ы покрыты отдельными тестами. Сам класс всё ещё владеет cycle timer, shader/material distortion effects, death retry/reload flow и checkpoint bridge.
 
-Следующий ремонт: выносить death retry/checkpoint lifecycle и distortion flow отдельными tested slices.
+Следующий ремонт: выносить death retry/checkpoint lifecycle и оставшийся shader/material distortion flow отдельными tested slices.
 
 ## P2: `UIMessage` Стал Service Locator
 

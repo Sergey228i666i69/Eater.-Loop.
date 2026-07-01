@@ -5,6 +5,7 @@ signal distortion_started
 const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_coordinator.gd")
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
+const DistortionGate = preload("res://levels/game_director_distortion_gate.gd")
 const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
 const StalkerService = preload("res://levels/game_director_stalker_service.gd")
 
@@ -94,9 +95,6 @@ var _transition_progress: float = 0.0
 var _flash_active: bool = false
 var _damage_flash_active: bool = false
 var _light_only_jump_active: bool = false
-var _minigame_active: bool = false
-var _minigame_blocks_distortion: bool = false
-var _pending_distortion_activation: bool = false
 var _in_game_scene: bool = false
 var _stalker_spawned: bool = false
 var _death_layer: CanvasLayer
@@ -111,6 +109,7 @@ var _input_kind: int = 0
 var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
 var _death_title_presenter: RefCounted
+var _distortion_gate: RefCounted
 var _overlay_layer_coordinator: RefCounted
 var _stalker_service: RefCounted
 
@@ -133,6 +132,7 @@ func _ready() -> void:
 	_create_death_overlay()
 	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
+	_distortion_gate = DistortionGate.new()
 	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	_stalker_service = StalkerService.new()
 	_sync_stalker_service()
@@ -181,7 +181,7 @@ func _process(delta: float) -> void:
 func start_normal_phase(timer_duration: float = -1.0) -> void:
 	if CycleState != null:
 		CycleState.set_phase(CycleState.Phase.NORMAL)
-	_pending_distortion_activation = false
+	_get_distortion_gate().clear_pending_activation()
 	_distortion_active = false
 	_distortion_progress = 0.0
 	_transition_active = false
@@ -227,18 +227,18 @@ func trigger_damage_flash() -> void:
 
 func _on_distortion_timeout() -> void:
 	if CycleState != null and CycleState.is_distorted_phase():
-		_pending_distortion_activation = false
+		_get_distortion_gate().clear_pending_activation()
 		return
 	if _should_defer_distortion_activation():
-		_pending_distortion_activation = true
+		_get_distortion_gate().mark_pending_activation()
 		return
 	_activate_distortion_phase()
 
 func _activate_distortion_phase() -> void:
 	if CycleState != null and CycleState.is_distorted_phase():
-		_pending_distortion_activation = false
+		_get_distortion_gate().clear_pending_activation()
 		return
-	_pending_distortion_activation = false
+	_get_distortion_gate().clear_pending_activation()
 	if CycleState != null:
 		CycleState.set_phase(CycleState.Phase.DISTORTED)
 	_distortion_active = true
@@ -258,9 +258,7 @@ func _activate_distortion_phase() -> void:
 	distortion_started.emit()
 
 func _should_defer_distortion_activation() -> bool:
-	if _death_sequence_active:
-		return false
-	return _minigame_active and _minigame_blocks_distortion
+	return _get_distortion_gate().should_defer_activation(_death_sequence_active)
 
 func trigger_distortion_now() -> void:
 	if _death_sequence_active:
@@ -412,9 +410,7 @@ func _on_scene_changed(scene: Node = null) -> void:
 func _update_for_scene(scene: Node) -> void:
 	_reset_death_screen_state()
 	_in_game_scene = SceneContext != null and SceneContext.is_gameplay_scene(scene)
-	_minigame_active = false
-	_minigame_blocks_distortion = false
-	_pending_distortion_activation = false
+	_get_distortion_gate().reset_for_scene()
 	if _in_game_scene:
 		_apply_level_settings(scene)
 		return
@@ -809,11 +805,12 @@ func _ease_out(t: float) -> float:
 	return 1.0 - pow(1.0 - clamped, 2.0)
 
 func _is_distortion_allowed() -> bool:
-	if not _in_game_scene:
-		return false
-	if _minigame_active and _minigame_blocks_distortion:
-		return false
-	return true
+	return _get_distortion_gate().is_distortion_allowed(_in_game_scene)
+
+func _get_distortion_gate() -> RefCounted:
+	if _distortion_gate == null:
+		_distortion_gate = DistortionGate.new()
+	return _distortion_gate
 
 func _update_overlay_layer() -> void:
 	if _overlay_layer == null:
@@ -827,7 +824,7 @@ func _update_overlay_layer() -> void:
 	var active_minigame_layer := OverlayLayerCoordinator.DEFAULT_OVERLAY_LAYER
 	if MinigameController and MinigameController.has_method("get_active_minigame_layer"):
 		active_minigame_layer = MinigameController.get_active_minigame_layer()
-	_overlay_layer_coordinator.apply_layer(_overlay_layer, tree_paused, pause_menu_open, _minigame_active, active_minigame_layer)
+	_overlay_layer_coordinator.apply_layer(_overlay_layer, tree_paused, pause_menu_open, _get_distortion_gate().is_minigame_active(), active_minigame_layer)
 
 func _hide_distortion_overlays() -> void:
 	if _distortion_rect:
@@ -891,13 +888,10 @@ func _connect_minigame_controller() -> void:
 		MinigameController.minigame_finished.connect(_on_minigame_finished)
 
 func _on_minigame_started(_minigame: Node) -> void:
-	_minigame_active = true
-	_minigame_blocks_distortion = not _minigame_allows_distortion(_minigame)
+	_get_distortion_gate().on_minigame_started(_minigame_allows_distortion(_minigame))
 
 func _on_minigame_finished(_minigame: Node, _success: bool) -> void:
-	_minigame_active = false
-	_minigame_blocks_distortion = false
-	if _pending_distortion_activation:
+	if _get_distortion_gate().on_minigame_finished():
 		_activate_distortion_phase()
 
 func _minigame_allows_distortion(minigame: Node) -> bool:
@@ -919,13 +913,13 @@ func capture_checkpoint_state() -> Dictionary:
 		"current_timer_duration": _current_timer_duration,
 		"time_left": get_time_left(),
 		"timer_running": is_timer_running(),
-		"pending_distortion_activation": _pending_distortion_activation,
 		"stalker_spawned": _stalker_spawned,
 		"distortion_active": _distortion_active,
 		"distortion_progress": _distortion_progress,
 		"transition_active": _transition_active,
 		"transition_progress": _transition_progress,
 	}
+	state.merge(_get_distortion_gate().capture_checkpoint_state(), true)
 	_sync_stalker_service()
 	if _stalker_service != null and get_tree() != null:
 		state.merge(_stalker_service.capture_checkpoint_state(get_tree(), get_tree().current_scene, _stalker_spawned), true)
@@ -937,7 +931,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	_current_cycle_number = int(state.get("current_cycle_number", _current_cycle_number))
 	_current_timer_duration = float(state.get("current_timer_duration", _current_timer_duration))
 	current_max_time = float(state.get("current_max_time", current_max_time))
-	_pending_distortion_activation = bool(state.get("pending_distortion_activation", false))
+	_get_distortion_gate().apply_checkpoint_state(state)
 	_stalker_spawned = bool(state.get("stalker_spawned", false))
 	_distortion_active = bool(state.get("distortion_active", false))
 	_distortion_progress = float(state.get("distortion_progress", 0.0))
