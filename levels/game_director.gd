@@ -2,6 +2,7 @@ extends Node
 
 signal distortion_started
 
+const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_coordinator.gd")
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
@@ -106,11 +107,8 @@ var _death_title_label: Label
 var _death_retry_button: Button
 var _death_sequence_active: bool = false
 var _death_pause_requested: bool = false
-var _death_camera: Camera2D = null
-var _death_camera_base_rotation: float = 0.0
-var _death_camera_base_zoom: Vector2 = Vector2.ONE
-var _death_camera_base_offset: Vector2 = Vector2.ZERO
 var _input_kind: int = 0
+var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
 var _death_title_presenter: RefCounted
 var _overlay_layer_coordinator: RefCounted
@@ -133,6 +131,7 @@ func _ready() -> void:
 	add_child(_timer)
 	_create_distortion_overlay()
 	_create_death_overlay()
+	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
 	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	_stalker_service = StalkerService.new()
@@ -528,11 +527,9 @@ func trigger_death_screen() -> void:
 	_damage_flash_active = false
 	_stop_light_only_jump_effect()
 	_hide_distortion_overlays()
-	_death_camera = _resolve_primary_camera()
-	if _death_camera != null:
-		_death_camera_base_rotation = _death_camera.rotation
-		_death_camera_base_zoom = _death_camera.zoom
-		_death_camera_base_offset = _death_camera.offset
+	if _death_camera_coordinator == null:
+		_death_camera_coordinator = DeathCameraCoordinator.new()
+	_death_camera_coordinator.capture(_resolve_primary_camera())
 	if _death_title_presenter != null:
 		_death_title_presenter.apply_next_title(death_title_text)
 	if _death_retry_button:
@@ -547,12 +544,9 @@ func trigger_death_screen() -> void:
 	tween.set_parallel(true)
 	if _death_fade_rect:
 		tween.tween_property(_death_fade_rect, "color:a", 1.0, fade_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	if _death_camera != null:
+	if _death_camera_coordinator.has_camera():
 		var tilt_sign := -1.0 if randf() < 0.5 else 1.0
-		var target_rotation := _death_camera_base_rotation + deg_to_rad(death_camera_tilt_deg) * tilt_sign
-		var target_zoom := _death_camera_base_zoom * death_camera_zoom_mult
-		tween.tween_property(_death_camera, "rotation", target_rotation, fade_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tween.tween_property(_death_camera, "zoom", target_zoom, fade_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		_death_camera_coordinator.tween_to_death_pose(tween, fade_time, death_camera_tilt_deg, death_camera_zoom_mult, tilt_sign)
 	tween.finished.connect(_on_death_fade_completed)
 
 func _handle_custom_scene_death() -> bool:
@@ -612,11 +606,9 @@ func _reset_death_screen_state() -> void:
 	_release_death_pause()
 
 func _restore_death_camera() -> void:
-	if _death_camera != null and is_instance_valid(_death_camera):
-		_death_camera.rotation = _death_camera_base_rotation
-		_death_camera.zoom = _death_camera_base_zoom
-		_death_camera.offset = _death_camera_base_offset
-	_death_camera = null
+	if _death_camera_coordinator == null:
+		_death_camera_coordinator = DeathCameraCoordinator.new()
+	_death_camera_coordinator.restore()
 
 func _request_death_pause() -> void:
 	if _death_pause_requested:

@@ -50,7 +50,10 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"get_active_minigame_layer() - 1",
 	"CursorManager.request_visible",
 	"CursorManager.release_visible",
-	"CursorManager.set_in_game"
+	"CursorManager.set_in_game",
+	"var _death_camera: Camera2D",
+	"_death_camera_base_",
+	"tween_property(_death_camera"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",
