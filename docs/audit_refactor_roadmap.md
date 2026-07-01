@@ -100,7 +100,8 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~backdrop registry/presentation;~~ вынесено в `minigame_backdrop_presenter.gd`.
    - timer/pause/music/gamepad lifecycle можно дробить отдельными tested slices.
 5. `Fridge`:
-   - отделить lock/code/minigame/story hooks.
+   - ~~отделить code-lock scene adapter.~~ `FridgeCodeLockSession` создаёт lock scene и пишет `code_value`/legacy `target_code`; `Fridge` сохраняет outcome/signal ownership.
+   - отделить feeding/minigame/story hooks.
 
 Definition of done: новые уровни не требуют править глобальный директор для локальных интерактивов.
 

@@ -19,12 +19,20 @@ class TeleportFridgeProbe:
 	func _clear_chase_after_teleport_success() -> void:
 		chase_cleared = true
 
+class LegacyCodeLockProbe:
+	extends Node
+
+	var target_code: String = ""
+
 const FridgeScript := preload("res://objects/interactable/fridge/fridge.gd")
+const FridgeCodeLockSessionScript := preload("res://objects/interactable/fridge/fridge_code_lock_session.gd")
+const CODE_LOCK_SCENE := preload("res://levels/minigames/ui/code_lock.tscn")
 
 func run() -> Array[String]:
 	_test_fridge_is_not_blocked_during_chase()
 	_test_teleport_fridge_clears_chase_state()
 	_test_misconfigured_fridge_does_not_grant_food()
+	_test_code_lock_session_applies_access_code()
 	return get_failures()
 
 func _test_fridge_is_not_blocked_during_chase() -> void:
@@ -68,3 +76,15 @@ func _test_misconfigured_fridge_does_not_grant_food() -> void:
 	assert_true(not bool(CycleState.has_eaten_this_cycle()), "Misconfigured fridge must fail closed instead of marking food as eaten")
 	fridge.free()
 	CycleState.reset_cycle_state()
+
+func _test_code_lock_session_applies_access_code() -> void:
+	var lock_instance: Node = FridgeCodeLockSessionScript.create_lock_instance(CODE_LOCK_SCENE, "2718")
+	assert_true(lock_instance != null, "Fridge code-lock helper must instantiate the configured scene")
+	if lock_instance != null:
+		assert_eq(str(lock_instance.get("code_value")), "2718", "Fridge code-lock helper must configure current code_value contract")
+		lock_instance.free()
+
+	var legacy_lock := LegacyCodeLockProbe.new()
+	FridgeCodeLockSessionScript.apply_access_code(legacy_lock, "3141")
+	assert_eq(legacy_lock.target_code, "3141", "Fridge code-lock helper must keep the legacy target_code fallback")
+	legacy_lock.free()

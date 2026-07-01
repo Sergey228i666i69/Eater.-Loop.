@@ -88,6 +88,7 @@
 - `levels/game_director.gd` больше не держит death-title sequence, readable glitch layout и material factory: это вынесено в `levels/game_director_death_title_presenter.gd`.
 - `levels/game_director.gd` больше не держит stalker spawn/checkpoint service, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken policy, cycle timer/checkpoint state, CycleState phase bridge, timer node lifecycle, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state напрямую: это вынесено в отдельные `game_director_*` helper-ы с focused tests.
 - `MusicManager` facade оставлен стабильным: он уже защищён private-API тестом, а mix-offset policy вынесена в `MusicMixSettings`; рискованный широкий audio-stack refactor лучше делать отдельной задачей с audio-regression focus.
+- `Fridge` больше не держит code-lock scene adapter напрямую: создание lock scene и `code_value`/legacy `target_code` wiring вынесены в `FridgeCodeLockSession`.
 - Оставшаяся крупность `GameDirector`, `MusicManager` и `Player` теперь зафиксирована как future architecture refactor, а не открытый долг этого remediation списка.
 
 ### 11. Scene validators нужно расширить на NodePath/child-name contracts

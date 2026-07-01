@@ -150,6 +150,8 @@
 - Добавлен публичный API микса `MusicManager.resolve_mix_volume_db(...)`.
 - `MusicMixSettings` получил category offset resolver, чтобы `MusicManager` не
   держал mapping offset-полей внутри большого фасада.
+- `FridgeCodeLockSession` вынес code-lock scene creation и access-code property
+  wiring из `Fridge`, сохранив публичный scene/export contract холодильника.
 - Устранена гонка при sync-громкости в кроссфейде базовой музыки.
 - Добавлены runtime-тесты для перехода `menu -> level_01_start` и synthetic race.
 - Добавлен архитектурный тест, запрещающий внешние вызовы `MusicManager._*`.

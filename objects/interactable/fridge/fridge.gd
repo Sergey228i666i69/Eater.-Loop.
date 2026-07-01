@@ -3,6 +3,7 @@ class_name Fridge
 
 signal feeding_finished
 
+const FridgeCodeLockSessionScript := preload("res://objects/interactable/fridge/fridge_code_lock_session.gd")
 
 @export_group("Minigame (Feeding)")
 ## Сцена мини-игры (еда).
@@ -163,16 +164,9 @@ func _start_code_lock() -> void:
 		fail_interaction("missing_code_lock_scene")
 		return
 	
-	# 1. Создаем экземпляр (Node) из PackedScene
-	var lock_instance = code_lock_scene.instantiate()
+	var lock_instance: Node = FridgeCodeLockSessionScript.create_lock_instance(code_lock_scene, access_code)
 	_current_minigame = lock_instance
-	
-	# Передаём код в актуальную версию code-lock minigame.
-	if "code_value" in lock_instance:
-		lock_instance.code_value = access_code
-	elif "target_code" in lock_instance:
-		lock_instance.target_code = access_code
-	
+
 	# 3. Подключаем сигнал успеха
 	if lock_instance.has_signal("unlocked"):
 		lock_instance.unlocked.connect(_on_unlock_success)
