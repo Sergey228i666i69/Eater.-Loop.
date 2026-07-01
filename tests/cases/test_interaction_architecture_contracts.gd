@@ -76,7 +76,11 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"get_shader_parameter(",
 	"shader_parameter/intensity",
 	"func _ease_out",
-	"pow(1.0 - t, 2.0)"
+	"pow(1.0 - t, 2.0)",
+	"CycleState.set_phase",
+	"CycleState.is_normal_phase",
+	"CycleState.is_distorted_phase",
+	"CycleState.Phase"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",

@@ -6,6 +6,7 @@ const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
+const CyclePhaseBridge = preload("res://levels/game_director_cycle_phase_bridge.gd")
 const CycleTimerState = preload("res://levels/game_director_cycle_timer_state.gd")
 const DistortionGate = preload("res://levels/game_director_distortion_gate.gd")
 const DistortionOverlayCoordinator = preload("res://levels/game_director_distortion_overlay_coordinator.gd")
@@ -105,6 +106,7 @@ var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
 var _death_retry_coordinator: RefCounted
 var _death_title_presenter: RefCounted
+var _cycle_phase_bridge: RefCounted
 var _cycle_timer_state: RefCounted
 var _distortion_gate: RefCounted
 var _distortion_overlay_coordinator: RefCounted
@@ -182,8 +184,7 @@ func _process(delta: float) -> void:
 		_hide_distortion_overlays()
 
 func start_normal_phase(timer_duration: float = -1.0) -> void:
-	if CycleState != null:
-		CycleState.set_phase(CycleState.Phase.NORMAL)
+	_set_cycle_phase_normal()
 	_get_distortion_gate().clear_pending_activation()
 	_get_distortion_phase_state().reset_for_normal_phase()
 	_stop_light_only_jump_effect()
@@ -201,7 +202,7 @@ func reduce_time(amount: float, damage_flash: bool = false) -> void:
 	if not is_timer_running():
 		return
 	set_time_left(get_time_left() - amount)
-	if CycleState != null and not CycleState.is_normal_phase():
+	if not _can_run_cycle_timer():
 		return
 	if damage_flash:
 		trigger_damage_flash()
@@ -214,7 +215,7 @@ func trigger_damage_flash() -> void:
 	_flash_damage()
 
 func _on_distortion_timeout() -> void:
-	if CycleState != null and CycleState.is_distorted_phase():
+	if _is_cycle_phase_distorted():
 		_get_distortion_gate().clear_pending_activation()
 		return
 	if _should_defer_distortion_activation():
@@ -223,12 +224,11 @@ func _on_distortion_timeout() -> void:
 	_activate_distortion_phase()
 
 func _activate_distortion_phase() -> void:
-	if CycleState != null and CycleState.is_distorted_phase():
+	if _is_cycle_phase_distorted():
 		_get_distortion_gate().clear_pending_activation()
 		return
 	_get_distortion_gate().clear_pending_activation()
-	if CycleState != null:
-		CycleState.set_phase(CycleState.Phase.DISTORTED)
+	_set_cycle_phase_distorted()
 	_get_distortion_phase_state().activate_distortion_phase()
 	_get_distortion_overlay_coordinator().reset_damage_overlay()
 	_get_distortion_overlay_coordinator().set_distortion_visible(_is_distortion_allowed())
@@ -324,7 +324,7 @@ func _flash_red() -> void:
 	_get_distortion_overlay_coordinator().set_distortion_intensity(0.25)
 	_get_distortion_overlay_coordinator().set_distortion_squash(0.0)
 	get_tree().create_timer(0.1).timeout.connect(func():
-		if CycleState == null or CycleState.is_normal_phase():
+		if _can_run_cycle_timer():
 			_get_distortion_overlay_coordinator().reset_distortion_overlay()
 		_get_distortion_phase_state().set_flash_active(false)
 	)
@@ -365,8 +365,7 @@ func _update_for_scene(scene: Node) -> void:
 	_stop_light_only_jump_effect()
 	_stalker_spawned = false
 	_hide_distortion_overlays()
-	if CycleState != null:
-		CycleState.set_phase(CycleState.Phase.NORMAL)
+	_set_cycle_phase_normal()
 
 func _apply_level_settings(scene: Node) -> void:
 	_current_cycle_number = _resolve_cycle_number(scene)
@@ -671,10 +670,24 @@ func _is_distortion_allowed() -> bool:
 	return _get_distortion_gate().is_distortion_allowed(_in_game_scene)
 
 func _can_run_cycle_timer() -> bool:
-	return CycleState == null or CycleState.is_normal_phase()
+	return _get_cycle_phase_bridge().can_run_timer(CycleState)
 
 func _has_normal_cycle_state() -> bool:
-	return CycleState != null and CycleState.is_normal_phase()
+	return _get_cycle_phase_bridge().has_normal_state(CycleState)
+
+func _is_cycle_phase_distorted() -> bool:
+	return _get_cycle_phase_bridge().is_distorted(CycleState)
+
+func _set_cycle_phase_normal() -> void:
+	_get_cycle_phase_bridge().set_normal(CycleState)
+
+func _set_cycle_phase_distorted() -> void:
+	_get_cycle_phase_bridge().set_distorted(CycleState)
+
+func _get_cycle_phase_bridge() -> RefCounted:
+	if _cycle_phase_bridge == null:
+		_cycle_phase_bridge = CyclePhaseBridge.new()
+	return _cycle_phase_bridge
 
 func _get_cycle_timer_state() -> RefCounted:
 	if _cycle_timer_state == null:
