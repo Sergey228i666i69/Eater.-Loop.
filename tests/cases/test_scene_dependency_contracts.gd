@@ -1,6 +1,8 @@
 extends "res://tests/test_case.gd"
 
 const LEVEL04_SCENE_PATH := "res://levels/cycles/level_04_findkey.tscn"
+const DOOR_SCRIPT := "res://objects/interactable/door/door.gd"
+const SEARCH_KEY_MANAGER_SCRIPT := "res://levels/minigames/search_key/search_key_manager.gd"
 const SCENE_DIRS := [
 	"res://levels",
 	"res://objects"
@@ -19,6 +21,8 @@ const GROUP_METHOD_CONTRACTS := [
 
 func run() -> Array[String]:
 	_test_key_search_spots_do_not_depend_on_the_door_they_unlock()
+	_test_required_door_keys_have_scene_sources()
+	_test_search_key_managers_have_resolving_spots()
 	_test_scene_dependencies_declare_typed_conditions()
 	_test_laptop_attempt_dependencies_use_requested_condition()
 	_test_self_target_doors_are_locked()
@@ -54,6 +58,45 @@ func _test_key_search_spots_do_not_depend_on_the_door_they_unlock() -> void:
 		)
 
 	level.free()
+
+func _test_required_door_keys_have_scene_sources() -> void:
+	for path in _list_level_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		var provided_keys := _collect_scene_key_sources(root)
+		for node in root.find_children("*", "", true, false):
+			if _script_path(node) != DOOR_SCRIPT:
+				continue
+			var required_key_id := str(node.get("required_key_id")).strip_edges()
+			if required_key_id == "":
+				continue
+			assert_true(
+				provided_keys.has(required_key_id),
+				"Door required_key_id must have a key source in the same scene: %s:%s -> %s" % [path, root.get_path_to(node), required_key_id]
+			)
+		root.free()
+
+func _test_search_key_managers_have_resolving_spots() -> void:
+	for path in _list_level_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		for node in root.find_children("*", "", true, false):
+			if _script_path(node) != SEARCH_KEY_MANAGER_SCRIPT:
+				continue
+			var search_spots: Array = node.get("search_spots")
+			assert_true(not search_spots.is_empty(), "SearchKeyManager must declare search_spots: %s:%s" % [path, root.get_path_to(node)])
+			for index in range(search_spots.size()):
+				var spot_path: NodePath = search_spots[index]
+				assert_true(not spot_path.is_empty(), "SearchKeyManager search_spots entry must not be empty: %s:%s[%d]" % [path, root.get_path_to(node), index])
+				if spot_path.is_empty():
+					continue
+				var spot := node.get_node_or_null(spot_path)
+				assert_true(spot != null, "SearchKeyManager search spot must resolve: %s:%s[%d] -> %s" % [path, root.get_path_to(node), index, spot_path])
+				if spot != null:
+					assert_true(spot.has_method("set_has_key"), "SearchKeyManager search spot must expose set_has_key(): %s:%s[%d] -> %s" % [path, root.get_path_to(node), index, spot_path])
+		root.free()
 
 func _test_scene_dependencies_declare_typed_conditions() -> void:
 	for path in _list_active_scenes():
@@ -173,6 +216,9 @@ func _list_active_scenes() -> Array[String]:
 	scenes.sort()
 	return scenes
 
+func _list_level_scenes() -> Array[String]:
+	return utils.list_files("res://levels/cycles", ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"])
+
 func _list_active_scripts() -> Array[String]:
 	var scripts: Array[String] = []
 	for dir_path in SCRIPT_DIRS:
@@ -218,6 +264,35 @@ func _script_is_checkpoint_content_participant(content: String) -> bool:
 	return content.find("extends InteractiveObject") != -1 \
 		or content.find("interactive_object.gd") != -1 \
 		or _script_adds_group(content, CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP)
+
+func _collect_scene_key_sources(root: Node) -> Dictionary:
+	var keys := {}
+	for node in root.find_children("*", "", true, false):
+		if _script_path(node) == DOOR_SCRIPT:
+			continue
+		if _has_property(node, "key_id"):
+			var key_id := str(node.get("key_id")).strip_edges()
+			if key_id != "":
+				keys[key_id] = true
+		if _has_property(node, "reward_key_id"):
+			var reward_key_id := str(node.get("reward_key_id")).strip_edges()
+			if reward_key_id != "":
+				keys[reward_key_id] = true
+	return keys
+
+func _instantiate_scene(path: String) -> Node:
+	var packed_scene := assert_loads(path) as PackedScene
+	if packed_scene == null:
+		return null
+	var root := packed_scene.instantiate()
+	assert_true(root != null, "Scene must instantiate for dependency contract validation: %s" % path)
+	return root
+
+func _script_path(node: Node) -> String:
+	var script := node.get_script() as Resource
+	if script == null:
+		return ""
+	return String(script.resource_path)
 
 func _has_property(node: Object, property_name: String) -> bool:
 	if node == null:

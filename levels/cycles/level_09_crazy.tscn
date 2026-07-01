@@ -77,7 +77,6 @@
 [ext_resource type="PackedScene" uid="uid://b7v0dt08jwi1j" path="res://levels/cycles/TextureDistortionManager.tscn" id="78_jlwh8"]
 [ext_resource type="PackedScene" path="res://objects/interactable/trigger/trigger_set_property.tscn" id="79_i8ckm"]
 [ext_resource type="PackedScene" path="res://objects/environment/smart/markers/stalker_spawn_marker.tscn" id="80_liyk1"]
-[ext_resource type="Script" uid="uid://basse1iqwckqj" path="res://levels/minigames/search_key/search_key_manager.gd" id="89_ivcsp"]
 [ext_resource type="PackedScene" uid="uid://bifi1qeublh82" path="res://objects/interactable/fridge/fridge.tscn" id="108_dlf1h"]
 [ext_resource type="PackedScene" uid="uid://c55y41eb0h776" path="res://levels/minigames/feeding/food/tort/food_tort.tscn" id="108_tnkfd"]
 [ext_resource type="PackedScene" uid="uid://cgir8at2gjnkc" path="res://levels/minigames/feeding/feed_minigame.tscn" id="109_0kf2k"]
@@ -947,9 +946,8 @@ one_shot = null
 
 [node name="Door(ToLebedka)" parent="Hall/InteractableObjects" unique_id=1555384058 instance=ExtResource("15_m4yh5")]
 position = Vector2(11939, 83)
-door_locked_message = "Эта дверь заперта на ключ"
 target_marker = NodePath("../../../HallLebedka1/InteractableObjects/Door(Lebedka)")
-required_key_id = "lebedka_key"
+required_key_id = null
 required_key_name = null
 consume_key_on_unlock = null
 door_texture = ExtResource("50_nev1t")
@@ -2542,11 +2540,6 @@ music_on_exit = 9
 
 [node name="StalkerSpawnMarker" parent="." unique_id=951244965 instance=ExtResource("80_liyk1")]
 position = Vector2(6803, 103)
-
-[node name="SearchKeyManager" type="Node2D" parent="." unique_id=1228829517]
-position = Vector2(25388.002, 5297)
-scale = Vector2(5.72, 7.123382)
-script = ExtResource("89_ivcsp")
 
 [node name="Fridge" parent="." unique_id=1816588780 instance=ExtResource("108_dlf1h")]
 position = Vector2(7403, 10621)

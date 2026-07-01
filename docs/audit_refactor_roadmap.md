@@ -69,7 +69,8 @@ Definition of done: overlapping Area2D больше не вызывает нес
 5. ~~Проверять базовый localization CSV/mojibake contract.~~ `test_localization_contracts.gd` проверяет колонки `keys`/`ru`/`en`, пустые значения и mojibake в runtime text sources.
 6. ~~Проверять localization keys для русскоязычных player-facing строк.~~ Тест покрывает `text`, `prompt_text`, message export-поля, `UIMessage.show_*("...")` и `tr("...")`.
 7. ~~Проверять configured trigger target/property wiring.~~ `test_trigger_set_property_contracts.gd` валидирует `TriggerSetProperty`/`PropertyChange` target paths и property names.
-8. Расширить localization coverage на non-Russian/technical UI labels, если эта зона начнёт активно меняться.
+8. ~~Проверять key-door/search-key wiring.~~ `test_scene_dependency_contracts.gd` требует источник ключа для `required_key_id` дверей и resolving `SearchKeyManager.search_spots`.
+9. Расширить localization coverage на non-Russian/technical UI labels, если эта зона начнёт активно меняться.
 
 Definition of done: типовые ошибки сцен падают тестом, а не silently no-op. Крупный visual/DRY-разбор STU-сцен теперь можно делать отдельным scene-authoring refactor поверх этих validators.
 
