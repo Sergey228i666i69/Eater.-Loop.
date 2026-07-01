@@ -6,6 +6,7 @@ const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
+const CycleTimerState = preload("res://levels/game_director_cycle_timer_state.gd")
 const DistortionGate = preload("res://levels/game_director_distortion_gate.gd")
 const DistortionOverlayCoordinator = preload("res://levels/game_director_distortion_overlay_coordinator.gd")
 const DistortionPhaseState = preload("res://levels/game_director_distortion_phase_state.gd")
@@ -88,9 +89,7 @@ var _damage_material: ShaderMaterial
 var _light_only_jump_rect: ColorRect
 var _light_only_jump_material: ShaderMaterial
 var _light_only_jump_tween: Tween = null
-var current_max_time: float = 1.0
 var _current_cycle_number: int = 0
-var _current_timer_duration: float = 0.0
 var _in_game_scene: bool = false
 var _stalker_spawned: bool = false
 var _death_layer: CanvasLayer
@@ -106,6 +105,7 @@ var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
 var _death_retry_coordinator: RefCounted
 var _death_title_presenter: RefCounted
+var _cycle_timer_state: RefCounted
 var _distortion_gate: RefCounted
 var _distortion_overlay_coordinator: RefCounted
 var _distortion_phase_state: RefCounted
@@ -133,6 +133,7 @@ func _ready() -> void:
 	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
 	_death_retry_coordinator = DeathRetryCoordinator.new()
+	_cycle_timer_state = CycleTimerState.new()
 	_distortion_gate = DistortionGate.new()
 	_distortion_phase_state = DistortionPhaseState.new()
 	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
@@ -188,20 +189,10 @@ func start_normal_phase(timer_duration: float = -1.0) -> void:
 	_stop_light_only_jump_effect()
 	_stalker_spawned = false
 	_hide_distortion_overlays()
-	
-	var time_to_set: float = timer_duration
-	if time_to_set < 0.0:
-		time_to_set = default_time
-	
-	# Если время больше 0, запускаем таймер
-	if time_to_set > 0.0:
-		current_max_time = time_to_set
-		_timer.start(time_to_set)
-		print_verbose("GameDirector: Таймер запущен на %.1f сек." % time_to_set)
+	var timer_result: Dictionary = _get_cycle_timer_state().start_normal_phase(_timer, timer_duration, default_time)
+	if bool(timer_result.get("enabled", false)):
+		print_verbose("GameDirector: Таймер запущен на %.1f сек." % float(timer_result.get("duration", 0.0)))
 	else:
-		# Если время 0 или меньше, останавливаем таймер (он не будет тикать)
-		_timer.stop()
-		current_max_time = 0.0 
 		print_verbose("GameDirector: Таймер отключен для уровня.")
 
 func reduce_time(amount: float, damage_flash: bool = false) -> void:
@@ -258,52 +249,22 @@ func trigger_distortion_now() -> void:
 	_on_distortion_timeout()
 
 func get_time_ratio() -> float:
-	if CycleState != null and not CycleState.is_normal_phase():
-		return 0.0
-	
-	# Если таймер стоит в нормальной фазе — значит время бесконечное (100%)
-	if _timer.is_stopped() or current_max_time <= 0.0:
-		return 1.0
-		
-	return _timer.time_left / current_max_time
+	return _get_cycle_timer_state().get_time_ratio(_timer, _can_run_cycle_timer())
 
 func get_time_left() -> float:
-	if current_max_time <= 0.0:
-		return 0.0
-	if _timer.is_stopped():
-		if CycleState != null and CycleState.is_normal_phase():
-			return current_max_time
-		return 0.0
-	return _timer.time_left
+	return _get_cycle_timer_state().get_time_left(_timer, _has_normal_cycle_state())
 
 func is_timer_running() -> bool:
-	if CycleState != null and not CycleState.is_normal_phase():
-		return false
-	return current_max_time > 0.0 and not _timer.is_stopped()
+	return _get_cycle_timer_state().is_timer_running(_timer, _can_run_cycle_timer())
 
 func ensure_timer_running(fallback_time: float) -> void:
-	if fallback_time <= 0.0:
-		return
-	if CycleState != null and not CycleState.is_normal_phase():
-		return
-	if is_timer_running():
-		return
-	current_max_time = fallback_time
-	_timer.start(fallback_time)
+	_get_cycle_timer_state().ensure_timer_running(_timer, _can_run_cycle_timer(), fallback_time)
 
 func set_time_left(new_time: float) -> void:
 	if _death_sequence_active:
 		return
-	if CycleState != null and not CycleState.is_normal_phase():
-		return
-	if current_max_time <= 0.0:
-		return
-	var clamped_time: float = float(clamp(new_time, 0.0, current_max_time))
-	if clamped_time <= 0.0:
-		_timer.stop()
+	if _get_cycle_timer_state().set_time_left(_timer, _can_run_cycle_timer(), new_time):
 		_on_distortion_timeout()
-		return
-	_timer.start(clamped_time)
 
 func _create_distortion_overlay() -> void:
 	_overlay_layer = CanvasLayer.new()
@@ -409,8 +370,8 @@ func _update_for_scene(scene: Node) -> void:
 
 func _apply_level_settings(scene: Node) -> void:
 	_current_cycle_number = _resolve_cycle_number(scene)
-	_current_timer_duration = _resolve_timer_duration(scene)
-	start_normal_phase(_current_timer_duration)
+	_get_cycle_timer_state().set_current_timer_duration(_resolve_timer_duration(scene))
+	start_normal_phase(_get_cycle_timer_state().get_current_timer_duration())
 
 func _resolve_cycle_number(scene: Node) -> int:
 	if scene == null:
@@ -709,6 +670,17 @@ func _advance_transition(delta: float) -> void:
 func _is_distortion_allowed() -> bool:
 	return _get_distortion_gate().is_distortion_allowed(_in_game_scene)
 
+func _can_run_cycle_timer() -> bool:
+	return CycleState == null or CycleState.is_normal_phase()
+
+func _has_normal_cycle_state() -> bool:
+	return CycleState != null and CycleState.is_normal_phase()
+
+func _get_cycle_timer_state() -> RefCounted:
+	if _cycle_timer_state == null:
+		_cycle_timer_state = CycleTimerState.new()
+	return _cycle_timer_state
+
 func _get_distortion_gate() -> RefCounted:
 	if _distortion_gate == null:
 		_distortion_gate = DistortionGate.new()
@@ -821,13 +793,10 @@ func get_cycle_number() -> int:
 
 func capture_checkpoint_state() -> Dictionary:
 	var state := {
-		"current_max_time": current_max_time,
 		"current_cycle_number": _current_cycle_number,
-		"current_timer_duration": _current_timer_duration,
-		"time_left": get_time_left(),
-		"timer_running": is_timer_running(),
 		"stalker_spawned": _stalker_spawned,
 	}
+	state.merge(_get_cycle_timer_state().capture_checkpoint_state(_timer, _can_run_cycle_timer(), _has_normal_cycle_state()), true)
 	state.merge(_get_distortion_phase_state().capture_checkpoint_state(), true)
 	state.merge(_get_distortion_gate().capture_checkpoint_state(), true)
 	_sync_stalker_service()
@@ -839,8 +808,6 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	if state.is_empty():
 		return
 	_current_cycle_number = int(state.get("current_cycle_number", _current_cycle_number))
-	_current_timer_duration = float(state.get("current_timer_duration", _current_timer_duration))
-	current_max_time = float(state.get("current_max_time", current_max_time))
 	_get_distortion_gate().apply_checkpoint_state(state)
 	_stalker_spawned = bool(state.get("stalker_spawned", false))
 	_get_distortion_phase_state().apply_checkpoint_state(state)
@@ -848,15 +815,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	_get_distortion_overlay_coordinator().reset_damage_overlay()
 	if _death_sequence_active:
 		_reset_death_screen_state()
-	if CycleState != null and CycleState.is_normal_phase() and current_max_time > 0.0:
-		var timer_running := bool(state.get("timer_running", false))
-		var time_left := clampf(float(state.get("time_left", current_max_time)), 0.0, current_max_time)
-		if timer_running and time_left > 0.0:
-			_timer.start(time_left)
-		else:
-			_timer.stop()
-	else:
-		_timer.stop()
+	_get_cycle_timer_state().apply_checkpoint_state(_timer, _has_normal_cycle_state(), state)
 	if _stalker_spawned:
 		_sync_stalker_service()
 		if _stalker_service != null and get_tree() != null:

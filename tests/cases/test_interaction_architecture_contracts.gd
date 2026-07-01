@@ -48,6 +48,8 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"target_layer := 90",
 	"target_layer = 70",
 	"get_active_minigame_layer() - 1",
+	"var current_max_time",
+	"var _current_timer_duration",
 	"CursorManager.request_visible",
 	"CursorManager.release_visible",
 	"CursorManager.set_in_game",
