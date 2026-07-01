@@ -85,6 +85,9 @@ func _activate_required_lamps_in_scene() -> void:
 			if light_node.has_method("turn_on"):
 				light_node.call("turn_on")
 
+func capture_checkpoint_state() -> Dictionary:
+	return super.capture_checkpoint_state()
+
 func apply_checkpoint_state(state: Dictionary) -> void:
 	super.apply_checkpoint_state(state)
 	if not is_completed:

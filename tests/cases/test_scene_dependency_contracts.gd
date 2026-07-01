@@ -26,6 +26,7 @@ func run() -> Array[String]:
 	_test_target_monster_spawners_declare_spawn_condition()
 	_test_reversible_triggers_are_not_one_shot()
 	_test_scripts_that_join_runtime_groups_expose_required_methods()
+	_test_checkpoint_custom_methods_are_declared_in_pairs()
 	return get_failures()
 
 func _test_key_search_spots_do_not_depend_on_the_door_they_unlock() -> void:
@@ -150,6 +151,21 @@ func _test_scripts_that_join_runtime_groups_expose_required_methods() -> void:
 					"Script adding %s group must define %s(): %s" % [group_name, method_name, path]
 				)
 
+func _test_checkpoint_custom_methods_are_declared_in_pairs() -> void:
+	for path in _list_active_scripts():
+		var content := FileAccess.get_file_as_string(path)
+		assert_true(content != "", "Failed to read script: %s" % path)
+		if content == "" or not _script_is_checkpoint_content_participant(content):
+			continue
+		var has_capture := _script_declares_method(content, "capture_checkpoint_state")
+		var has_apply := _script_declares_method(content, "apply_checkpoint_state")
+		if not has_capture and not has_apply:
+			continue
+		assert_true(
+			has_capture and has_apply,
+			"Checkpoint content scripts with custom checkpoint API must declare capture/apply as a pair: %s" % path
+		)
+
 func _list_active_scenes() -> Array[String]:
 	var scenes: Array[String] = []
 	for dir_path in SCENE_DIRS:
@@ -197,6 +213,11 @@ func _script_adds_group(content: String, group_name: String) -> bool:
 
 func _script_declares_method(content: String, method_name: String) -> bool:
 	return content.find("func %s(" % method_name) != -1 or content.find("func %s (" % method_name) != -1
+
+func _script_is_checkpoint_content_participant(content: String) -> bool:
+	return content.find("extends InteractiveObject") != -1 \
+		or content.find("interactive_object.gd") != -1 \
+		or _script_adds_group(content, CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP)
 
 func _has_property(node: Object, property_name: String) -> bool:
 	if node == null:

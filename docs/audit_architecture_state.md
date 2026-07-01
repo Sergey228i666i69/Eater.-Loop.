@@ -80,7 +80,7 @@
 
 ## P2: Checkpoint System Стал Надёжнее, Но Контракт Всё Ещё Нужен
 
-Snapshot собирает `checkpoint_stateful` участников и сохраняет relative path. После ремонта runtime-created enemy-ноды дополнительно сохраняют dynamic restore descriptor (`scene_path`, `parent_path`, `node_name`) и могут быть пересозданы при apply.
+Snapshot собирает `checkpoint_stateful` участников и сохраняет relative path. После ремонта runtime-created enemy-ноды дополнительно сохраняют dynamic restore descriptor (`scene_path`, `parent_path`, `node_name`) и могут быть пересозданы при apply. Custom checkpoint API у content scripts теперь проверяется как пара: если script объявляет `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, он должен объявить оба метода.
 
 Примеры:
 

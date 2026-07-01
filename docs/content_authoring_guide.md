@@ -17,7 +17,7 @@
 2. Не правь `GameDirector` ради локальной механики уровня, пока это можно выразить интерактивом, trigger-ом, resource/config-ом или отдельным scene script.
 3. Двери должны иметь resolving `target_marker`. Self-target допустим только для inert/locked двери, иначе fade-to-self снова станет runtime-багом.
 4. Если уровень зависит от холодильника, лабораторной, еды, денег или телефона, обращайся к `CycleState`/`GameState` через публичные методы. Прямой доступ к ключевым полям запрещён архитектурным тестом.
-5. Для checkpoint-состояния используй `checkpoint_stateful` только у объектов, которые реально умеют `capture_checkpoint_state()` и `apply_checkpoint_state(state)`. Runtime-spawned objects требуют отдельного restore contract; сейчас он безопасно покрыт для enemy/spawner сценариев.
+5. Для checkpoint-состояния добавляй `checkpoint_stateful` только тем объектам, которым нужен restore позиции/видимости/velocity/existence или custom state. Если объект объявляет custom `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, объявляй оба метода парой; это проверяется тестом. Runtime-spawned objects требуют отдельного restore contract; сейчас он безопасно покрыт для enemy/spawner сценариев.
 6. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
 
 ## Новый Интерактив
