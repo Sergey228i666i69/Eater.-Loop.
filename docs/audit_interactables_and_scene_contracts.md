@@ -74,7 +74,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 Похожий паттерн встречается у дверей, ламп, ноутбуков, холодильника и прожекторов.
 
-Статус: закрыто на уровне runtime contracts. `test_scene_nodepath_contracts.gd` проверяет unlocked/key door targets, blockpost child contracts, money-system paths, light/sprite/audio exported paths and teleport targets. `test_stu_level_path_contracts.gd` отдельно фиксирует STU floor/room paths и dynamic redirect targets.
+Статус: закрыто на уровне runtime contracts. `test_scene_nodepath_contracts.gd` проверяет unlocked/key door targets, blockpost child contracts, money-system paths, light/sprite/audio exported paths and teleport targets. `test_stu_level_path_contracts.gd` отдельно фиксирует STU floor/room paths и dynamic redirect targets. `test_trigger_set_property_contracts.gd` проверяет, что configured `TriggerSetProperty`/`PropertyChange` target paths резолвятся, а target nodes реально имеют указанное property.
 
 Оставшийся authoring-долг: если сцены будут визуально дробиться на reusable instances, делать это отдельным scene-refactor после этих validators.
 
@@ -87,7 +87,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 - [`objects/interactable/trigger/trigger_set_property.gd`](../objects/interactable/trigger/trigger_set_property.gd), около строк 5 и 94.
 - [`objects/interactable/trigger/property_change.gd`](../objects/interactable/trigger/property_change.gd), около строки 21.
 
-Статус: закрыто минимально. Найденный reversible trigger в `level_06_corridordistortion` теперь явно `one_shot=false`, а `test_scene_dependency_contracts.gd` запрещает `affect_on_exit=true` без `one_shot=false`. Более крупный ремонт всё ещё полезен: разделить one-shot и reversible trigger на разные typed components.
+Статус: закрыто минимально. Найденный reversible trigger в `level_06_corridordistortion` теперь явно `one_shot=false`, а `test_scene_dependency_contracts.gd` запрещает `affect_on_exit=true` без `one_shot=false`. `test_trigger_set_property_contracts.gd` дополнительно запрещает configured target/property changes, которые silently no-op из-за пустого path, битого path или несуществующего property. Более крупный ремонт всё ещё полезен: разделить one-shot и reversible trigger на разные typed components.
 
 ## P2: Свет, Генератор И Враги Завязаны На Строковые Группы
 
