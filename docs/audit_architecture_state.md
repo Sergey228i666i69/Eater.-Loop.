@@ -36,7 +36,7 @@
 
 Практический риск: состояние можно изменить в обход валидации, сигналов и инвариантов. При росте проекта это превращается в трудно воспроизводимые регрессии.
 
-Статус: частично исправлено. Внешний доступ к ключевым полям `GameState` и `CycleState` запрещён архитектурным тестом, а runtime-потребители `CycleState.phase`, lab/phone/flashlight flags и pending-флагов переведены на public read methods. Поля `CycleState` пока оставлены публичными для save/compat слоя, поэтому оставшийся ремонт - заменить их на private backing vars по tested slices и reflective `get()` использовать только для debug/compat слоёв.
+Статус: частично исправлено. Внешний доступ к ключевым полям `GameState` и `CycleState` запрещён архитектурным тестом, runtime-потребители `CycleState.phase`, lab/phone/flashlight flags и pending-флагов переведены на public read methods, а core `CycleState` flags заведены за private backing vars. `electricity_on` пока оставлен как публичное property с setter/signal, но для чтения добавлен публичный `is_electricity_on()`.
 
 ## P2: `GameDirector` Перегружен
 

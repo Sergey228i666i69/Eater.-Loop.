@@ -100,6 +100,17 @@ const FORBIDDEN_CYCLE_STATE_FIELD_PATTERNS := [
 	"CycleState.pending_respawn_blackout",
 	"CycleState.flashlight_collected_this_cycle"
 ]
+const FORBIDDEN_CYCLE_STATE_PUBLIC_FIELD_DECLARATIONS := [
+	"var phase:",
+	"var ate_this_cycle:",
+	"var lab_done:",
+	"var completed_labs:",
+	"var phone_picked:",
+	"var fridge_interacted:",
+	"var pending_sleep_spawn:",
+	"var pending_respawn_blackout:",
+	"var flashlight_collected_this_cycle:"
+]
 const FORBIDDEN_ACTIVE_SCENE_PATTERNS := [
 	"archive(trash)"
 ]
@@ -138,6 +149,9 @@ func run() -> Array[String]:
 		if path != CYCLE_STATE_PATH:
 			for pattern in FORBIDDEN_CYCLE_STATE_FIELD_PATTERNS:
 				assert_true(not _contains_symbol_access(content, pattern), "External CycleState field access must go through public methods: %s (%s)" % [path, pattern])
+		else:
+			for pattern in FORBIDDEN_CYCLE_STATE_PUBLIC_FIELD_DECLARATIONS:
+				assert_true(content.find(pattern) == -1, "CycleState must keep core state behind private backing fields and public methods: %s" % pattern)
 
 		if path != SCENE_CONTEXT_PATH:
 			assert_true(content.find("path.find(\"/levels/cycles/\")") == -1, "Gameplay scene path checks must go through SceneContext: %s" % path)

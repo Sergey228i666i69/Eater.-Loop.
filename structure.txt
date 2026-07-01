@@ -1608,6 +1608,7 @@
 │   │   ├── test_stalker_motion_audio_component.gd.uid
 │   │   ├── test_stu_level_path_contracts.gd
 │   │   ├── test_stu_level_path_contracts.gd.uid
+│   │   ├── test_target_spawner_state_conditions.gd
 │   │   ├── test_ui_message_dialogue_channels.gd
 │   │   ├── test_ui_message_dialogue_channels.gd.uid
 │   │   ├── test_ui_message_modal_state.gd

@@ -14,7 +14,7 @@
 
 | Срез | Оценка проблемности | Главный диагноз |
 | --- | ---: | --- |
-| Архитектура и состояние | 5.2/10 | первый split singleton-ов сделан, внешний доступ к ключевым CycleState fields прикрыт public API |
+| Архитектура и состояние | 5.2/10 | первый split singleton-ов сделан, ключевые CycleState flags заведены за private backing vars и public API |
 | Gameplay loop | 4.8/10 | ключевые runtime-баги закрыты, остаются дубли и performance-risk |
 | Интерактивы | 5/10 | фокус, one-shot, trigger, spawner и minimal typed dependency contracts исправлены |
 | Tooling/assets/tests | 4/10 | LFS/assets и CI починены, export dry-run ещё не автоматизирован |
