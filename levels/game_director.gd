@@ -8,7 +8,7 @@ const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_co
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const DistortionGate = preload("res://levels/game_director_distortion_gate.gd")
 const DistortionOverlayCoordinator = preload("res://levels/game_director_distortion_overlay_coordinator.gd")
-const DistortionProgress = preload("res://levels/game_director_distortion_progress.gd")
+const DistortionPhaseState = preload("res://levels/game_director_distortion_phase_state.gd")
 const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
 const StalkerService = preload("res://levels/game_director_stalker_service.gd")
 
@@ -91,13 +91,6 @@ var _light_only_jump_tween: Tween = null
 var current_max_time: float = 1.0
 var _current_cycle_number: int = 0
 var _current_timer_duration: float = 0.0
-var _distortion_active: bool = false
-var _distortion_progress: float = 0.0
-var _transition_active: bool = false
-var _transition_progress: float = 0.0
-var _flash_active: bool = false
-var _damage_flash_active: bool = false
-var _light_only_jump_active: bool = false
 var _in_game_scene: bool = false
 var _stalker_spawned: bool = false
 var _death_layer: CanvasLayer
@@ -115,7 +108,7 @@ var _death_retry_coordinator: RefCounted
 var _death_title_presenter: RefCounted
 var _distortion_gate: RefCounted
 var _distortion_overlay_coordinator: RefCounted
-var _distortion_progress_helper: RefCounted
+var _distortion_phase_state: RefCounted
 var _overlay_layer_coordinator: RefCounted
 var _stalker_service: RefCounted
 
@@ -141,7 +134,7 @@ func _ready() -> void:
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
 	_death_retry_coordinator = DeathRetryCoordinator.new()
 	_distortion_gate = DistortionGate.new()
-	_distortion_progress_helper = DistortionProgress.new()
+	_distortion_phase_state = DistortionPhaseState.new()
 	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	_stalker_service = StalkerService.new()
 	_sync_stalker_service()
@@ -170,19 +163,19 @@ func _process(delta: float) -> void:
 		_hide_distortion_overlays()
 		return
 	var has_active := false
-	if _distortion_active:
+	if _get_distortion_phase_state().is_distortion_active():
 		_get_distortion_overlay_coordinator().set_distortion_visible(true)
 		_advance_distortion(delta)
 		has_active = true
-	if _transition_active:
+	if _get_distortion_phase_state().is_transition_active():
 		_get_distortion_overlay_coordinator().set_transition_visible(true)
 		_advance_transition(delta)
 		has_active = true
-	if _damage_flash_active:
+	if _get_distortion_phase_state().is_damage_flash_active():
 		has_active = true
-	if _light_only_jump_active:
+	if _get_distortion_phase_state().is_light_only_jump_active():
 		has_active = true
-	if _flash_active:
+	if _get_distortion_phase_state().is_flash_active():
 		return
 	if not has_active:
 		_hide_distortion_overlays()
@@ -191,12 +184,7 @@ func start_normal_phase(timer_duration: float = -1.0) -> void:
 	if CycleState != null:
 		CycleState.set_phase(CycleState.Phase.NORMAL)
 	_get_distortion_gate().clear_pending_activation()
-	_distortion_active = false
-	_distortion_progress = 0.0
-	_transition_active = false
-	_transition_progress = 0.0
-	_flash_active = false
-	_damage_flash_active = false
+	_get_distortion_phase_state().reset_for_normal_phase()
 	_stop_light_only_jump_effect()
 	_stalker_spawned = false
 	_hide_distortion_overlays()
@@ -250,12 +238,7 @@ func _activate_distortion_phase() -> void:
 	_get_distortion_gate().clear_pending_activation()
 	if CycleState != null:
 		CycleState.set_phase(CycleState.Phase.DISTORTED)
-	_distortion_active = true
-	_distortion_progress = 0.0
-	_transition_active = true
-	_transition_progress = 0.0
-	_flash_active = false
-	_damage_flash_active = false
+	_get_distortion_phase_state().activate_distortion_phase()
 	_get_distortion_overlay_coordinator().reset_damage_overlay()
 	_get_distortion_overlay_coordinator().set_distortion_visible(_is_distortion_allowed())
 	_get_distortion_overlay_coordinator().set_transition_visible(_is_distortion_allowed())
@@ -375,14 +358,14 @@ func _flash_red() -> void:
 		return
 	if not _is_distortion_allowed():
 		return
-	_flash_active = true
+	_get_distortion_phase_state().set_flash_active(true)
 	_get_distortion_overlay_coordinator().set_distortion_visible(true)
 	_get_distortion_overlay_coordinator().set_distortion_intensity(0.25)
 	_get_distortion_overlay_coordinator().set_distortion_squash(0.0)
 	get_tree().create_timer(0.1).timeout.connect(func():
 		if CycleState == null or CycleState.is_normal_phase():
 			_get_distortion_overlay_coordinator().reset_distortion_overlay()
-		_flash_active = false
+		_get_distortion_phase_state().set_flash_active(false)
 	)
 
 func _flash_damage() -> void:
@@ -390,18 +373,18 @@ func _flash_damage() -> void:
 		return
 	if _death_sequence_active:
 		return
-	if _damage_flash_active:
+	if _get_distortion_phase_state().is_damage_flash_active():
 		return
 	if not _is_distortion_allowed():
 		return
-	_damage_flash_active = true
+	_get_distortion_phase_state().set_damage_flash_active(true)
 	_configure_damage_material()
 	_get_distortion_overlay_coordinator().set_damage_visible(true)
 	_get_distortion_overlay_coordinator().set_damage_intensity(damage_flash_intensity)
 	_apply_damage_camera_punch()
 	get_tree().create_timer(damage_flash_duration).timeout.connect(func():
 		_get_distortion_overlay_coordinator().reset_damage_overlay()
-		_damage_flash_active = false
+		_get_distortion_phase_state().set_damage_flash_active(false)
 	)
 
 func _on_scene_changed(scene: Node = null) -> void:
@@ -417,11 +400,7 @@ func _update_for_scene(scene: Node) -> void:
 		_apply_level_settings(scene)
 		return
 	_timer.stop()
-	_distortion_active = false
-	_distortion_progress = 0.0
-	_transition_active = false
-	_transition_progress = 0.0
-	_flash_active = false
+	_get_distortion_phase_state().reset_for_normal_phase()
 	_stop_light_only_jump_effect()
 	_stalker_spawned = false
 	_hide_distortion_overlays()
@@ -517,12 +496,7 @@ func trigger_death_screen() -> void:
 	_death_sequence_active = true
 	_release_death_cursor_request()
 	_timer.stop()
-	_distortion_active = false
-	_distortion_progress = 0.0
-	_transition_active = false
-	_transition_progress = 0.0
-	_flash_active = false
-	_damage_flash_active = false
+	_get_distortion_phase_state().reset_for_normal_phase()
 	_stop_light_only_jump_effect()
 	_hide_distortion_overlays()
 	if _death_camera_coordinator == null:
@@ -636,7 +610,7 @@ func trigger_light_only_jump_effect(peak_intensity: float = -1.0) -> void:
 	var current: float = _get_distortion_overlay_coordinator().get_light_only_jump_intensity()
 	var peak := maxf(current, target_peak)
 	_get_distortion_overlay_coordinator().set_light_only_jump_visible(true)
-	_light_only_jump_active = true
+	_get_distortion_phase_state().set_light_only_jump_active(true)
 	if _light_only_jump_tween != null and is_instance_valid(_light_only_jump_tween):
 		_light_only_jump_tween.kill()
 	_light_only_jump_tween = create_tween()
@@ -645,14 +619,14 @@ func trigger_light_only_jump_effect(peak_intensity: float = -1.0) -> void:
 
 func _on_light_only_jump_effect_finished() -> void:
 	_light_only_jump_tween = null
-	_light_only_jump_active = false
+	_get_distortion_phase_state().set_light_only_jump_active(false)
 	_get_distortion_overlay_coordinator().reset_light_only_jump_overlay()
 
 func _stop_light_only_jump_effect() -> void:
 	if _light_only_jump_tween != null and is_instance_valid(_light_only_jump_tween):
 		_light_only_jump_tween.kill()
 	_light_only_jump_tween = null
-	_light_only_jump_active = false
+	_get_distortion_phase_state().set_light_only_jump_active(false)
 	_get_distortion_overlay_coordinator().reset_light_only_jump_overlay()
 
 func _configure_damage_material() -> void:
@@ -723,30 +697,27 @@ func _apply_transition_strength(strength: float) -> void:
 	_get_distortion_overlay_coordinator().apply_transition_strength(strength, distortion_transition_intensity)
 
 func _advance_distortion(delta: float) -> void:
-	_distortion_progress = _get_distortion_progress_helper().advance_progress(_distortion_progress, delta, distortion_ramp_duration)
-	var eased: float = _get_distortion_progress_helper().ease_out(_distortion_progress)
+	var eased: float = _get_distortion_phase_state().advance_distortion(delta, distortion_ramp_duration)
 	_apply_distortion_progress(eased)
 
 func _advance_transition(delta: float) -> void:
-	_transition_progress = _get_distortion_progress_helper().advance_progress(_transition_progress, delta, distortion_transition_duration)
-	var strength: float = _get_distortion_progress_helper().transition_strength(_transition_progress)
-	_apply_transition_strength(strength)
-	if _transition_progress >= 1.0:
-		_transition_active = false
+	var result: Dictionary = _get_distortion_phase_state().advance_transition(delta, distortion_transition_duration)
+	_apply_transition_strength(float(result.get("strength", 0.0)))
+	if bool(result.get("completed", false)):
 		_get_distortion_overlay_coordinator().set_transition_visible(false)
 
 func _is_distortion_allowed() -> bool:
 	return _get_distortion_gate().is_distortion_allowed(_in_game_scene)
 
-func _get_distortion_progress_helper() -> RefCounted:
-	if _distortion_progress_helper == null:
-		_distortion_progress_helper = DistortionProgress.new()
-	return _distortion_progress_helper
-
 func _get_distortion_gate() -> RefCounted:
 	if _distortion_gate == null:
 		_distortion_gate = DistortionGate.new()
 	return _distortion_gate
+
+func _get_distortion_phase_state() -> RefCounted:
+	if _distortion_phase_state == null:
+		_distortion_phase_state = DistortionPhaseState.new()
+	return _distortion_phase_state
 
 func _get_distortion_overlay_coordinator() -> RefCounted:
 	if _distortion_overlay_coordinator == null:
@@ -781,7 +752,10 @@ func _update_overlay_layer() -> void:
 	_overlay_layer_coordinator.apply_layer(_overlay_layer, tree_paused, pause_menu_open, _get_distortion_gate().is_minigame_active(), active_minigame_layer)
 
 func _hide_distortion_overlays() -> void:
-	_get_distortion_overlay_coordinator().hide_inactive_overlays(_damage_flash_active, _light_only_jump_active)
+	_get_distortion_overlay_coordinator().hide_inactive_overlays(
+		_get_distortion_phase_state().is_damage_flash_active(),
+		_get_distortion_phase_state().is_light_only_jump_active()
+	)
 
 func _spawn_stalker_if_needed() -> void:
 	if _stalker_spawned:
@@ -853,11 +827,8 @@ func capture_checkpoint_state() -> Dictionary:
 		"time_left": get_time_left(),
 		"timer_running": is_timer_running(),
 		"stalker_spawned": _stalker_spawned,
-		"distortion_active": _distortion_active,
-		"distortion_progress": _distortion_progress,
-		"transition_active": _transition_active,
-		"transition_progress": _transition_progress,
 	}
+	state.merge(_get_distortion_phase_state().capture_checkpoint_state(), true)
 	state.merge(_get_distortion_gate().capture_checkpoint_state(), true)
 	_sync_stalker_service()
 	if _stalker_service != null and get_tree() != null:
@@ -872,12 +843,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	current_max_time = float(state.get("current_max_time", current_max_time))
 	_get_distortion_gate().apply_checkpoint_state(state)
 	_stalker_spawned = bool(state.get("stalker_spawned", false))
-	_distortion_active = bool(state.get("distortion_active", false))
-	_distortion_progress = float(state.get("distortion_progress", 0.0))
-	_transition_active = bool(state.get("transition_active", false))
-	_transition_progress = float(state.get("transition_progress", 0.0))
-	_flash_active = false
-	_damage_flash_active = false
+	_get_distortion_phase_state().apply_checkpoint_state(state)
 	_stop_light_only_jump_effect()
 	_get_distortion_overlay_coordinator().reset_damage_overlay()
 	if _death_sequence_active:
@@ -895,5 +861,5 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 		_sync_stalker_service()
 		if _stalker_service != null and get_tree() != null:
 			_stalker_service.restore_from_checkpoint(get_tree(), get_tree().current_scene, state)
-	if not _distortion_active and not _transition_active:
+	if not _get_distortion_phase_state().has_distortion_or_transition():
 		_hide_distortion_overlays()

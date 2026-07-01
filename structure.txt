@@ -686,6 +686,7 @@
 │   ├── game_director_death_title_presenter.gd.uid
 │   ├── game_director_distortion_gate.gd
 │   ├── game_director_distortion_overlay_coordinator.gd
+│   ├── game_director_distortion_phase_state.gd
 │   ├── game_director_distortion_progress.gd
 │   ├── game_director_overlay_layer_coordinator.gd
 │   ├── game_director_stalker_service.gd
@@ -1501,6 +1502,7 @@
 │   │   ├── test_game_director_death_retry_coordinator.gd
 │   │   ├── test_game_director_distortion_gate.gd
 │   │   ├── test_game_director_distortion_overlay_coordinator.gd
+│   │   ├── test_game_director_distortion_phase_state.gd
 │   │   ├── test_game_director_distortion_progress.gd
 │   │   ├── test_game_director_overlay_layer_coordinator.gd
 │   │   ├── test_game_director_stalker_service.gd
