@@ -13,6 +13,7 @@ const DistortionOverlayCoordinator = preload("res://levels/game_director_distort
 const DistortionPhaseState = preload("res://levels/game_director_distortion_phase_state.gd")
 const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
 const StalkerService = preload("res://levels/game_director_stalker_service.gd")
+const TimerNodeCoordinator = preload("res://levels/game_director_timer_node_coordinator.gd")
 
 ## Время по умолчанию, если на уровне не задано.
 @export var default_time: float = 15.0
@@ -113,6 +114,7 @@ var _distortion_overlay_coordinator: RefCounted
 var _distortion_phase_state: RefCounted
 var _overlay_layer_coordinator: RefCounted
 var _stalker_service: RefCounted
+var _timer_node_coordinator: RefCounted
 
 const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
 const INPUT_KIND_KEYBOARD := InputDeviceUtilsClass.InputKind.KEYBOARD
@@ -124,11 +126,8 @@ const LIGHT_ONLY_JUMP_SHADER: Shader = preload("res://shaders/light_only_jump_ov
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_input(true)
-	_timer = Timer.new()
-	_timer.one_shot = true
-	_timer.process_mode = Node.PROCESS_MODE_PAUSABLE
-	_timer.timeout.connect(_on_distortion_timeout)
-	add_child(_timer)
+	_timer_node_coordinator = TimerNodeCoordinator.new()
+	_timer = _timer_node_coordinator.create_cycle_timer(self, Callable(self, "_on_distortion_timeout"))
 	_distortion_overlay_coordinator = DistortionOverlayCoordinator.new()
 	_create_distortion_overlay()
 	_create_death_overlay()
@@ -360,7 +359,7 @@ func _update_for_scene(scene: Node) -> void:
 	if _in_game_scene:
 		_apply_level_settings(scene)
 		return
-	_timer.stop()
+	_stop_cycle_timer()
 	_get_distortion_phase_state().reset_for_normal_phase()
 	_stop_light_only_jump_effect()
 	_stalker_spawned = false
@@ -455,7 +454,7 @@ func trigger_death_screen() -> void:
 		return
 	_death_sequence_active = true
 	_release_death_cursor_request()
-	_timer.stop()
+	_stop_cycle_timer()
 	_get_distortion_phase_state().reset_for_normal_phase()
 	_stop_light_only_jump_effect()
 	_hide_distortion_overlays()
@@ -693,6 +692,14 @@ func _get_cycle_timer_state() -> RefCounted:
 	if _cycle_timer_state == null:
 		_cycle_timer_state = CycleTimerState.new()
 	return _cycle_timer_state
+
+func _stop_cycle_timer() -> void:
+	_get_timer_node_coordinator().stop_timer(_timer)
+
+func _get_timer_node_coordinator() -> RefCounted:
+	if _timer_node_coordinator == null:
+		_timer_node_coordinator = TimerNodeCoordinator.new()
+	return _timer_node_coordinator
 
 func _get_distortion_gate() -> RefCounted:
 	if _distortion_gate == null:

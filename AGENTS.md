@@ -19,18 +19,18 @@
 
 Текущая проблемность после ремонтных проходов: **около 5/10**. Первичный аудит 2026-05-14 оценивал проект на **7.3/10**.
 
-Это не разваленный проект: entrypoint понятен, autoload-и явно заведены, есть локальный тестовый слой и часть архитектурных контрактов уже проверяется. После ремонтных проходов закрыты главные runtime-дыры: input света, фокус интерактивов, run-finish, checkpoint-сценарии, asset tracking, minigame input/timeout, one-shot completion, reversible triggers, явные spawner conditions, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method validators, базовые localization/project-config contracts и внешний доступ к ключевым `GameState`/`CycleState` полям. Naming debt из аудита нормализован, а `UIMessage`, `MinigameController`, death-title/stalker/overlay/cursor/death-camera/death-retry/cycle-timer/cycle-phase/distortion-gate/distortion-progress/distortion-overlay/distortion-phase части `GameDirector` получили helper split-ы. Но проект всё ещё дорог в поддержке: уровни завязаны на NodePath/имена детей, `MusicManager`/`GameDirector`/`Player` остаются крупными фасадами, а huge STU-сцены остаются дорогими для ревью.
+Это не разваленный проект: entrypoint понятен, autoload-и явно заведены, есть локальный тестовый слой и часть архитектурных контрактов уже проверяется. После ремонтных проходов закрыты главные runtime-дыры: input света, фокус интерактивов, run-finish, checkpoint-сценарии, asset tracking, minigame input/timeout, one-shot completion, reversible triggers, явные spawner conditions, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method validators, базовые localization/project-config contracts и внешний доступ к ключевым `GameState`/`CycleState` полям. Naming debt из аудита нормализован, а `UIMessage`, `MinigameController`, death-title/stalker/overlay/cursor/death-camera/death-retry/cycle-timer/cycle-phase/timer-node/distortion-gate/distortion-progress/distortion-overlay/distortion-phase части `GameDirector` получили helper split-ы. Но проект всё ещё дорог в поддержке: уровни завязаны на NodePath/имена детей, `MusicManager`/`GameDirector`/`Player` остаются крупными фасадами, а huge STU-сцены остаются дорогими для ревью.
 
 ## Главные Риски
 
 1. **Fresh clone стал воспроизводимее, но требует Git LFS.** Ассеты и `*.import` теперь tracked, root `export_presets.cfg` tracked, бинарники идут через LFS. После clone нужен `git lfs install && git lfs pull`.
-2. **Полный тестовый прогон зелёный на момент последней проверки.** `bash tests/run_tests.sh` проходил с 79 тестами без `ObjectDB instances leaked at exit`.
+2. **Полный тестовый прогон зелёный на момент последней проверки.** `bash tests/run_tests.sh` проходил с 80 тестами без `ObjectDB instances leaked at exit`.
 3. **Runtime-входы света переведены на `interact`.** Старый `lamp_switch` больше не нужен лампе и старому прожектору.
 4. **Главные gameplay-баги закрыты.** Sleep/wake-флаг переживает переход цикла, run закрывается после титров, потолочный враг снова учитывает лампы, деньги level 12 и runtime-spawned threats сохраняются в checkpoint, холодильник fail-closed, minigame timeout одноразовый.
 5. **Интерактивы централизованы через `InteractionManager`.** Одно нажатие выбирает один объект по доступности, приоритету и расстоянию.
 6. **Dependency-система интерактивов стала typed.** Key-door цикл и прежний one-shot fail-open закрыты тестами: дверь, холодильник, ноутбук и блокпост теперь завершаются только после успешного outcome. Базовый `InteractiveObject` различает `COMPLETED` и `INTERACTION_REQUESTED` и эмитит `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`.
 7. **Scene/trigger/spawner/config/state contracts укреплены тестами.** `SceneContext` запрещает локальные path-checks, reversible triggers обязаны быть `one_shot=false`, spawner-ы с `enemy_scene` обязаны явно подтверждать condition, runtime light-группы обязаны иметь нужные методы, включённые editor plugins должны иметь `plugin.cfg`, configured translations должны грузиться как `Translation`, а внешние runtime-скрипты должны ходить к ключевым `CycleState` полям через публичные методы.
-8. **Большие singleton/god-classes стали лучше, но не исчезли.** `UIMessage` вынес fade state в `UIFadeController`, `MinigameController` вынес backdrop presentation в `MinigameBackdropPresenter`, `GameDirector` вынес death-title/glitch presentation в `GameDirectorDeathTitlePresenter`, stalker spawn/checkpoint logic в `GameDirectorStalkerService`, overlay layer policy в `GameDirectorOverlayLayerCoordinator`, death cursor/input policy в `GameDirectorDeathCursorCoordinator`, death camera capture/restore в `GameDirectorDeathCameraCoordinator`, death retry restore/darken policy в `GameDirectorDeathRetryCoordinator`, cycle timer/checkpoint state в `GameDirectorCycleTimerState`, CycleState phase bridge в `GameDirectorCyclePhaseBridge`, minigame distortion gate в `GameDirectorDistortionGate`, distortion progress/easing math в `GameDirectorDistortionProgress`, distortion overlay/material actuator в `GameDirectorDistortionOverlayCoordinator` и distortion phase/checkpoint state в `GameDirectorDistortionPhaseState`; `MusicManager`, остальной `GameDirector` и `Player` всё ещё требуют осторожных future refactor-ов.
+8. **Большие singleton/god-classes стали лучше, но не исчезли.** `UIMessage` вынес fade state в `UIFadeController`, `MinigameController` вынес backdrop presentation в `MinigameBackdropPresenter`, `GameDirector` вынес death-title/glitch presentation в `GameDirectorDeathTitlePresenter`, stalker spawn/checkpoint logic в `GameDirectorStalkerService`, overlay layer policy в `GameDirectorOverlayLayerCoordinator`, death cursor/input policy в `GameDirectorDeathCursorCoordinator`, death camera capture/restore в `GameDirectorDeathCameraCoordinator`, death retry restore/darken policy в `GameDirectorDeathRetryCoordinator`, cycle timer/checkpoint state в `GameDirectorCycleTimerState`, CycleState phase bridge в `GameDirectorCyclePhaseBridge`, timer node lifecycle в `GameDirectorTimerNodeCoordinator`, minigame distortion gate в `GameDirectorDistortionGate`, distortion progress/easing math в `GameDirectorDistortionProgress`, distortion overlay/material actuator в `GameDirectorDistortionOverlayCoordinator` и distortion phase/checkpoint state в `GameDirectorDistortionPhaseState`; `MusicManager`, остальной `GameDirector` и `Player` всё ещё требуют осторожных future refactor-ов.
 9. **Уровни и объекты сильно завязаны на NodePath и имена детей.** Переименование узла может silently выключить звук, анимацию, двери, fridge-flow или scripted wiring.
 10. **Крупная археология удалена.** `archive(trash)` и `level_NSTU_test.tscn` убраны, активный `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
 
@@ -45,7 +45,7 @@
 ## Что В Проекте Хорошо
 
 - Main scene и autoload-и явно заданы в `project.godot`.
-- Есть локальный тест-раннер и 79 тестов.
+- Есть локальный тест-раннер и 80 тестов.
 - Тесты уже проверяют autoload-и, main scene, project config, localization CSV/mojibake hygiene, загрузку сцен и запрет использования приватного API `MusicManager`.
 - `MusicManager` большой, но имеет осмысленный публичный фасад.
 - `MinigameSettings` как `Resource` лучше, чем полностью ad-hoc Dictionary-конфиги.
@@ -56,7 +56,7 @@
 - Parser-only: `godot --headless --check-only -s res://tests/run_tests.gd`
 - Полный локальный suite: `bash tests/run_tests.sh`
 
-На момент последней проверки parser-only проходил, а полный suite проходил с 79 тестами. Перед релизными выводами или крупным рефакторингом нужно перепроверить текущее состояние командой выше.
+На момент последней проверки parser-only проходил, а полный suite проходил с 80 тестами. Перед релизными выводами или крупным рефакторингом нужно перепроверить текущее состояние командой выше.
 
 ## Правила Работы Для Агентов
 

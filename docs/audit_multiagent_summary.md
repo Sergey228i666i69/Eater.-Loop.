@@ -23,7 +23,7 @@
 ## Самые Важные P1
 
 1. **Огромные STU-сцены требуют аккуратного scene-authoring.** Runtime paths покрыты validators, но сами `.tscn` всё ещё тяжёлые для ревью.
-2. **Оставшиеся крупные фасады требуют отдельного refactor budget.** `MusicManager`, `GameDirector` и `Player` всё ещё большие; `UIMessage`, `MinigameController`, death-title/stalker/overlay-layer/death-cursor/death-camera/death-retry/cycle-timer/cycle-phase/distortion-gate/distortion-progress/distortion-overlay/distortion-phase части `GameDirector` уже получили безопасные helper split-ы.
+2. **Оставшиеся крупные фасады требуют отдельного refactor budget.** `MusicManager`, `GameDirector` и `Player` всё ещё большие; `UIMessage`, `MinigameController`, death-title/stalker/overlay-layer/death-cursor/death-camera/death-retry/cycle-timer/cycle-phase/timer-node/distortion-gate/distortion-progress/distortion-overlay/distortion-phase части `GameDirector` уже получили безопасные helper split-ы.
 3. **Export dry-run не автоматизирован отдельным release job.** Тесты закреплены CI, root preset проверяется suite-ом, но release artifacts пока остаются локальной ответственностью.
 4. **Полную приватизацию CycleState backing fields и покрытие player-facing localization keys всё ещё стоит закрывать отдельными задачами.**
 

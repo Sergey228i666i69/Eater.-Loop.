@@ -80,7 +80,8 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"CycleState.set_phase",
 	"CycleState.is_normal_phase",
 	"CycleState.is_distorted_phase",
-	"CycleState.Phase"
+	"CycleState.Phase",
+	"Timer.new()"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",

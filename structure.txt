@@ -692,6 +692,7 @@
 │   ├── game_director_distortion_progress.gd
 │   ├── game_director_overlay_layer_coordinator.gd
 │   ├── game_director_stalker_service.gd
+│   ├── game_director_timer_node_coordinator.gd
 │   ├── interaction_prompts.gd
 │   ├── interaction_prompts.gd.uid
 │   ├── music_manager.gd
@@ -1510,6 +1511,7 @@
 │   │   ├── test_game_director_distortion_progress.gd
 │   │   ├── test_game_director_overlay_layer_coordinator.gd
 │   │   ├── test_game_director_stalker_service.gd
+│   │   ├── test_game_director_timer_node_coordinator.gd
 │   │   ├── test_generator_activates_required_lamps.gd
 │   │   ├── test_generator_activates_required_lamps.gd.uid
 │   │   ├── test_input_actions.gd
