@@ -4,6 +4,7 @@ signal distortion_started
 
 const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_coordinator.gd")
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
+const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const DistortionGate = preload("res://levels/game_director_distortion_gate.gd")
 const DistortionProgress = preload("res://levels/game_director_distortion_progress.gd")
@@ -109,6 +110,7 @@ var _death_pause_requested: bool = false
 var _input_kind: int = 0
 var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
+var _death_retry_coordinator: RefCounted
 var _death_title_presenter: RefCounted
 var _distortion_gate: RefCounted
 var _distortion_progress_helper: RefCounted
@@ -134,6 +136,7 @@ func _ready() -> void:
 	_create_death_overlay()
 	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
+	_death_retry_coordinator = DeathRetryCoordinator.new()
 	_distortion_gate = DistortionGate.new()
 	_distortion_progress_helper = DistortionProgress.new()
 	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
@@ -567,20 +570,7 @@ func _on_death_fade_completed() -> void:
 func _on_death_retry_pressed() -> void:
 	if not _death_sequence_active:
 		return
-	var restored_autosave := false
-	if GameState != null and GameState.has_method("restore_respawn_checkpoint"):
-		restored_autosave = bool(GameState.restore_respawn_checkpoint())
-	elif GameState != null and GameState.has_method("restore_autosave_run"):
-		restored_autosave = bool(GameState.restore_autosave_run())
-	if not restored_autosave and CycleState != null:
-		CycleState.reset_cycle_state()
-	if CycleState != null:
-		CycleState.queue_respawn_blackout()
-	if UIMessage != null:
-		if UIMessage.has_method("set_screen_dark"):
-			UIMessage.set_screen_dark(true)
-		elif UIMessage.has_method("fade_out"):
-			await UIMessage.fade_out(0.0)
+	await _get_death_retry_coordinator().prepare_retry(GameState, CycleState, UIMessage)
 	_restore_death_camera()
 	if _death_root:
 		_death_root.visible = false
@@ -608,6 +598,11 @@ func _restore_death_camera() -> void:
 	if _death_camera_coordinator == null:
 		_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_camera_coordinator.restore()
+
+func _get_death_retry_coordinator() -> RefCounted:
+	if _death_retry_coordinator == null:
+		_death_retry_coordinator = DeathRetryCoordinator.new()
+	return _death_retry_coordinator
 
 func _request_death_pause() -> void:
 	if _death_pause_requested:
