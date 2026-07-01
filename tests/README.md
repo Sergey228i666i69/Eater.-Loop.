@@ -9,6 +9,7 @@ These tests are lightweight smoke checks for project health. They run headless a
 - Key input actions exist and have events.
 - Scene dependency contracts cover reversible triggers, target spawners, and runtime group/method expectations.
 - Level authoring contracts cover cycle metadata, bed transitions, and root-level exported paths/text toggles.
+- Lab authoring contracts cover lab laptop timing, explicit lab IDs, and required-lab references.
 - Architecture contracts keep external `GameState`/`CycleState` access on public methods.
 - Localization CSV and runtime text sources do not contain empty required values or mojibake.
 - Runtime regressions for critical audio transitions (including menu -> level start).

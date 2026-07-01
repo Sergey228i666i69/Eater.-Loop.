@@ -46,8 +46,9 @@
 
 1. Для обычной timed lab логики начинай с `timed_lab_minigame_base.gd`.
 2. Для gamepad/Steam Deck поведения следуй [`minigame_gamepad_system.md`](minigame_gamepad_system.md).
-3. Если мини-игра должна завершать лабораторную, передавай стабильный `lab_completion_id`, чтобы несколько лабораторных на одном цикле не схлопывались в один глобальный `lab_done`.
-4. Timeout, cancel и fail-forward должны быть одноразовыми. Повторное закрытие мини-игры не должно выдавать деньги, еду или completion второй раз.
+3. Lab laptop с `minigame_scene` должен иметь положительный `time_limit` и неотрицательный `penalty_time`.
+4. Если в одной сцене несколько разных лабораторных или холодильник задаёт `required_lab_completion_ids`, передавай стабильные и уникальные `lab_completion_id`. Required IDs холодильника должны ссылаться на ноутбуки в той же сцене; это проверяет `test_lab_authoring_contracts.gd`.
+5. Timeout, cancel и fail-forward должны быть одноразовыми. Повторное закрытие мини-игры не должно выдавать деньги, еду или completion второй раз.
 
 ## Локализация И Текст
 
@@ -70,6 +71,7 @@
 - required group/method contract;
 - scene script должен явно задать condition/config;
 - cycle-level metadata or bed transition contract;
+- lab completion id or required lab reference contract;
 - trigger target path or property contract;
 - utility-level condition/spawn path contract;
 - key-door source or search manager contract;

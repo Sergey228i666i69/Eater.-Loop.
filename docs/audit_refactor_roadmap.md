@@ -71,7 +71,8 @@ Definition of done: overlapping Area2D больше не вызывает нес
 7. ~~Проверять configured trigger target/property wiring.~~ `test_trigger_set_property_contracts.gd` валидирует `TriggerSetProperty`/`PropertyChange` target paths и property names.
 8. ~~Проверять key-door/search-key wiring.~~ `test_scene_dependency_contracts.gd` требует источник ключа для `required_key_id` дверей и resolving `SearchKeyManager.search_spots`.
 9. ~~Проверять cycle-level authoring metadata и sleep transitions.~~ `test_level_authoring_contracts.gd` валидирует metadata, bed `next_level_path`, root exported paths и включённые стартовые тексты.
-10. Расширить localization coverage на non-Russian/technical UI labels, если эта зона начнёт активно меняться.
+10. ~~Проверять lab laptop IDs и fridge required-lab references.~~ `test_lab_authoring_contracts.gd` валидирует timer settings, explicit lab IDs и required-lab references.
+11. Расширить localization coverage на non-Russian/technical UI labels, если эта зона начнёт активно меняться.
 
 Definition of done: типовые ошибки сцен падают тестом, а не silently no-op. Крупный visual/DRY-разбор STU-сцен теперь можно делать отдельным scene-authoring refactor поверх этих validators.
 
