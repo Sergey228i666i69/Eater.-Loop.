@@ -94,7 +94,8 @@ Definition of done: типовые ошибки сцен падают тесто
    - scene navigation.
 3. `MusicManager`:
    - оставить публичный фасад;
-   - вынести data/layout/magic constants в resources.
+   - ~~вынести mix data/layout/magic constants в resources.~~ `MusicMixSettings` теперь владеет category offset resolution и clamp, а `MusicManager.resolve_mix_volume_db(...)` остаётся публичным фасадом.
+   - дальше дробить audio stack только отдельными tested slices.
 4. `MinigameController`:
    - ~~backdrop registry/presentation;~~ вынесено в `minigame_backdrop_presenter.gd`.
    - timer/pause/music/gamepad lifecycle можно дробить отдельными tested slices.

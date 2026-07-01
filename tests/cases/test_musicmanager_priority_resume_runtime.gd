@@ -21,6 +21,7 @@ func run() -> Array[String]:
 
 	await _test_pending_ambient_does_not_override_distortion(ambient_stream, distortion_stream)
 	await _test_event_and_distortion_music_start_are_idempotent(ambient_stream, distortion_stream)
+	_test_mix_settings_resource_resolves_category_offsets()
 	_test_pause_resume_restores_playback_position()
 	_test_chase_pause_reasons_do_not_resume_while_minigame_paused()
 	_cleanup_music_manager()
@@ -89,6 +90,17 @@ func _test_event_and_distortion_music_start_are_idempotent(event_stream: AudioSt
 	source.queue_free()
 	await tree.process_frame
 	_cleanup_music_manager()
+
+func _test_mix_settings_resource_resolves_category_offsets() -> void:
+	var settings := load("res://music/music_mix_settings.tres") as MusicMixSettings
+	assert_true(settings != null, "Music mix settings resource must load")
+	if settings == null:
+		return
+	assert_eq(settings.get_category_offset_db(MusicManager.MIX_AMBIENT), -16.5, "Ambient mix offset must come from the resource")
+	assert_eq(settings.get_category_offset_db("unknown"), 0.0, "Unknown mix categories must not change volume")
+	assert_eq(settings.resolve_volume_db(MusicManager.MIX_MENU, 20.0), 6.0, "Mix resolver must clamp loud output")
+	assert_eq(settings.resolve_volume_db(MusicManager.MIX_AMBIENT, 0.0), -16.5, "Mix resolver must apply category offsets")
+	assert_eq(MusicManager.resolve_mix_volume_db(MusicManager.MIX_AMBIENT, 0.0), -16.5, "MusicManager public mix facade must delegate to MusicMixSettings")
 
 func _test_pause_resume_restores_playback_position() -> void:
 	var script_text := FileAccess.get_file_as_string(MUSIC_MANAGER_PATH)

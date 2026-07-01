@@ -35,8 +35,9 @@
 - `pause`
 - `menu`
 
-`MusicManager` автоматически применяет эти оффсеты во всех типовых обертках
-(`play_ambient_music`, `start_event_music`, и т.д.).
+`MusicMixSettings` сам рассчитывает offset и clamp для категории, а `MusicManager`
+применяет этот результат во всех типовых обертках (`play_ambient_music`,
+`start_event_music`, и т.д.).
 
 ## MusicManager (autoload)
 
@@ -99,7 +100,8 @@ var volume_db := MusicManager.resolve_mix_volume_db(MusicManager.MIX_MINIGAME, r
 ```
 
 Это заменяет обращение к приватным `MusicManager._resolve_volume(...)` и
-`MusicManager._apply_mix(...)`.
+`MusicManager._apply_mix(...)`; внутренне фасад делегирует category offset в
+`MusicMixSettings`.
 
 ### 4) Пауза и возобновление всей музыки
 

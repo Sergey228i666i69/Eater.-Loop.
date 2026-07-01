@@ -27,7 +27,7 @@ extends Node
 
 @export_group("Mix Settings")
 ## Ресурс настроек микса по типам музыки.
-@export var mix_settings: Resource
+@export var mix_settings: MusicMixSettings
 
 @export_group("Музыка погони")
 ## Музыка погони за игроком.
@@ -129,7 +129,7 @@ func _ready() -> void:
 		_runner_player.finished.connect(_on_runner_music_finished)
 	if mix_settings == null:
 		var loaded := load("res://music/music_mix_settings.tres")
-		if loaded != null:
+		if loaded is MusicMixSettings:
 			mix_settings = loaded
 	set_process(true)
 
@@ -895,25 +895,9 @@ func _apply_ambient_suppression(target_volume_db: float, source_kind: String) ->
 	return target_volume_db
 
 func _apply_mix(category: String, volume_db: float) -> float:
-	var offset := 0.0
 	if mix_settings != null:
-		match category:
-			MIX_AMBIENT:
-				offset = mix_settings.ambient_db_offset
-			MIX_DISTORTION:
-				offset = mix_settings.distortion_db_offset
-			MIX_EVENT:
-				offset = mix_settings.event_db_offset
-			MIX_CHASE:
-				offset = mix_settings.chase_db_offset
-			MIX_MINIGAME:
-				offset = mix_settings.minigame_db_offset
-			MIX_PAUSE:
-				offset = mix_settings.pause_db_offset
-			MIX_MENU:
-				offset = mix_settings.menu_db_offset
-	var mixed := volume_db + offset
-	return clamp(mixed, -80.0, 6.0)
+		return mix_settings.resolve_volume_db(category, volume_db)
+	return clampf(volume_db, MusicMixSettings.MIN_VOLUME_DB, MusicMixSettings.MAX_VOLUME_DB)
 
 func _resolve_playing_player() -> AudioStreamPlayer:
 	if _active_player and _active_player.playing:

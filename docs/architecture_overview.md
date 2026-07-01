@@ -121,6 +121,8 @@
 - Внешний код не должен обращаться к приватным `InteractiveObject._*`.
 - Для расчёта итоговой громкости категории использовать публичный
   `MusicManager.resolve_mix_volume_db(...)`.
+- Category offset и clamp policy живут в `MusicMixSettings`; `MusicManager`
+  только делегирует туда расчёт и сохраняет совместимый фасад.
 - Сцены/объекты вызывают только публичные методы autoload-модулей.
 - Для специальных death-screen веток используется публичный override-point `CycleLevel.handle_custom_death_screen() -> bool`, без `has_method/call` по строке.
 - Чтение/запись runtime-флагов `GameState` должно идти через публичные getter/mutator/consume методы, а не через разрозненные прямые правки полей там, где уже есть API.
@@ -146,6 +148,8 @@
 ## 6. Изменения (changelog)
 
 - Добавлен публичный API микса `MusicManager.resolve_mix_volume_db(...)`.
+- `MusicMixSettings` получил category offset resolver, чтобы `MusicManager` не
+  держал mapping offset-полей внутри большого фасада.
 - Устранена гонка при sync-громкости в кроссфейде базовой музыки.
 - Добавлены runtime-тесты для перехода `menu -> level_01_start` и synthetic race.
 - Добавлен архитектурный тест, запрещающий внешние вызовы `MusicManager._*`.
