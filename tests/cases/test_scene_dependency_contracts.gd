@@ -5,6 +5,17 @@ const SCENE_DIRS := [
 	"res://levels",
 	"res://objects"
 ]
+const SCRIPT_DIRS := [
+	"res://levels",
+	"res://objects",
+	"res://player",
+	"res://enemies"
+]
+const GROUP_METHOD_CONTRACTS := [
+	{"group": "reactive_light_source", "methods": ["is_point_lit"]},
+	{"group": "generator_required_light", "methods": ["turn_on"]},
+	{"group": "generator_required_lamp", "methods": ["turn_on"]}
+]
 
 func run() -> Array[String]:
 	_test_key_search_spots_do_not_depend_on_the_door_they_unlock()
@@ -14,6 +25,7 @@ func run() -> Array[String]:
 	_test_level_scripts_set_dependency_condition_with_dependency_object()
 	_test_target_monster_spawners_declare_spawn_condition()
 	_test_reversible_triggers_are_not_one_shot()
+	_test_scripts_that_join_runtime_groups_expose_required_methods()
 	return get_failures()
 
 func _test_key_search_spots_do_not_depend_on_the_door_they_unlock() -> void:
@@ -122,12 +134,35 @@ func _test_reversible_triggers_are_not_one_shot() -> void:
 					"Trigger with affect_on_exit=true must set one_shot=false so exit behavior can run: %s" % path
 				)
 
+func _test_scripts_that_join_runtime_groups_expose_required_methods() -> void:
+	for path in _list_active_scripts():
+		var content := FileAccess.get_file_as_string(path)
+		assert_true(content != "", "Failed to read script: %s" % path)
+		if content == "":
+			continue
+		for contract in GROUP_METHOD_CONTRACTS:
+			var group_name := str(contract.get("group", ""))
+			if not _script_adds_group(content, group_name):
+				continue
+			for method_name in contract.get("methods", []):
+				assert_true(
+					_script_declares_method(content, str(method_name)),
+					"Script adding %s group must define %s(): %s" % [group_name, method_name, path]
+				)
+
 func _list_active_scenes() -> Array[String]:
 	var scenes: Array[String] = []
 	for dir_path in SCENE_DIRS:
 		scenes.append_array(utils.list_files(dir_path, ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"]))
 	scenes.sort()
 	return scenes
+
+func _list_active_scripts() -> Array[String]:
+	var scripts: Array[String] = []
+	for dir_path in SCRIPT_DIRS:
+		scripts.append_array(utils.list_files(dir_path, ".gd", ["tests", ".godot", "addons"], ["archive", "trash"]))
+	scripts.sort()
+	return scripts
 
 func _scene_node_blocks(path: String) -> Array[String]:
 	var blocks: Array[String] = []
@@ -156,6 +191,12 @@ func _has_nearby_dependency_condition(lines: PackedStringArray, index: int) -> b
 		if line.find("set_dependency_condition") != -1:
 			return true
 	return false
+
+func _script_adds_group(content: String, group_name: String) -> bool:
+	return content.find("add_to_group(\"%s\"" % group_name) != -1 or content.find("add_to_group(&\"%s\"" % group_name) != -1
+
+func _script_declares_method(content: String, method_name: String) -> bool:
+	return content.find("func %s(" % method_name) != -1 or content.find("func %s (" % method_name) != -1
 
 func _has_property(node: Object, property_name: String) -> bool:
 	if node == null:

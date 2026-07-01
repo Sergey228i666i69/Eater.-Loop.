@@ -7,6 +7,7 @@ These tests are lightweight smoke checks for project health. They run headless a
 - Core scenes load and instantiate (excluding archived/trash folders).
 - All scripts compile.
 - Key input actions exist and have events.
+- Scene dependency contracts cover reversible triggers, target spawners, and runtime group/method expectations.
 - Localization CSV and runtime text sources do not contain empty required values or mojibake.
 - Runtime regressions for critical audio transitions (including menu -> level start).
 

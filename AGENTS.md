@@ -18,7 +18,7 @@
 
 Текущая проблемность после ремонтных проходов: **около 5/10**. Первичный аудит 2026-05-14 оценивал проект на **7.3/10**.
 
-Это не разваленный проект: entrypoint понятен, autoload-и явно заведены, есть локальный тестовый слой и часть архитектурных контрактов уже проверяется. После ремонтных проходов закрыты главные runtime-дыры: input света, фокус интерактивов, run-finish, checkpoint-сценарии, asset tracking, minigame input/timeout, one-shot completion, reversible triggers, явные spawner conditions, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath validators и базовые localization/project-config contracts. Naming debt из аудита нормализован, а `UIMessage`, `MinigameController` и death-title часть `GameDirector` получили helper split-ы. Но проект всё ещё дорог в поддержке: уровни завязаны на NodePath/имена детей, `MusicManager`/`GameDirector`/`Player` остаются крупными фасадами, а huge STU-сцены остаются дорогими для ревью.
+Это не разваленный проект: entrypoint понятен, autoload-и явно заведены, есть локальный тестовый слой и часть архитектурных контрактов уже проверяется. После ремонтных проходов закрыты главные runtime-дыры: input света, фокус интерактивов, run-finish, checkpoint-сценарии, asset tracking, minigame input/timeout, one-shot completion, reversible triggers, явные spawner conditions, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method validators и базовые localization/project-config contracts. Naming debt из аудита нормализован, а `UIMessage`, `MinigameController` и death-title часть `GameDirector` получили helper split-ы. Но проект всё ещё дорог в поддержке: уровни завязаны на NodePath/имена детей, `MusicManager`/`GameDirector`/`Player` остаются крупными фасадами, а huge STU-сцены остаются дорогими для ревью.
 
 ## Главные Риски
 
@@ -28,7 +28,7 @@
 4. **Главные gameplay-баги закрыты.** Sleep/wake-флаг переживает переход цикла, run закрывается после титров, потолочный враг снова учитывает лампы, деньги level 12 и runtime-spawned threats сохраняются в checkpoint, холодильник fail-closed, minigame timeout одноразовый.
 5. **Интерактивы централизованы через `InteractionManager`.** Одно нажатие выбирает один объект по доступности, приоритету и расстоянию.
 6. **Dependency-система интерактивов стала typed.** Key-door цикл и прежний one-shot fail-open закрыты тестами: дверь, холодильник, ноутбук и блокпост теперь завершаются только после успешного outcome. Базовый `InteractiveObject` различает `COMPLETED` и `INTERACTION_REQUESTED` и эмитит `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`.
-7. **Scene/trigger/spawner/config contracts укреплены тестами.** `SceneContext` запрещает локальные path-checks, reversible triggers обязаны быть `one_shot=false`, spawner-ы с `enemy_scene` обязаны явно подтверждать condition, включённые editor plugins должны иметь `plugin.cfg`, а configured translations должны грузиться как `Translation`.
+7. **Scene/trigger/spawner/config contracts укреплены тестами.** `SceneContext` запрещает локальные path-checks, reversible triggers обязаны быть `one_shot=false`, spawner-ы с `enemy_scene` обязаны явно подтверждать condition, runtime light-группы обязаны иметь нужные методы, включённые editor plugins должны иметь `plugin.cfg`, а configured translations должны грузиться как `Translation`.
 8. **Большие singleton/god-classes стали лучше, но не исчезли.** `UIMessage` вынес fade state в `UIFadeController`, `MinigameController` вынес backdrop presentation в `MinigameBackdropPresenter`, `GameDirector` вынес death-title/glitch presentation в `GameDirectorDeathTitlePresenter`; `MusicManager`, остальной `GameDirector` и `Player` всё ещё требуют осторожных future refactor-ов.
 9. **Уровни и объекты сильно завязаны на NodePath и имена детей.** Переименование узла может silently выключить звук, анимацию, двери, fridge-flow или scripted wiring.
 10. **Крупная археология удалена.** `archive(trash)` и `level_NSTU_test.tscn` убраны, активный `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
@@ -71,5 +71,5 @@
 
 1. Продолжить аккуратный распил `MusicManager`, оставшегося `GameDirector` и `Player` только tested slices.
 2. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.
-3. Добавить новые validators для групп/method contracts и полной миграции player-facing строк в localization keys, если эти зоны начнут активно меняться.
+3. Добавить validators для полной миграции player-facing строк в localization keys, если эта зона начнёт активно меняться.
 4. Добавить отдельный export dry-run job, если понадобится проверять release artifacts автоматически.
