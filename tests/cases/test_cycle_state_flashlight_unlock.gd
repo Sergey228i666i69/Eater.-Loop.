@@ -58,7 +58,7 @@ func run() -> Array[String]:
 	await tree.physics_frame
 	assert_true(GameState.is_flashlight_unlocked(), "Successful cycle completion must promote flashlight unlock to GameState")
 	assert_true(bool(player.call("has_flashlight_available")), "Permanent flashlight unlock must survive cycle reset")
-	assert_true(not CycleState.flashlight_collected_this_cycle, "Current-cycle flashlight flag must reset after next_cycle")
+	assert_true(not CycleState.has_flashlight_collected_this_cycle(), "Current-cycle flashlight flag must reset after next_cycle")
 
 	root.queue_free()
 	await tree.process_frame

@@ -35,7 +35,7 @@ func run() -> Array[String]:
 	assert_true(not bool(laptop_b.call("_is_lab_completed")), "Laptop B must stay available after Laptop A completion")
 	assert_true(CycleState.is_lab_completed("test_lab_a"), "CycleState must remember completed lab ID")
 	assert_true(not CycleState.is_lab_completed("test_lab_b"), "CycleState must not mark unrelated lab ID")
-	assert_true(CycleState.lab_done, "CycleState must expose lab_done for single-lab compatibility")
+	assert_true(CycleState.has_completed_any_lab(), "CycleState must expose single-lab compatibility through public methods")
 
 	root.queue_free()
 	await tree.process_frame

@@ -93,7 +93,7 @@ func _test_fridge_checkpoint_restores_scene_snapshot() -> void:
 	enemy_a.state_value = 99
 
 	assert_true(GameState.restore_respawn_checkpoint(), "Respawn checkpoint must be restorable after fridge capture")
-	assert_true(not CycleState.phone_picked, "Respawn restore must roll CycleState back to the checkpoint snapshot")
+	assert_true(not CycleState.has_phone_picked(), "Respawn restore must roll CycleState back to the checkpoint snapshot")
 
 	scene_a.queue_free()
 	await tree.process_frame

@@ -140,7 +140,7 @@ func _is_distorted_phase_active() -> bool:
 		return true
 	if CycleState == null:
 		return false
-	return int(CycleState.phase) == int(CycleState.Phase.DISTORTED)
+	return CycleState.is_distorted_phase()
 
 func _update_saccade(delta: float) -> void:
 	_saccade_timer -= delta

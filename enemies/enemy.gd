@@ -205,7 +205,7 @@ func _play_attack_sfx(stream_override: AudioStream = null) -> void:
 func _attack_player() -> void:
 	if _is_player_busy_with_minigame():
 		return
-	var is_lethal := kill_on_attack or (CycleState != null and CycleState.phase == CycleState.Phase.DISTORTED)
+	var is_lethal := kill_on_attack or (CycleState != null and CycleState.is_distorted_phase())
 	if is_lethal:
 		_play_attack_sfx(_pick_random_death_scream())
 		if GameDirector and GameDirector.has_method("trigger_death_screen"):

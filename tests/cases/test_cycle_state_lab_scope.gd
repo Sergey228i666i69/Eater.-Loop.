@@ -21,7 +21,7 @@ func run() -> Array[String]:
 
 	CycleState.reset_cycle_state()
 	assert_true(not CycleState.has_completed_any_lab(), "Cycle reset must clear current-cycle lab completion")
-	assert_true(CycleState.completed_labs.is_empty(), "Cycle reset must clear completed lab IDs")
+	assert_true(CycleState.get_completed_labs().is_empty(), "Cycle reset must clear completed lab IDs")
 	assert_true(not bool(fridge.call("_has_required_lab_completion")), "Fridge must require the lab again after cycle reset")
 
 	CycleState.mark_lab_completed("cycle_lab_b")
@@ -29,7 +29,7 @@ func run() -> Array[String]:
 
 	GameState.next_cycle()
 	assert_true(not CycleState.has_completed_any_lab(), "Advancing to the next cycle must clear previous cycle lab progress")
-	assert_true(CycleState.completed_labs.is_empty(), "Advancing to the next cycle must clear completed lab IDs")
+	assert_true(CycleState.get_completed_labs().is_empty(), "Advancing to the next cycle must clear completed lab IDs")
 	assert_true(not CycleState.is_lab_completed("cycle_lab_b"), "A lab from one cycle must not affect the next cycle")
 
 	fridge.free()

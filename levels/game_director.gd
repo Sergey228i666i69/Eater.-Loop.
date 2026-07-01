@@ -208,7 +208,7 @@ func reduce_time(amount: float, damage_flash: bool = false) -> void:
 	if not is_timer_running():
 		return
 	set_time_left(get_time_left() - amount)
-	if CycleState != null and CycleState.phase != CycleState.Phase.NORMAL:
+	if CycleState != null and not CycleState.is_normal_phase():
 		return
 	if damage_flash:
 		trigger_damage_flash()
@@ -221,7 +221,7 @@ func trigger_damage_flash() -> void:
 	_flash_damage()
 
 func _on_distortion_timeout() -> void:
-	if CycleState != null and CycleState.phase == CycleState.Phase.DISTORTED:
+	if CycleState != null and CycleState.is_distorted_phase():
 		_pending_distortion_activation = false
 		return
 	if _should_defer_distortion_activation():
@@ -230,7 +230,7 @@ func _on_distortion_timeout() -> void:
 	_activate_distortion_phase()
 
 func _activate_distortion_phase() -> void:
-	if CycleState != null and CycleState.phase == CycleState.Phase.DISTORTED:
+	if CycleState != null and CycleState.is_distorted_phase():
 		_pending_distortion_activation = false
 		return
 	_pending_distortion_activation = false
@@ -265,7 +265,7 @@ func trigger_distortion_now() -> void:
 	_on_distortion_timeout()
 
 func get_time_ratio() -> float:
-	if CycleState != null and CycleState.phase != CycleState.Phase.NORMAL:
+	if CycleState != null and not CycleState.is_normal_phase():
 		return 0.0
 	
 	# Если таймер стоит в нормальной фазе — значит время бесконечное (100%)
@@ -278,20 +278,20 @@ func get_time_left() -> float:
 	if current_max_time <= 0.0:
 		return 0.0
 	if _timer.is_stopped():
-		if CycleState != null and CycleState.phase == CycleState.Phase.NORMAL:
+		if CycleState != null and CycleState.is_normal_phase():
 			return current_max_time
 		return 0.0
 	return _timer.time_left
 
 func is_timer_running() -> bool:
-	if CycleState != null and CycleState.phase != CycleState.Phase.NORMAL:
+	if CycleState != null and not CycleState.is_normal_phase():
 		return false
 	return current_max_time > 0.0 and not _timer.is_stopped()
 
 func ensure_timer_running(fallback_time: float) -> void:
 	if fallback_time <= 0.0:
 		return
-	if CycleState != null and CycleState.phase != CycleState.Phase.NORMAL:
+	if CycleState != null and not CycleState.is_normal_phase():
 		return
 	if is_timer_running():
 		return
@@ -301,7 +301,7 @@ func ensure_timer_running(fallback_time: float) -> void:
 func set_time_left(new_time: float) -> void:
 	if _death_sequence_active:
 		return
-	if CycleState != null and CycleState.phase != CycleState.Phase.NORMAL:
+	if CycleState != null and not CycleState.is_normal_phase():
 		return
 	if current_max_time <= 0.0:
 		return
@@ -371,7 +371,7 @@ func _flash_red() -> void:
 	_set_distortion_intensity(0.25)
 	_set_distortion_squash(0.0)
 	get_tree().create_timer(0.1).timeout.connect(func():
-		if CycleState == null or CycleState.phase == CycleState.Phase.NORMAL:
+		if CycleState == null or CycleState.is_normal_phase():
 			_distortion_rect.visible = false
 			_set_distortion_intensity(0.0)
 			_set_distortion_squash(0.0)
@@ -994,7 +994,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	_set_damage_intensity(0.0)
 	if _death_sequence_active:
 		_reset_death_screen_state()
-	if CycleState != null and CycleState.phase == CycleState.Phase.NORMAL and current_max_time > 0.0:
+	if CycleState != null and CycleState.is_normal_phase() and current_max_time > 0.0:
 		var timer_running := bool(state.get("timer_running", false))
 		var time_left := clampf(float(state.get("time_left", current_max_time)), 0.0, current_max_time)
 		if timer_running and time_left > 0.0:

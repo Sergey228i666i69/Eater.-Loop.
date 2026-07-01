@@ -34,6 +34,7 @@ const LEGACY_SCENE_CALLBACK_PATTERNS := [
 ]
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
+const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
@@ -47,6 +48,17 @@ const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.has_active_run",
 	"GameState.flashlight_unlocked",
 	"GameState.unique_feeding_intro_played"
+]
+const FORBIDDEN_CYCLE_STATE_FIELD_PATTERNS := [
+	"CycleState.phase",
+	"CycleState.ate_this_cycle",
+	"CycleState.lab_done",
+	"CycleState.completed_labs",
+	"CycleState.phone_picked",
+	"CycleState.fridge_interacted",
+	"CycleState.pending_sleep_spawn",
+	"CycleState.pending_respawn_blackout",
+	"CycleState.flashlight_collected_this_cycle"
 ]
 const FORBIDDEN_ACTIVE_SCENE_PATTERNS := [
 	"archive(trash)"
@@ -82,6 +94,10 @@ func run() -> Array[String]:
 		if path != GAME_STATE_PATH:
 			for pattern in FORBIDDEN_GAME_STATE_FIELD_PATTERNS:
 				assert_true(not _contains_symbol_access(content, pattern), "External GameState field access must go through public methods: %s (%s)" % [path, pattern])
+
+		if path != CYCLE_STATE_PATH:
+			for pattern in FORBIDDEN_CYCLE_STATE_FIELD_PATTERNS:
+				assert_true(not _contains_symbol_access(content, pattern), "External CycleState field access must go through public methods: %s (%s)" % [path, pattern])
 
 		if path != SCENE_CONTEXT_PATH:
 			assert_true(content.find("path.find(\"/levels/cycles/\")") == -1, "Gameplay scene path checks must go through SceneContext: %s" % path)

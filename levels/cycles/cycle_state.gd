@@ -36,6 +36,15 @@ var electricity_on: bool:
 func set_phase(new_phase: Phase) -> void:
 	phase = new_phase
 
+func get_phase() -> Phase:
+	return phase
+
+func is_normal_phase() -> bool:
+	return phase == Phase.NORMAL
+
+func is_distorted_phase() -> bool:
+	return phase == Phase.DISTORTED
+
 func next_cycle() -> void:
 	_reset_cycle_state_internal(true)
 
@@ -61,6 +70,9 @@ func mark_phone_picked() -> void:
 	phone_picked = true
 	phone_picked_changed.emit()
 	_autosave_run()
+
+func has_phone_picked() -> bool:
+	return phone_picked
 
 func mark_fridge_interacted() -> void:
 	if fridge_interacted:
@@ -94,6 +106,9 @@ func is_lab_completed(lab_id: String = "") -> bool:
 func has_completed_any_lab() -> bool:
 	return lab_done
 
+func get_completed_labs() -> PackedStringArray:
+	return completed_labs.duplicate()
+
 func has_completed_all_labs(required_lab_ids: PackedStringArray) -> bool:
 	if required_lab_ids.is_empty():
 		return has_completed_any_lab()
@@ -125,6 +140,9 @@ func has_flashlight_for_current_cycle() -> bool:
 	if GameState != null and GameState.has_method("is_flashlight_unlocked"):
 		return bool(GameState.is_flashlight_unlocked())
 	return false
+
+func has_flashlight_collected_this_cycle() -> bool:
+	return flashlight_collected_this_cycle
 
 func queue_sleep_spawn() -> void:
 	if pending_sleep_spawn:

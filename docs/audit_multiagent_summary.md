@@ -8,13 +8,13 @@
 
 Первичная проблемность аудита: **7.3/10**. Текущая проблемность после ремонтных проходов: **около 5/10**.
 
-Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method validators, Godot-aware naming cleanup и первый split pass крупных singleton-ов. Костыльность всё ещё заметна в поддержке: huge STU-сцены, public state в отдельных местах и оставшиеся крупные фасады требуют аккуратных будущих refactor-ов.
+Репозиторий не выглядит "безнадёжным клубком": у него понятная Godot-структура, есть autoload-контуры, уже заведены тесты и часть систем оформлена лучше среднего прототипа. Первые P1/P2 из аудита закрыты, включая input/focus/checkpoint/assets, minigame input/timeout, reversible triggers, spawner conditions, базовую completion-семантику интерактивов, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method validators, external state-access guards, Godot-aware naming cleanup и первый split pass крупных singleton-ов. Костыльность всё ещё заметна в поддержке: huge STU-сцены, public state в отдельных местах и оставшиеся крупные фасады требуют аккуратных будущих refactor-ов.
 
 ## Сводные Оценки
 
 | Срез | Оценка проблемности | Главный диагноз |
 | --- | ---: | --- |
-| Архитектура и состояние | 5.2/10 | первый split singleton-ов сделан, CycleState public fields ещё открыты |
+| Архитектура и состояние | 5.2/10 | первый split singleton-ов сделан, внешний доступ к ключевым CycleState fields прикрыт public API |
 | Gameplay loop | 4.8/10 | ключевые runtime-баги закрыты, остаются дубли и performance-risk |
 | Интерактивы | 5/10 | фокус, one-shot, trigger, spawner и minimal typed dependency contracts исправлены |
 | Tooling/assets/tests | 4/10 | LFS/assets и CI починены, export dry-run ещё не автоматизирован |
@@ -25,7 +25,7 @@
 1. **Огромные STU-сцены требуют аккуратного scene-authoring.** Runtime paths покрыты validators, но сами `.tscn` всё ещё тяжёлые для ревью.
 2. **Оставшиеся крупные фасады требуют отдельного refactor budget.** `MusicManager`, `GameDirector` и `Player` всё ещё большие; `UIMessage`, `MinigameController` и death-title часть `GameDirector` уже получили безопасные helper split-ы.
 3. **Export dry-run не автоматизирован отдельным release job.** Тесты закреплены CI, root preset проверяется suite-ом, но release artifacts пока остаются локальной ответственностью.
-4. **CycleState/public state и полное покрытие player-facing localization keys всё ещё стоит закрывать отдельными задачами.**
+4. **Полную приватизацию CycleState backing fields и покрытие player-facing localization keys всё ещё стоит закрывать отдельными задачами.**
 
 ## Что Стоит Сохранить
 
