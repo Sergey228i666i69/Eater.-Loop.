@@ -41,7 +41,10 @@ const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
 	"call(\"handle_custom_death_screen\"",
-	"call('handle_custom_death_screen'"
+	"call('handle_custom_death_screen'",
+	"func _find_stalker_spawn",
+	"func _create_stalker",
+	"func _restore_stalker_from_checkpoint"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",

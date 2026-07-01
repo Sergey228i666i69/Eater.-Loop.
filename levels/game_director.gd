@@ -3,6 +3,7 @@ extends Node
 signal distortion_started
 
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
+const StalkerService = preload("res://levels/game_director_stalker_service.gd")
 
 ## Время по умолчанию, если на уровне не задано.
 @export var default_time: float = 15.0
@@ -110,10 +111,8 @@ var _death_camera_base_offset: Vector2 = Vector2.ZERO
 var _input_kind: int = 0
 var _death_focus_style_hidden: StyleBoxEmpty
 var _death_title_presenter: RefCounted
+var _stalker_service: RefCounted
 
-const STALKER_SPAWN_GROUP := "stalker_spawn"
-const STALKER_ENEMY_GROUP := "stalker_enemy"
-const STALKER_NODE_NAME := "GameDirectorStalker"
 const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
 const INPUT_KIND_KEYBOARD := InputDeviceUtilsClass.InputKind.KEYBOARD
 const INPUT_KIND_GAMEPAD := InputDeviceUtilsClass.InputKind.GAMEPAD
@@ -131,6 +130,8 @@ func _ready() -> void:
 	add_child(_timer)
 	_create_distortion_overlay()
 	_create_death_overlay()
+	_stalker_service = StalkerService.new()
+	_sync_stalker_service()
 	_connect_minigame_controller()
 	if get_tree() and get_tree().has_signal("scene_changed"):
 		get_tree().scene_changed.connect(_on_scene_changed)
@@ -872,12 +873,13 @@ func _spawn_stalker_if_needed() -> void:
 		return
 	if not _in_game_scene:
 		return
-	if stalker_scene == null:
+	_sync_stalker_service()
+	if _stalker_service == null or stalker_scene == null:
 		return
 	var scene := get_tree().current_scene
 	if scene == null:
 		return
-	var spawn := _find_stalker_spawn(scene)
+	var spawn: Node2D = _stalker_service.find_spawn(get_tree(), scene)
 	if spawn == null:
 		return
 	_stalker_spawned = true
@@ -892,36 +894,14 @@ func _spawn_stalker_deferred(scene: Node, spawn_position: Vector2) -> void:
 	if get_tree() == null or scene != get_tree().current_scene:
 		_stalker_spawned = false
 		return
-	if _create_stalker(scene, spawn_position, STALKER_NODE_NAME) == null:
+	_sync_stalker_service()
+	if _stalker_service == null or _stalker_service.create_stalker(scene, spawn_position) == null:
 		_stalker_spawned = false
 
-func _find_stalker_spawn(scene: Node) -> Node2D:
-	var nodes := get_tree().get_nodes_in_group(STALKER_SPAWN_GROUP)
-	for node in nodes:
-		if node is Node2D and scene.is_ancestor_of(node):
-			return node
-	return null
-
-func _create_stalker(scene: Node, spawn_position: Vector2, preferred_name: String = "") -> Node:
-	if scene == null or stalker_scene == null:
-		return null
-	var stalker := stalker_scene.instantiate()
-	if stalker == null:
-		return null
-	if preferred_name != "":
-		stalker.name = preferred_name
-	scene.add_child(stalker)
-	if stalker is Node2D:
-		(stalker as Node2D).global_position = spawn_position
-	return stalker
-
-func _find_active_stalker(scene: Node) -> Node:
-	if scene == null or get_tree() == null:
-		return null
-	for node in get_tree().get_nodes_in_group(STALKER_ENEMY_GROUP):
-		if node != null and is_instance_valid(node) and (node == scene or scene.is_ancestor_of(node)):
-			return node
-	return null
+func _sync_stalker_service() -> void:
+	if _stalker_service == null:
+		_stalker_service = StalkerService.new()
+	_stalker_service.stalker_scene = stalker_scene
 
 func _connect_minigame_controller() -> void:
 	if MinigameController == null:
@@ -967,11 +947,9 @@ func capture_checkpoint_state() -> Dictionary:
 		"transition_active": _transition_active,
 		"transition_progress": _transition_progress,
 	}
-	if _stalker_spawned and get_tree() != null:
-		var stalker := _find_active_stalker(get_tree().current_scene)
-		if stalker != null:
-			state["stalker_node_name"] = stalker.name
-			state["stalker_snapshot"] = CheckpointStateUtils.capture_node_snapshot(stalker)
+	_sync_stalker_service()
+	if _stalker_service != null and get_tree() != null:
+		state.merge(_stalker_service.capture_checkpoint_state(get_tree(), get_tree().current_scene, _stalker_spawned), true)
 	return state
 
 func apply_checkpoint_state(state: Dictionary) -> void:
@@ -1004,32 +982,8 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	else:
 		_timer.stop()
 	if _stalker_spawned:
-		_restore_stalker_from_checkpoint(state)
+		_sync_stalker_service()
+		if _stalker_service != null and get_tree() != null:
+			_stalker_service.restore_from_checkpoint(get_tree(), get_tree().current_scene, state)
 	if not _distortion_active and not _transition_active:
 		_hide_distortion_overlays()
-
-func _restore_stalker_from_checkpoint(state: Dictionary) -> void:
-	if get_tree() == null:
-		return
-	var scene := get_tree().current_scene
-	if scene == null:
-		return
-	var stalker := _find_active_stalker(scene)
-	if stalker == null:
-		var spawn_position := Vector2.ZERO
-		var snapshot_raw: Variant = state.get("stalker_snapshot", {})
-		if snapshot_raw is Dictionary and snapshot_raw.has("global_position"):
-			var restored_position: Variant = snapshot_raw.get("global_position")
-			if restored_position is Vector2:
-				spawn_position = restored_position
-		else:
-			var spawn := _find_stalker_spawn(scene)
-			if spawn != null:
-				spawn_position = spawn.global_position
-		var preferred_name := str(state.get("stalker_node_name", STALKER_NODE_NAME))
-		stalker = _create_stalker(scene, spawn_position, preferred_name)
-	if stalker == null:
-		return
-	var snapshot_raw: Variant = state.get("stalker_snapshot", {})
-	if snapshot_raw is Dictionary:
-		CheckpointStateUtils.apply_node_snapshot(stalker, snapshot_raw)

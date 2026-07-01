@@ -77,8 +77,9 @@ Definition of done: типовые ошибки сцен падают тесто
 
 1. `GameDirector`:
    - ~~death-title/glitch presentation;~~ вынесено в `game_director_death_title_presenter.gd`.
+   - ~~stalker spawn/checkpoint service;~~ вынесено в `game_director_stalker_service.gd`.
    - death/checkpoint lifecycle service;
-   - distortion/stalker service;
+   - distortion service;
    - overlay/cursor coordinator.
 2. `UIMessage`:
    - message/prompt UI;
