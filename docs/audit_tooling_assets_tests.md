@@ -86,6 +86,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
 - Project-config contract для main scene, включённых editor plugins и configured translations.
 - Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage.
+- Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
 - Trigger target/property contract для configured `TriggerSetProperty` и `PropertyChange`.
 - Key-door/search-key contract для required key sources и resolving `SearchKeyManager.search_spots`.
 

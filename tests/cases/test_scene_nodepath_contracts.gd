@@ -10,12 +10,18 @@ const FRIDGE_SCRIPT := "res://objects/interactable/fridge/fridge.gd"
 const LAMP_SCRIPT := "res://objects/interactable/lamp/lamp.gd"
 const PROJECTOR_SCRIPT := "res://objects/interactable/projector/projector.gd"
 const PICKUP_FLASHLIGHT_SCRIPT := "res://objects/interactable/flashlight/pickup_flashlight.gd"
+const LEBEDKA_SCRIPT := "res://objects/interactable/lebedka/lebedka.gd"
+const CORRIDOR_DISTORTION_SCRIPT := "res://levels/cycles/corridor_distortion.gd"
+const TARGET_MONSTER_SPAWNER_SCRIPT := "res://objects/environment/smart/target/target.gd"
+const SPAWNER_CONDITION_NODE_SIGNAL := 1
+const SPAWNER_CONDITION_TRIGGER_ENTER := 2
 
 func run() -> Array[String]:
 	_test_unlocked_level_doors_have_resolving_targets()
 	_test_blockpost_child_contracts()
 	_test_level_money_interactables_resolve_money_systems()
 	_test_interactable_exported_nodepaths_resolve()
+	_test_level_utility_nodepaths_resolve()
 	return get_failures()
 
 func _test_unlocked_level_doors_have_resolving_targets() -> void:
@@ -88,6 +94,50 @@ func _test_interactable_exported_nodepaths_resolve() -> void:
 					_assert_required_nodepath_resolves(path, root, node, "teleport_target")
 		root.free()
 
+func _test_level_utility_nodepaths_resolve() -> void:
+	for path in _list_level_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		for node in root.find_children("*", "", true, false):
+			var script_path := _script_path(node)
+			if script_path == LEBEDKA_SCRIPT:
+				_assert_required_nodepath_resolves_with_method(path, root, node, "fridge_path", "apply_winch_release_state")
+				_assert_optional_nodepath_resolves(path, root, node, "sprite_node", "Sprite2D")
+			elif script_path == CORRIDOR_DISTORTION_SCRIPT:
+				_assert_required_nodepath_resolves(path, root, node, "trigger_path", "Area2D")
+				_assert_required_nodepath_resolves(path, root, node, "new_corridor_path", "Node2D")
+				if _has_property(node, "camera_enabled") and bool(node.get("camera_enabled")):
+					_assert_required_nodepath_resolves(path, root, node, "camera_path", "Camera2D")
+				_assert_nodepath_array_resolves(path, root, node, "kitchen_nodes", "Node2D")
+				_assert_nodepath_array_resolves(path, root, node, "back_nodes", "Node2D")
+				_assert_nodepath_array_resolves(path, root, node, "disable_nodes")
+				_assert_nodepath_array_resolves(path, root, node, "stop_audio_nodes")
+			elif script_path == TARGET_MONSTER_SPAWNER_SCRIPT:
+				_assert_target_monster_spawner_paths(path, root, node)
+		root.free()
+
+func _assert_target_monster_spawner_paths(path: String, root: Node, node: Node) -> void:
+	_assert_optional_nodepath_resolves(path, root, node, "spawn_parent_path")
+	var enemy_scene: PackedScene = node.get("enemy_scene") if _has_property(node, "enemy_scene") else null
+	if enemy_scene == null:
+		return
+	var condition_configured := bool(node.get("condition_configured")) if _has_property(node, "condition_configured") else false
+	if not condition_configured:
+		return
+	var condition_type := int(node.get("condition_type")) if _has_property(node, "condition_type") else 0
+	if condition_type == SPAWNER_CONDITION_NODE_SIGNAL:
+		var source := _assert_required_nodepath_resolves(path, root, node, "condition_node_path")
+		var signal_name := StringName(node.get("condition_signal_name")) if _has_property(node, "condition_signal_name") else StringName()
+		assert_true(signal_name != StringName(), "TargetMonsterSpawner condition_signal_name must not be empty: %s:%s" % [path, root.get_path_to(node)])
+		if source != null and signal_name != StringName():
+			assert_true(source.has_signal(signal_name), "TargetMonsterSpawner condition node must expose signal '%s': %s:%s" % [String(signal_name), path, root.get_path_to(node)])
+		var property_name := StringName(node.get("condition_property_name")) if _has_property(node, "condition_property_name") else StringName()
+		if source != null and property_name != StringName():
+			assert_true(_has_property(source, String(property_name)), "TargetMonsterSpawner condition node must expose property '%s': %s:%s" % [String(property_name), path, root.get_path_to(node)])
+	elif condition_type == SPAWNER_CONDITION_TRIGGER_ENTER:
+		_assert_required_nodepath_resolves(path, root, node, "trigger_area_path", "Area2D")
+
 func _assert_money_system_resolves(path: String, root: Node, node: Node, required_method: String) -> void:
 	var money_path: NodePath = node.get("money_system_path")
 	var money_system := node.get_node_or_null(money_path) if not money_path.is_empty() else node.get_node_or_null("../Level12MoneySystem")
@@ -95,28 +145,46 @@ func _assert_money_system_resolves(path: String, root: Node, node: Node, require
 	if money_system != null:
 		assert_true(money_system.has_method(required_method), "Money system must expose %s for %s:%s" % [required_method, path, root.get_path_to(node)])
 
-func _assert_required_nodepath_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> void:
+func _assert_required_nodepath_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> Node:
 	if not _has_property(node, property_name):
-		return
+		return null
 	var node_path: NodePath = node.get(property_name)
 	assert_true(not node_path.is_empty(), "%s must be set: %s:%s" % [property_name, path, root.get_path_to(node)])
 	if node_path.is_empty():
-		return
-	_assert_path_resolves(path, root, node, property_name, node_path, expected_type)
+		return null
+	return _assert_path_resolves(path, root, node, property_name, node_path, expected_type)
 
-func _assert_optional_nodepath_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> void:
+func _assert_optional_nodepath_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> Node:
 	if not _has_property(node, property_name):
-		return
+		return null
 	var node_path: NodePath = node.get(property_name)
 	if node_path.is_empty():
-		return
-	_assert_path_resolves(path, root, node, property_name, node_path, expected_type)
+		return null
+	return _assert_path_resolves(path, root, node, property_name, node_path, expected_type)
 
-func _assert_path_resolves(path: String, root: Node, node: Node, property_name: String, node_path: NodePath, expected_type: String = "") -> void:
+func _assert_required_nodepath_resolves_with_method(path: String, root: Node, node: Node, property_name: String, required_method: String) -> Node:
+	var target := _assert_required_nodepath_resolves(path, root, node, property_name)
+	if target != null:
+		assert_true(target.has_method(required_method), "%s must expose %s(): %s:%s" % [property_name, required_method, path, root.get_path_to(node)])
+	return target
+
+func _assert_nodepath_array_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> void:
+	if not _has_property(node, property_name):
+		return
+	var node_paths: Array = node.get(property_name)
+	for index in range(node_paths.size()):
+		var node_path: NodePath = node_paths[index]
+		assert_true(not node_path.is_empty(), "%s entry must not be empty: %s:%s[%d]" % [property_name, path, root.get_path_to(node), index])
+		if node_path.is_empty():
+			continue
+		_assert_path_resolves(path, root, node, "%s[%d]" % [property_name, index], node_path, expected_type)
+
+func _assert_path_resolves(path: String, root: Node, node: Node, property_name: String, node_path: NodePath, expected_type: String = "") -> Node:
 	var target := node.get_node_or_null(node_path)
 	assert_true(target != null, "%s must resolve: %s:%s -> %s" % [property_name, path, root.get_path_to(node), node_path])
 	if target != null and expected_type != "":
 		assert_true(target.is_class(expected_type), "%s must resolve to %s: %s:%s -> %s" % [property_name, expected_type, path, root.get_path_to(node), node_path])
+	return target
 
 func _is_door_allowed_to_have_inert_target(node: Node) -> bool:
 	var locked := bool(node.get("is_locked")) if _has_property(node, "is_locked") else false

@@ -19,7 +19,8 @@
 4. Если уровень зависит от холодильника, лабораторной, еды, денег или телефона, обращайся к `CycleState`/`GameState` через публичные методы. Прямой доступ к ключевым полям запрещён архитектурным тестом.
 5. Для checkpoint-состояния добавляй `checkpoint_stateful` только тем объектам, которым нужен restore позиции/видимости/velocity/existence или custom state. Если объект объявляет custom `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, объявляй оба метода парой; это проверяется тестом. Runtime-spawned objects требуют отдельного restore contract; сейчас он безопасно покрыт для enemy/spawner сценариев.
 6. Если используешь `TriggerSetProperty`, configured `target_paths`/`changes` должны указывать на существующие узлы и реальные property. Чисто музыкальные/sfx trigger-ы могут не иметь target changes; target-changing trigger-ы проверяются `test_trigger_set_property_contracts.gd`.
-7. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
+7. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
+8. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
 
 ## Новый Интерактив
 
@@ -37,6 +38,7 @@
 2. Скрипт, который добавляет себя в `generator_required_light` или `generator_required_lamp`, обязан объявлять `turn_on()`.
 3. Лампы, прожекторы и pickup flashlight должны иметь resolving `light_node` на `PointLight2D`.
 4. Врагам нельзя полагаться на скрытое знание конкретной лампы. Они должны потреблять light contracts через группу/метод или через новый typed component, если появится более строгая абстракция.
+5. `TargetMonsterSpawner` с `enemy_scene` должен явно задавать condition; node-signal/trigger-enter variants должны иметь resolving source paths, реальные signals/properties и optional spawn parent только если он действительно существует.
 
 ## Мини-Игры
 
@@ -66,6 +68,7 @@
 - required group/method contract;
 - scene script должен явно задать condition/config;
 - trigger target path or property contract;
+- utility-level condition/spawn path contract;
 - key-door source or search manager contract;
 - state должен сохраняться в checkpoint/save;
 - новый player-facing текст должен иметь localization key;

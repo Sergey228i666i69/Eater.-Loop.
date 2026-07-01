@@ -74,7 +74,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 Похожий паттерн встречается у дверей, ламп, ноутбуков, холодильника и прожекторов.
 
-Статус: закрыто на уровне runtime contracts. `test_scene_nodepath_contracts.gd` проверяет unlocked/key door targets, blockpost child contracts, money-system paths, light/sprite/audio exported paths and teleport targets. `test_stu_level_path_contracts.gd` отдельно фиксирует STU floor/room paths и dynamic redirect targets. `test_trigger_set_property_contracts.gd` проверяет, что configured `TriggerSetProperty`/`PropertyChange` target paths резолвятся, а target nodes реально имеют указанное property.
+Статус: закрыто на уровне runtime contracts. `test_scene_nodepath_contracts.gd` проверяет unlocked/key door targets, blockpost child contracts, money-system paths, light/sprite/audio exported paths, teleport targets, utility-level paths лебёдки/corridor distortion и `TargetMonsterSpawner` condition paths. `test_stu_level_path_contracts.gd` отдельно фиксирует STU floor/room paths и dynamic redirect targets. `test_trigger_set_property_contracts.gd` проверяет, что configured `TriggerSetProperty`/`PropertyChange` target paths резолвятся, а target nodes реально имеют указанное property.
 
 Оставшийся authoring-долг: если сцены будут визуально дробиться на reusable instances, делать это отдельным scene-refactor после этих validators.
 
@@ -112,4 +112,4 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 - [`objects/environment/smart/target/target.gd`](../objects/environment/smart/target/target.gd), около строк 28 и 98.
 - [`levels/cycles/level_11_STU_1.tscn`](../levels/cycles/level_11_STU_1.tscn), около строки 8557.
 
-Статус: закрыто минимально. `TargetMonsterSpawner` получил `condition_configured`, реальный инстанс в `level_11_STU_1` явно задаёт `ate_this_cycle == true`, а `test_scene_dependency_contracts.gd` запрещает spawner-ы с `enemy_scene`, которые не подтвердили условие. State-флаги spawner теперь читаются через публичные методы `GameState`/`CycleState`, а не через raw property lookup.
+Статус: закрыто минимально. `TargetMonsterSpawner` получил `condition_configured`, реальный инстанс в `level_11_STU_1` явно задаёт `ate_this_cycle == true`, а `test_scene_dependency_contracts.gd` запрещает spawner-ы с `enemy_scene`, которые не подтвердили условие. `test_scene_nodepath_contracts.gd` дополнительно проверяет node-signal и trigger-enter condition paths, signal/property names и optional spawn parent. State-флаги spawner теперь читаются через публичные методы `GameState`/`CycleState`, а не через raw property lookup.
