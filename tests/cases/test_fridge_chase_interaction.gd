@@ -24,15 +24,34 @@ class LegacyCodeLockProbe:
 
 	var target_code: String = ""
 
+class FeedingGameProbe:
+	extends Node
+
+	signal minigame_finished
+
+	var setup_called: bool = false
+	var received_food_count: int = 0
+	var received_food_scenes: Array[PackedScene] = []
+
+	func setup_game(_andrey_face: Texture2D, food_count: int, _bg_music: AudioStream, _win_sound: AudioStream, _eat_sound: AudioStream, _background_texture: Texture2D, food_scenes: Array[PackedScene]) -> void:
+		setup_called = true
+		received_food_count = food_count
+		received_food_scenes = food_scenes
+
 const FridgeScript := preload("res://objects/interactable/fridge/fridge.gd")
 const FridgeCodeLockSessionScript := preload("res://objects/interactable/fridge/fridge_code_lock_session.gd")
+const FridgeFeedingSessionScript := preload("res://objects/interactable/fridge/fridge_feeding_session.gd")
 const CODE_LOCK_SCENE := preload("res://levels/minigames/ui/code_lock.tscn")
+const FEEDING_SCENE := preload("res://levels/minigames/feeding/feed_minigame.tscn")
+const FOOD_SCENE := preload("res://levels/minigames/feeding/food/fish/food_fish.tscn")
 
 func run() -> Array[String]:
 	_test_fridge_is_not_blocked_during_chase()
 	_test_teleport_fridge_clears_chase_state()
 	_test_misconfigured_fridge_does_not_grant_food()
+	_test_invalid_feeding_scene_does_not_grant_food()
 	_test_code_lock_session_applies_access_code()
+	_test_feeding_session_configures_game()
 	return get_failures()
 
 func _test_fridge_is_not_blocked_during_chase() -> void:
@@ -77,6 +96,28 @@ func _test_misconfigured_fridge_does_not_grant_food() -> void:
 	fridge.free()
 	CycleState.reset_cycle_state()
 
+func _test_invalid_feeding_scene_does_not_grant_food() -> void:
+	assert_true(CycleState != null, "CycleState autoload is missing")
+	if CycleState == null:
+		return
+	CycleState.reset_cycle_state()
+
+	var invalid_root := Node.new()
+	var invalid_scene := PackedScene.new()
+	assert_eq(invalid_scene.pack(invalid_root), OK, "Invalid feeding test scene must pack")
+	invalid_root.free()
+
+	var food_scenes: Array[PackedScene] = [FOOD_SCENE]
+	var fridge := FridgeScript.new()
+	fridge.unique_intro_once_per_run = false
+	fridge.minigame_scene = invalid_scene
+	fridge.food_scenes = food_scenes
+	fridge.call("_start_feeding_process")
+	assert_true(not bool(CycleState.has_eaten_this_cycle()), "Invalid feeding scene must fail closed instead of marking food as eaten")
+	assert_true(not fridge.is_completed, "Invalid feeding scene must not complete the fridge interaction")
+	fridge.free()
+	CycleState.reset_cycle_state()
+
 func _test_code_lock_session_applies_access_code() -> void:
 	var lock_instance: Node = FridgeCodeLockSessionScript.create_lock_instance(CODE_LOCK_SCENE, "2718")
 	assert_true(lock_instance != null, "Fridge code-lock helper must instantiate the configured scene")
@@ -88,3 +129,18 @@ func _test_code_lock_session_applies_access_code() -> void:
 	FridgeCodeLockSessionScript.apply_access_code(legacy_lock, "3141")
 	assert_eq(legacy_lock.target_code, "3141", "Fridge code-lock helper must keep the legacy target_code fallback")
 	legacy_lock.free()
+
+func _test_feeding_session_configures_game() -> void:
+	var food_scenes: Array[PackedScene] = [FOOD_SCENE]
+	var empty_food_scenes: Array[PackedScene] = []
+	assert_true(FridgeFeedingSessionScript.can_start(FEEDING_SCENE, food_scenes), "Feeding helper should allow non-empty scene and food config")
+	assert_true(not FridgeFeedingSessionScript.can_start(null, food_scenes), "Feeding helper must reject missing minigame scene")
+	assert_true(not FridgeFeedingSessionScript.can_start(FEEDING_SCENE, empty_food_scenes), "Feeding helper must reject missing food scenes")
+
+	var game := FeedingGameProbe.new()
+	assert_true(FridgeFeedingSessionScript.has_finish_signal(game), "Feeding helper must recognize minigame_finished signal")
+	FridgeFeedingSessionScript.configure_game(game, null, 7, null, null, null, null, food_scenes)
+	assert_true(game.setup_called, "Feeding helper must call setup_game when supported")
+	assert_eq(game.received_food_count, 7, "Feeding helper must pass food_count into setup_game")
+	assert_eq(game.received_food_scenes.size(), 1, "Feeding helper must pass food_scenes into setup_game")
+	game.free()

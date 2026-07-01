@@ -4,6 +4,7 @@ class_name Fridge
 signal feeding_finished
 
 const FridgeCodeLockSessionScript := preload("res://objects/interactable/fridge/fridge_code_lock_session.gd")
+const FridgeFeedingSessionScript := preload("res://objects/interactable/fridge/fridge_feeding_session.gd")
 
 @export_group("Minigame (Feeding)")
 ## Сцена мини-игры (еда).
@@ -212,10 +213,8 @@ func _start_feeding_process() -> void:
 		_sfx_player.stream = open_sound
 		_sfx_player.play()
 	
-	# Проверка наличия еды
-	var has_food := not food_scenes.is_empty()
 	var selected_scene := _resolve_feeding_scene()
-	if selected_scene == null or not has_food:
+	if not FridgeFeedingSessionScript.can_start(selected_scene, food_scenes):
 		push_warning("Frizzer: Нет сцены мини-игры или еды!")
 		_is_interacting = false
 		fail_interaction("missing_feeding_scene_or_food")
@@ -223,15 +222,22 @@ func _start_feeding_process() -> void:
 			UIMessage.show_notification("Холодильник пуст.")
 		return
 	
-	# Запуск игры
-	var game = selected_scene.instantiate()
+	var game: Node = FridgeFeedingSessionScript.create_game(selected_scene)
+	if not FridgeFeedingSessionScript.has_finish_signal(game):
+		push_warning("Frizzer: Некорректная сцена мини-игры еды!")
+		if game != null:
+			game.queue_free()
+		_is_interacting = false
+		fail_interaction("invalid_feeding_scene")
+		if UIMessage:
+			UIMessage.show_notification("Холодильник пуст.")
+		return
+
 	_current_minigame = game
 	attach_minigame(game)
 	_mark_unique_intro_as_played(selected_scene)
 	
-	# Передаём параметры в feeding minigame, если сцена поддерживает этот контракт.
-	if game.has_method("setup_game"):
-		game.setup_game(andrey_face, food_count, bg_music, win_sound, eat_sound, background_texture, food_scenes)
+	FridgeFeedingSessionScript.configure_game(game, andrey_face, food_count, bg_music, win_sound, eat_sound, background_texture, food_scenes)
 	
 	game.minigame_finished.connect(_on_feeding_finished)
 

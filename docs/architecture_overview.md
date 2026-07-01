@@ -152,6 +152,8 @@
   держал mapping offset-полей внутри большого фасада.
 - `FridgeCodeLockSession` вынес code-lock scene creation и access-code property
   wiring из `Fridge`, сохранив публичный scene/export contract холодильника.
+- `FridgeFeedingSession` вынес feeding minigame config/instantiation/setup contract
+  из `Fridge`; некорректная feeding scene теперь fail-closed до выдачи еды.
 - Устранена гонка при sync-громкости в кроссфейде базовой музыки.
 - Добавлены runtime-тесты для перехода `menu -> level_01_start` и synthetic race.
 - Добавлен архитектурный тест, запрещающий внешние вызовы `MusicManager._*`.
