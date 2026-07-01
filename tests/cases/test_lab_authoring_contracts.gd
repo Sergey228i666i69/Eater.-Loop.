@@ -6,6 +6,7 @@ const FRIDGE_SCRIPT := "res://objects/interactable/fridge/fridge.gd"
 
 func run() -> Array[String]:
 	_test_laptop_lab_settings_are_valid()
+	_test_laptop_minigame_scenes_match_lab_contract()
 	_test_multi_lab_scenes_use_unique_ids()
 	_test_required_lab_ids_have_laptop_sources()
 	return get_failures()
@@ -18,6 +19,25 @@ func _test_laptop_lab_settings_are_valid() -> void:
 		for laptop in _collect_lab_laptops(root):
 			assert_true(float(laptop.get("time_limit")) > 0.0, "Laptop time_limit must be positive: %s:%s" % [path, root.get_path_to(laptop)])
 			assert_true(float(laptop.get("penalty_time")) >= 0.0, "Laptop penalty_time must be non-negative: %s:%s" % [path, root.get_path_to(laptop)])
+		root.free()
+
+func _test_laptop_minigame_scenes_match_lab_contract() -> void:
+	for path in _list_level_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		for laptop in _collect_lab_laptops(root):
+			var minigame_scene := _get_packed_scene(laptop, "minigame_scene")
+			var game := minigame_scene.instantiate() if minigame_scene != null else null
+			assert_true(game != null, "Laptop minigame_scene must instantiate: %s:%s" % [path, root.get_path_to(laptop)])
+			if game == null:
+				continue
+			assert_true(game is TimedLabMinigameBase, "Laptop minigame_scene must extend TimedLabMinigameBase: %s:%s" % [path, root.get_path_to(laptop)])
+			assert_true(game.has_signal("task_completed"), "Laptop minigame_scene must expose task_completed signal: %s:%s" % [path, root.get_path_to(laptop)])
+			assert_true(_has_property(game, "time_limit"), "Laptop minigame_scene must expose time_limit: %s:%s" % [path, root.get_path_to(laptop)])
+			assert_true(_has_property(game, "penalty_time"), "Laptop minigame_scene must expose penalty_time: %s:%s" % [path, root.get_path_to(laptop)])
+			assert_true(_has_property(game, "lab_completion_id"), "Laptop minigame_scene must expose lab_completion_id: %s:%s" % [path, root.get_path_to(laptop)])
+			game.free()
 		root.free()
 
 func _test_multi_lab_scenes_use_unique_ids() -> void:

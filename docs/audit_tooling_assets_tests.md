@@ -87,7 +87,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Project-config contract для main scene, включённых editor plugins и configured translations.
 - Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage.
 - Level authoring contract для cycle metadata, configured bed transitions, conditional respawn paths и включённых стартовых текстов.
-- Lab authoring contract для lab laptop timer settings, explicit lab IDs и fridge required-lab references.
+- Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.
 - Fridge authoring contract для feeding/code-lock/final fridge configs, minigame signals/setup methods, food scenes, face/background и code-lock scene.
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
 - Trigger target/property contract для configured `TriggerSetProperty` и `PropertyChange`.
