@@ -79,7 +79,7 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~death-title/glitch presentation;~~ вынесено в `game_director_death_title_presenter.gd`.
    - ~~stalker spawn/checkpoint service;~~ вынесено в `game_director_stalker_service.gd`.
    - death/checkpoint lifecycle service: death camera capture/restore вынесен в `game_director_death_camera_coordinator.gd`, retry checkpoint restore/darken policy вынесена в `game_director_death_retry_coordinator.gd`; локальный UI cleanup/reload tail ещё в директоре.
-   - distortion service: minigame gate/pending activation state вынесен в `game_director_distortion_gate.gd`, progress/easing math вынесен в `game_director_distortion_progress.gd`; shader/material effect application ещё в директоре.
+   - distortion service: minigame gate/pending activation state вынесен в `game_director_distortion_gate.gd`, progress/easing math вынесен в `game_director_distortion_progress.gd`, overlay/material actuator вынесен в `game_director_distortion_overlay_coordinator.gd`; phase orchestration ещё в директоре.
    - ~~overlay layer policy;~~ вынесено в `game_director_overlay_layer_coordinator.gd`.
    - ~~death cursor/input coordinator;~~ вынесено в `game_director_death_cursor_coordinator.gd`.
 2. `UIMessage`:

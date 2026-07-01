@@ -63,6 +63,9 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"var _minigame_active: bool",
 	"var _minigame_blocks_distortion",
 	"var _pending_distortion_activation",
+	"set_shader_parameter(",
+	"get_shader_parameter(",
+	"shader_parameter/intensity",
 	"func _ease_out",
 	"pow(1.0 - t, 2.0)"
 ]

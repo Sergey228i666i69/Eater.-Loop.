@@ -7,6 +7,7 @@ const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const DistortionGate = preload("res://levels/game_director_distortion_gate.gd")
+const DistortionOverlayCoordinator = preload("res://levels/game_director_distortion_overlay_coordinator.gd")
 const DistortionProgress = preload("res://levels/game_director_distortion_progress.gd")
 const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
 const StalkerService = preload("res://levels/game_director_stalker_service.gd")
@@ -113,6 +114,7 @@ var _death_cursor_coordinator: RefCounted
 var _death_retry_coordinator: RefCounted
 var _death_title_presenter: RefCounted
 var _distortion_gate: RefCounted
+var _distortion_overlay_coordinator: RefCounted
 var _distortion_progress_helper: RefCounted
 var _overlay_layer_coordinator: RefCounted
 var _stalker_service: RefCounted
@@ -132,6 +134,7 @@ func _ready() -> void:
 	_timer.process_mode = Node.PROCESS_MODE_PAUSABLE
 	_timer.timeout.connect(_on_distortion_timeout)
 	add_child(_timer)
+	_distortion_overlay_coordinator = DistortionOverlayCoordinator.new()
 	_create_distortion_overlay()
 	_create_death_overlay()
 	_death_camera_coordinator = DeathCameraCoordinator.new()
@@ -161,18 +164,18 @@ func _process(delta: float) -> void:
 	_update_overlay_layer()
 	if _death_sequence_active:
 		return
-	if _distortion_rect == null or _distortion_material == null:
+	if not _get_distortion_overlay_coordinator().has_distortion_overlay():
 		return
 	if not _is_distortion_allowed():
 		_hide_distortion_overlays()
 		return
 	var has_active := false
 	if _distortion_active:
-		_distortion_rect.visible = true
+		_get_distortion_overlay_coordinator().set_distortion_visible(true)
 		_advance_distortion(delta)
 		has_active = true
 	if _transition_active:
-		_transition_rect.visible = true
+		_get_distortion_overlay_coordinator().set_transition_visible(true)
 		_advance_transition(delta)
 		has_active = true
 	if _damage_flash_active:
@@ -253,11 +256,9 @@ func _activate_distortion_phase() -> void:
 	_transition_progress = 0.0
 	_flash_active = false
 	_damage_flash_active = false
-	if _damage_rect:
-		_damage_rect.visible = false
-	_set_damage_intensity(0.0)
-	_distortion_rect.visible = _is_distortion_allowed()
-	_transition_rect.visible = _is_distortion_allowed()
+	_get_distortion_overlay_coordinator().reset_damage_overlay()
+	_get_distortion_overlay_coordinator().set_distortion_visible(_is_distortion_allowed())
+	_get_distortion_overlay_coordinator().set_transition_visible(_is_distortion_allowed())
 	_apply_distortion_progress(0.0)
 	_apply_transition_strength(1.0)
 	_spawn_stalker_if_needed()
@@ -334,8 +335,6 @@ func _create_distortion_overlay() -> void:
 	_distortion_material.shader = preload("res://shaders/distortion_overlay.gdshader")
 	_distortion_rect.material = _distortion_material
 	_overlay_layer.add_child(_distortion_rect)
-	_set_distortion_intensity(0.0)
-	_set_distortion_squash(0.0)
 	
 	_transition_rect = ColorRect.new()
 	_transition_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -345,8 +344,6 @@ func _create_distortion_overlay() -> void:
 	_transition_material.shader = preload("res://shaders/distortion_transition.gdshader")
 	_transition_rect.material = _transition_material
 	_overlay_layer.add_child(_transition_rect)
-	_set_transition_intensity(0.0)
-	_set_transition_squash(0.0)
 
 	_damage_rect = ColorRect.new()
 	_damage_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -356,8 +353,6 @@ func _create_distortion_overlay() -> void:
 	_damage_material.shader = preload("res://shaders/distortion_transition.gdshader")
 	_damage_rect.material = _damage_material
 	_overlay_layer.add_child(_damage_rect)
-	_set_damage_intensity(0.0)
-	_configure_damage_material()
 
 	_light_only_jump_rect = ColorRect.new()
 	_light_only_jump_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -367,28 +362,31 @@ func _create_distortion_overlay() -> void:
 	_light_only_jump_material.shader = LIGHT_ONLY_JUMP_SHADER
 	_light_only_jump_rect.material = _light_only_jump_material
 	_overlay_layer.add_child(_light_only_jump_rect)
+	_bind_distortion_overlay_coordinator()
+	_get_distortion_overlay_coordinator().reset_distortion_overlay()
+	_get_distortion_overlay_coordinator().reset_transition_overlay()
+	_get_distortion_overlay_coordinator().reset_damage_overlay()
 	_configure_light_only_jump_material()
-	_set_light_only_jump_intensity(0.0)
+	_get_distortion_overlay_coordinator().reset_light_only_jump_overlay()
+	_configure_damage_material()
 
 func _flash_red() -> void:
-	if _distortion_rect.visible:
+	if _get_distortion_overlay_coordinator().is_distortion_visible():
 		return
 	if not _is_distortion_allowed():
 		return
 	_flash_active = true
-	_distortion_rect.visible = true
-	_set_distortion_intensity(0.25)
-	_set_distortion_squash(0.0)
+	_get_distortion_overlay_coordinator().set_distortion_visible(true)
+	_get_distortion_overlay_coordinator().set_distortion_intensity(0.25)
+	_get_distortion_overlay_coordinator().set_distortion_squash(0.0)
 	get_tree().create_timer(0.1).timeout.connect(func():
 		if CycleState == null or CycleState.is_normal_phase():
-			_distortion_rect.visible = false
-			_set_distortion_intensity(0.0)
-			_set_distortion_squash(0.0)
+			_get_distortion_overlay_coordinator().reset_distortion_overlay()
 		_flash_active = false
 	)
 
 func _flash_damage() -> void:
-	if _damage_rect == null or _damage_material == null:
+	if not _get_distortion_overlay_coordinator().has_damage_overlay():
 		return
 	if _death_sequence_active:
 		return
@@ -398,13 +396,11 @@ func _flash_damage() -> void:
 		return
 	_damage_flash_active = true
 	_configure_damage_material()
-	_damage_rect.visible = true
-	_set_damage_intensity(damage_flash_intensity)
+	_get_distortion_overlay_coordinator().set_damage_visible(true)
+	_get_distortion_overlay_coordinator().set_damage_intensity(damage_flash_intensity)
 	_apply_damage_camera_punch()
 	get_tree().create_timer(damage_flash_duration).timeout.connect(func():
-		if _damage_rect:
-			_damage_rect.visible = false
-			_set_damage_intensity(0.0)
+		_get_distortion_overlay_coordinator().reset_damage_overlay()
 		_damage_flash_active = false
 	)
 
@@ -622,54 +618,13 @@ func _release_death_pause() -> void:
 	elif get_tree():
 		get_tree().paused = false
 
-func _set_distortion_intensity(value: float) -> void:
-	if _distortion_material == null:
-		return
-	_distortion_material.set_shader_parameter("intensity", value)
-
-func _set_distortion_squash(value: float) -> void:
-	if _distortion_material == null:
-		return
-	_distortion_material.set_shader_parameter("squash_amount", value)
-
-func _set_transition_intensity(value: float) -> void:
-	if _transition_material == null:
-		return
-	_transition_material.set_shader_parameter("intensity", value)
-
-func _set_transition_squash(value: float) -> void:
-	if _transition_material == null:
-		return
-	_transition_material.set_shader_parameter("squash_amount", value)
-
-func _set_damage_intensity(value: float) -> void:
-	if _damage_material == null:
-		return
-	_damage_material.set_shader_parameter("intensity", value)
-
-func _set_light_only_jump_intensity(value: float) -> void:
-	if _light_only_jump_material == null:
-		return
-	_light_only_jump_material.set_shader_parameter("intensity", float(clamp(value, 0.0, 1.0)))
-
-func _get_light_only_jump_intensity() -> float:
-	if _light_only_jump_material == null:
-		return 0.0
-	var value: Variant = _light_only_jump_material.get_shader_parameter("intensity")
-	if value == null:
-		return 0.0
-	return clampf(float(value), 0.0, 1.0)
-
 func _configure_light_only_jump_material() -> void:
-	if _light_only_jump_material == null:
-		return
-	_light_only_jump_material.set_shader_parameter("noise_speed", light_only_jump_noise_speed)
-	_light_only_jump_material.set_shader_parameter("glitch_amount", light_only_jump_glitch_amount)
+	_get_distortion_overlay_coordinator().configure_light_only_jump_material(light_only_jump_noise_speed, light_only_jump_glitch_amount)
 
 func trigger_light_only_jump_effect(peak_intensity: float = -1.0) -> void:
 	if not light_only_jump_effect_enabled:
 		return
-	if _light_only_jump_rect == null or _light_only_jump_material == null:
+	if not _get_distortion_overlay_coordinator().has_light_only_jump_overlay():
 		return
 	if _death_sequence_active:
 		return
@@ -678,41 +633,36 @@ func trigger_light_only_jump_effect(peak_intensity: float = -1.0) -> void:
 	target_peak = clampf(target_peak, 0.0, 1.0)
 	var attack_time := maxf(0.01, light_only_jump_attack_duration)
 	var release_time := maxf(0.01, light_only_jump_release_duration)
-	var current := _get_light_only_jump_intensity()
+	var current: float = _get_distortion_overlay_coordinator().get_light_only_jump_intensity()
 	var peak := maxf(current, target_peak)
-	_light_only_jump_rect.visible = true
+	_get_distortion_overlay_coordinator().set_light_only_jump_visible(true)
 	_light_only_jump_active = true
 	if _light_only_jump_tween != null and is_instance_valid(_light_only_jump_tween):
 		_light_only_jump_tween.kill()
 	_light_only_jump_tween = create_tween()
-	_light_only_jump_tween.tween_property(_light_only_jump_material, "shader_parameter/intensity", peak, attack_time).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	_light_only_jump_tween.tween_property(_light_only_jump_material, "shader_parameter/intensity", 0.0, release_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_get_distortion_overlay_coordinator().tween_light_only_jump_intensity(_light_only_jump_tween, peak, attack_time, release_time)
 	_light_only_jump_tween.finished.connect(_on_light_only_jump_effect_finished)
 
 func _on_light_only_jump_effect_finished() -> void:
 	_light_only_jump_tween = null
 	_light_only_jump_active = false
-	if _light_only_jump_rect:
-		_light_only_jump_rect.visible = false
-	_set_light_only_jump_intensity(0.0)
+	_get_distortion_overlay_coordinator().reset_light_only_jump_overlay()
 
 func _stop_light_only_jump_effect() -> void:
 	if _light_only_jump_tween != null and is_instance_valid(_light_only_jump_tween):
 		_light_only_jump_tween.kill()
 	_light_only_jump_tween = null
 	_light_only_jump_active = false
-	if _light_only_jump_rect:
-		_light_only_jump_rect.visible = false
-	_set_light_only_jump_intensity(0.0)
+	_get_distortion_overlay_coordinator().reset_light_only_jump_overlay()
 
 func _configure_damage_material() -> void:
-	if _damage_material == null:
-		return
-	_damage_material.set_shader_parameter("desaturation", damage_flash_desaturation)
-	_damage_material.set_shader_parameter("shake_power", damage_flash_shake_power)
-	_damage_material.set_shader_parameter("color_bleeding", damage_flash_color_bleeding)
-	_damage_material.set_shader_parameter("glitch_lines", damage_flash_glitch_lines)
-	_damage_material.set_shader_parameter("vignette_intensity", damage_flash_vignette_intensity)
+	_get_distortion_overlay_coordinator().configure_damage_material(
+		damage_flash_desaturation,
+		damage_flash_shake_power,
+		damage_flash_color_bleeding,
+		damage_flash_glitch_lines,
+		damage_flash_vignette_intensity
+	)
 
 func _apply_damage_camera_punch() -> void:
 	if damage_flash_duration <= 0.0:
@@ -767,15 +717,10 @@ func _resolve_input_kind(event: InputEvent) -> int:
 	return InputDeviceUtilsClass.resolve_input_kind(event)
 
 func _apply_distortion_progress(progress: float) -> void:
-	var value: float = float(clamp(progress, 0.0, 1.0))
-	_set_distortion_intensity(value)
-	_set_distortion_squash(value * distortion_squash_amount)
+	_get_distortion_overlay_coordinator().apply_distortion_progress(progress, distortion_squash_amount)
 
 func _apply_transition_strength(strength: float) -> void:
-	var value: float = float(clamp(strength, 0.0, 1.0))
-	# Мы убрали squash, так как новый шейдер делает всё через intensity
-	_set_transition_intensity(value * distortion_transition_intensity)
-	# _set_transition_squash(...) — эту строку можно удалить, она больше не нужна
+	_get_distortion_overlay_coordinator().apply_transition_strength(strength, distortion_transition_intensity)
 
 func _advance_distortion(delta: float) -> void:
 	_distortion_progress = _get_distortion_progress_helper().advance_progress(_distortion_progress, delta, distortion_ramp_duration)
@@ -788,8 +733,7 @@ func _advance_transition(delta: float) -> void:
 	_apply_transition_strength(strength)
 	if _transition_progress >= 1.0:
 		_transition_active = false
-		if _transition_rect:
-			_transition_rect.visible = false
+		_get_distortion_overlay_coordinator().set_transition_visible(false)
 
 func _is_distortion_allowed() -> bool:
 	return _get_distortion_gate().is_distortion_allowed(_in_game_scene)
@@ -803,6 +747,24 @@ func _get_distortion_gate() -> RefCounted:
 	if _distortion_gate == null:
 		_distortion_gate = DistortionGate.new()
 	return _distortion_gate
+
+func _get_distortion_overlay_coordinator() -> RefCounted:
+	if _distortion_overlay_coordinator == null:
+		_distortion_overlay_coordinator = DistortionOverlayCoordinator.new()
+		_bind_distortion_overlay_coordinator()
+	return _distortion_overlay_coordinator
+
+func _bind_distortion_overlay_coordinator() -> void:
+	_get_distortion_overlay_coordinator().bind_overlays(
+		_distortion_rect,
+		_distortion_material,
+		_transition_rect,
+		_transition_material,
+		_damage_rect,
+		_damage_material,
+		_light_only_jump_rect,
+		_light_only_jump_material
+	)
 
 func _update_overlay_layer() -> void:
 	if _overlay_layer == null:
@@ -819,22 +781,7 @@ func _update_overlay_layer() -> void:
 	_overlay_layer_coordinator.apply_layer(_overlay_layer, tree_paused, pause_menu_open, _get_distortion_gate().is_minigame_active(), active_minigame_layer)
 
 func _hide_distortion_overlays() -> void:
-	if _distortion_rect:
-		_distortion_rect.visible = false
-	if _transition_rect:
-		_transition_rect.visible = false
-	if _damage_rect and not _damage_flash_active:
-		_damage_rect.visible = false
-	if _light_only_jump_rect and not _light_only_jump_active:
-		_light_only_jump_rect.visible = false
-	_set_distortion_intensity(0.0)
-	_set_distortion_squash(0.0)
-	_set_transition_intensity(0.0)
-	_set_transition_squash(0.0)
-	if not _damage_flash_active:
-		_set_damage_intensity(0.0)
-	if not _light_only_jump_active:
-		_set_light_only_jump_intensity(0.0)
+	_get_distortion_overlay_coordinator().hide_inactive_overlays(_damage_flash_active, _light_only_jump_active)
 
 func _spawn_stalker_if_needed() -> void:
 	if _stalker_spawned:
@@ -932,9 +879,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	_flash_active = false
 	_damage_flash_active = false
 	_stop_light_only_jump_effect()
-	if _damage_rect != null:
-		_damage_rect.visible = false
-	_set_damage_intensity(0.0)
+	_get_distortion_overlay_coordinator().reset_damage_overlay()
 	if _death_sequence_active:
 		_reset_death_screen_state()
 	if CycleState != null and CycleState.is_normal_phase() and current_max_time > 0.0:
