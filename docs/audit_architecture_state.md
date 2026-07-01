@@ -55,9 +55,9 @@
 
 Риск не в том, что класс прямо сейчас сломан, а в цене изменений: любая новая механика уровня может задеть смерть, чекпоинт, музыку или курсор.
 
-Статус: частично разгружен. Pause ownership для death screen закрыт через owner-token API `PauseManager`, death-title sequence/glitch layout/material factory вынесены в `levels/game_director_death_title_presenter.gd`, а stalker spawn/find/capture/restore вынесен в `levels/game_director_stalker_service.gd` и покрыт отдельным тестом. Сам класс всё ещё владеет cycle timer, distortion, death lifecycle, checkpoint bridge и overlay coordination.
+Статус: частично разгружен. Pause ownership для death screen закрыт через owner-token API `PauseManager`, death-title sequence/glitch layout/material factory вынесены в `levels/game_director_death_title_presenter.gd`, stalker spawn/find/capture/restore вынесен в `levels/game_director_stalker_service.gd`, а overlay layer policy вынесена в `levels/game_director_overlay_layer_coordinator.gd`; оба новых helper-а покрыты отдельными тестами. Сам класс всё ещё владеет cycle timer, distortion, death lifecycle, checkpoint bridge и cursor coordination.
 
-Следующий ремонт: выносить death/checkpoint lifecycle, distortion flow и overlay/cursor coordination отдельными tested slices.
+Следующий ремонт: выносить death/checkpoint lifecycle, distortion flow и cursor coordination отдельными tested slices.
 
 ## P2: `UIMessage` Стал Service Locator
 

@@ -3,6 +3,7 @@ extends Node
 signal distortion_started
 
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
+const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
 const StalkerService = preload("res://levels/game_director_stalker_service.gd")
 
 ## Время по умолчанию, если на уровне не задано.
@@ -111,6 +112,7 @@ var _death_camera_base_offset: Vector2 = Vector2.ZERO
 var _input_kind: int = 0
 var _death_focus_style_hidden: StyleBoxEmpty
 var _death_title_presenter: RefCounted
+var _overlay_layer_coordinator: RefCounted
 var _stalker_service: RefCounted
 
 const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
@@ -130,6 +132,7 @@ func _ready() -> void:
 	add_child(_timer)
 	_create_distortion_overlay()
 	_create_death_overlay()
+	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	_stalker_service = StalkerService.new()
 	_sync_stalker_service()
 	_connect_minigame_controller()
@@ -839,16 +842,16 @@ func _is_distortion_allowed() -> bool:
 func _update_overlay_layer() -> void:
 	if _overlay_layer == null:
 		return
-	var target_layer := 90
+	if _overlay_layer_coordinator == null:
+		_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	var pause_menu_open := false
 	if PauseManager and PauseManager.has_method("is_pause_menu_open"):
 		pause_menu_open = PauseManager.is_pause_menu_open()
-	if pause_menu_open or (get_tree() and get_tree().paused and not _minigame_active):
-		target_layer = 70
-	elif _minigame_active and MinigameController and MinigameController.has_method("get_active_minigame_layer"):
-		target_layer = clampi(MinigameController.get_active_minigame_layer() - 1, 0, 89)
-	if _overlay_layer.layer != target_layer:
-		_overlay_layer.layer = target_layer
+	var tree_paused := get_tree() != null and get_tree().paused
+	var active_minigame_layer := OverlayLayerCoordinator.DEFAULT_OVERLAY_LAYER
+	if MinigameController and MinigameController.has_method("get_active_minigame_layer"):
+		active_minigame_layer = MinigameController.get_active_minigame_layer()
+	_overlay_layer_coordinator.apply_layer(_overlay_layer, tree_paused, pause_menu_open, _minigame_active, active_minigame_layer)
 
 func _hide_distortion_overlays() -> void:
 	if _distortion_rect:

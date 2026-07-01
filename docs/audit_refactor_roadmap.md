@@ -80,7 +80,8 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~stalker spawn/checkpoint service;~~ вынесено в `game_director_stalker_service.gd`.
    - death/checkpoint lifecycle service;
    - distortion service;
-   - overlay/cursor coordinator.
+   - ~~overlay layer policy;~~ вынесено в `game_director_overlay_layer_coordinator.gd`.
+   - cursor coordinator.
 2. `UIMessage`:
    - message/prompt UI;
    - ~~fade transition tween/token state;~~ вынесено в `ui_fade_controller.gd`.

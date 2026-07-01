@@ -44,7 +44,10 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"call('handle_custom_death_screen'",
 	"func _find_stalker_spawn",
 	"func _create_stalker",
-	"func _restore_stalker_from_checkpoint"
+	"func _restore_stalker_from_checkpoint",
+	"target_layer := 90",
+	"target_layer = 70",
+	"get_active_minigame_layer() - 1"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",
