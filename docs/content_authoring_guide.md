@@ -16,11 +16,13 @@
 1. Используй существующий `levels/cycles/level.gd`-контур, если сцена является игровой. Не добавляй локальные проверки вида `path.find("/levels/cycles/")`; классификация сцены должна идти через `SceneContext`.
 2. Не правь `GameDirector` ради локальной механики уровня, пока это можно выразить интерактивом, trigger-ом, resource/config-ом или отдельным scene script.
 3. Двери должны иметь resolving `target_marker`. Self-target допустим только для inert/locked двери, иначе fade-to-self снова станет runtime-багом.
-4. Если уровень зависит от холодильника, лабораторной, еды, денег или телефона, обращайся к `CycleState`/`GameState` через публичные методы. Прямой доступ к ключевым полям запрещён архитектурным тестом.
-5. Для checkpoint-состояния добавляй `checkpoint_stateful` только тем объектам, которым нужен restore позиции/видимости/velocity/existence или custom state. Если объект объявляет custom `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, объявляй оба метода парой; это проверяется тестом. Runtime-spawned objects требуют отдельного restore contract; сейчас он безопасно покрыт для enemy/spawner сценариев.
-6. Если используешь `TriggerSetProperty`, configured `target_paths`/`changes` должны указывать на существующие узлы и реальные property. Чисто музыкальные/sfx trigger-ы могут не иметь target changes; target-changing trigger-ы проверяются `test_trigger_set_property_contracts.gd`.
-7. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
-8. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
+4. Cycle-level scene должна иметь положительный `cycle_number`, неотрицательный `timer_duration` и хотя бы одну кровать с loadable `next_level_path`. Self-loop кровати запрещён `test_level_authoring_contracts.gd`.
+5. Если включаешь стартовый hint/subtitle, текст должен быть непустым. Если задаёшь `fridge_interacted_spawn_marker_path`, путь должен резолвиться в `Node2D`.
+6. Если уровень зависит от холодильника, лабораторной, еды, денег или телефона, обращайся к `CycleState`/`GameState` через публичные методы. Прямой доступ к ключевым полям запрещён архитектурным тестом.
+7. Для checkpoint-состояния добавляй `checkpoint_stateful` только тем объектам, которым нужен restore позиции/видимости/velocity/existence или custom state. Если объект объявляет custom `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, объявляй оба метода парой; это проверяется тестом. Runtime-spawned objects требуют отдельного restore contract; сейчас он безопасно покрыт для enemy/spawner сценариев.
+8. Если используешь `TriggerSetProperty`, configured `target_paths`/`changes` должны указывать на существующие узлы и реальные property. Чисто музыкальные/sfx trigger-ы могут не иметь target changes; target-changing trigger-ы проверяются `test_trigger_set_property_contracts.gd`.
+9. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
+10. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
 
 ## Новый Интерактив
 
@@ -67,6 +69,7 @@
 - required child name or `NodePath`;
 - required group/method contract;
 - scene script должен явно задать condition/config;
+- cycle-level metadata or bed transition contract;
 - trigger target path or property contract;
 - utility-level condition/spawn path contract;
 - key-door source or search manager contract;
