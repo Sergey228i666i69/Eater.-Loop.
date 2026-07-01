@@ -102,7 +102,7 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 
 Риск: английская локаль получит русские fallback-и или битый текст.
 
-Статус: mojibake исправлен, а [`tests/cases/test_localization_contracts.gd`](../tests/cases/test_localization_contracts.gd) проверяет CSV-колонки `keys`/`ru`/`en`, пустые значения и mojibake в runtime text sources. Оставшийся ремонт: постепенно заменить транслит-ключи и hardcoded player-facing строки на явные localization keys, затем ужесточить validator до полного coverage.
+Статус: mojibake исправлен, а [`tests/cases/test_localization_contracts.gd`](../tests/cases/test_localization_contracts.gd) проверяет CSV-колонки `keys`/`ru`/`en`, пустые значения, mojibake в runtime text sources и наличие CSV-ключей у русскоязычных player-facing строк в сценах/скриптах. Оставшийся ремонт: постепенно заменить транслит-ключи и решить, нужно ли блокировать non-Russian/technical UI labels тем же validator-ом.
 
 ## Мелкие Smells
 

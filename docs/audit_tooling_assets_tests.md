@@ -85,10 +85,10 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`.github/workflows/godot-tests.yml`](../.github/workflows/godot-tests.yml), который делает checkout с LFS, `git lfs pull`, ставит Godot 4.6.1, запускает parser-only и full suite.
 - Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
 - Project-config contract для main scene, включённых editor plugins и configured translations.
-- Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений и mojibake в runtime text sources.
+- Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage.
 
 Ограничения:
 
 - shell helper вычисляет project root относительно себя и запускает Godot с `--path`, поэтому может запускаться не из корня.
 
-Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и базовую localization hygiene; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.
+Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и localization hygiene/key coverage для русскоязычных player-facing строк; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.

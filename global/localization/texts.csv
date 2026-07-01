@@ -214,5 +214,21 @@ Need %d more RUB."
 "Я подвесил холодильник, чтобы не есть","Я подвесил холодильник, чтобы не есть",I hung up the fridge so I wouldn't eat
 "Я поставил пароль, чтобы не забыть сначала сделать лабу","Я поставил пароль, чтобы не забыть сначала сделать лабу",I set a password so I don't forget to do the lab first
 Я уже поел.,Я уже поел.,I already ate.
+E — включить проектор,E — включить проектор,E - turn on projector
+E — включить свет,E — включить свет,E - turn on light
+E — выключить проектор,E — выключить проектор,E - turn off projector
+E — выключить свет,E — выключить свет,E - turn off light
+Проход стоит 250 рублей,Проход стоит 250 рублей,Passage costs 250 rubles
+Подобрать фонарик,Подобрать фонарик,Pick up flashlight
+Подобрал фонарик.,Подобрал фонарик.,Picked up flashlight.
+Теперь можно спокойно идти спать,Теперь можно спокойно идти спать,Now I can go to sleep peacefully
+Холодильник пуст.,Холодильник пуст.,The fridge is empty.
+Это кровать родителей. Я не собираюсь на ней спать...,Это кровать родителей. Я не собираюсь на ней спать...,This is my parents' bed. I'm not going to sleep in it...
+"Я уже сделал эту работу, и всех всё устроило.","Я уже сделал эту работу, и всех всё устроило.","I already did this work, and everyone was satisfied."
+Я уже сделал эту работу,Я уже сделал эту работу,I already did this work
+"Я уже сдал эту работу, и всех всё устроило.","Я уже сдал эту работу, и всех всё устроило.","I already turned in this work, and everyone was satisfied."
+Я уже сдал эту работу. Оценка отличная.,Я уже сдал эту работу. Оценка отличная.,I already turned in this work. The grade is excellent.
+"Не могу уснуть, мне нужно поесть","Не могу уснуть, мне нужно поесть",I can't sleep, I need to eat
+Надо лечь спать.,Надо лечь спать.,I need to go to sleep.
 Язык,Язык,Language
 Язык интерфейса,Язык интерфейса,Interface Language

@@ -19,7 +19,7 @@
 
 Текущая проблемность после ремонтных проходов: **около 5/10**. Первичный аудит 2026-05-14 оценивал проект на **7.3/10**.
 
-Это не разваленный проект: entrypoint понятен, autoload-и явно заведены, есть локальный тестовый слой и часть архитектурных контрактов уже проверяется. После ремонтных проходов закрыты главные runtime-дыры: input света, фокус интерактивов, run-finish, checkpoint-сценарии, asset tracking, minigame input/timeout, one-shot completion, reversible triggers, явные spawner conditions, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method validators, базовые localization/project-config contracts и внешний доступ к ключевым `GameState`/`CycleState` полям. Naming debt из аудита нормализован, а `UIMessage`, `MinigameController`, death-title/stalker/overlay/cursor/death-camera/death-retry/cycle-timer/cycle-phase/timer-node/distortion-gate/distortion-progress/distortion-overlay/distortion-phase части `GameDirector` получили helper split-ы. Но проект всё ещё дорог в поддержке: уровни завязаны на NodePath/имена детей, `MusicManager`/`GameDirector`/`Player` остаются крупными фасадами, а huge STU-сцены остаются дорогими для ревью.
+Это не разваленный проект: entrypoint понятен, autoload-и явно заведены, есть локальный тестовый слой и часть архитектурных контрактов уже проверяется. После ремонтных проходов закрыты главные runtime-дыры: input света, фокус интерактивов, run-finish, checkpoint-сценарии, asset tracking, minigame input/timeout, one-shot completion, reversible triggers, явные spawner conditions, typed dependency conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method validators, localization CSV/mojibake/RU player-facing key contracts, project-config contracts и внешний доступ к ключевым `GameState`/`CycleState` полям. Naming debt из аудита нормализован, а `UIMessage`, `MinigameController`, death-title/stalker/overlay/cursor/death-camera/death-retry/cycle-timer/cycle-phase/timer-node/distortion-gate/distortion-progress/distortion-overlay/distortion-phase части `GameDirector` получили helper split-ы. Но проект всё ещё дорог в поддержке: уровни завязаны на NodePath/имена детей, `MusicManager`/`GameDirector`/`Player` остаются крупными фасадами, а huge STU-сцены остаются дорогими для ревью.
 
 ## Главные Риски
 
@@ -46,7 +46,7 @@
 
 - Main scene и autoload-и явно заданы в `project.godot`.
 - Есть локальный тест-раннер и 80 тестов.
-- Тесты уже проверяют autoload-и, main scene, project config, localization CSV/mojibake hygiene, загрузку сцен и запрет использования приватного API `MusicManager`.
+- Тесты уже проверяют autoload-и, main scene, project config, localization CSV/mojibake hygiene, RU player-facing localization key coverage, загрузку сцен и запрет использования приватного API `MusicManager`.
 - `MusicManager` большой, но имеет осмысленный публичный фасад.
 - `MinigameSettings` как `Resource` лучше, чем полностью ad-hoc Dictionary-конфиги.
 - `InteractiveObject` уже является полезной базовой точкой для lock/dependency/one-shot/minigame поведения.
@@ -72,5 +72,5 @@
 
 1. Продолжить аккуратный распил `MusicManager`, оставшегося `GameDirector` и `Player` только tested slices.
 2. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.
-3. Добавить validators для полной миграции player-facing строк в localization keys, если эта зона начнёт активно меняться.
+3. Расширять localization validator на non-Russian/technical UI labels, если эта зона начнёт активно меняться.
 4. Добавить отдельный export dry-run job, если понадобится проверять release artifacts автоматически.
