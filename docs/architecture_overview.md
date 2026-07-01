@@ -24,7 +24,7 @@
   Общий helper определения keyboard/mouse/gamepad/Sony input-событий для UI prompt-ов,
   меню и директорского input-mode state.
 - Внутренние helper-и крупных фасадов:
-  `GameDirectorDeathTitlePresenter`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `MinigameBackdropPresenter`, `UIFadeController`.
+  `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathTitlePresenter`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `MinigameBackdropPresenter`, `UIFadeController`.
   Они не являются публичными autoload API и используются для снижения размера
   `GameDirector`, `MinigameController` и `UIMessage` без смены внешних вызовов.
 
@@ -161,7 +161,7 @@
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Добавлены scene-contract validators для critical NodePath/child contracts и отдельные STU path contracts.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
-- `UIMessage`, `MinigameController`, death-title часть, stalker spawn/checkpoint часть и overlay layer policy `GameDirector` получили facade-preserving helper split-ы.
+- `UIMessage`, `MinigameController`, death-title часть, stalker spawn/checkpoint часть, overlay layer policy и death cursor/input policy `GameDirector` получили facade-preserving helper split-ы.
 - Добавлен скелетный `PlayerSkeletonRig` и активный skeleton-only `player.tscn`.
 - `PlayerSkeletonRig` получил первые loop-клипы `idle`, `walk` и `light_run`, а `Player` начал переключать их вместе с текущей логикой движения.
 - Активный `player.tscn` переведён на skeleton-only визуал, старый png-вариант сохранён в sprite-only `LEGASY-ANIMATIONS-CHARACTER.tscn`.

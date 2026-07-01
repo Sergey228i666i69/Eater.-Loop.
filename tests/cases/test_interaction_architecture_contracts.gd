@@ -47,7 +47,10 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"func _restore_stalker_from_checkpoint",
 	"target_layer := 90",
 	"target_layer = 70",
-	"get_active_minigame_layer() - 1"
+	"get_active_minigame_layer() - 1",
+	"CursorManager.request_visible",
+	"CursorManager.release_visible",
+	"CursorManager.set_in_game"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",
@@ -125,7 +128,7 @@ func run() -> Array[String]:
 	assert_true(game_director_content != "", "Failed to read script: %s" % GAME_DIRECTOR_PATH)
 	if game_director_content != "":
 		for pattern in FORBIDDEN_GAME_DIRECTOR_PATTERNS:
-			assert_true(game_director_content.find(pattern) == -1, "Stringly custom death handler access is forbidden: %s" % pattern)
+			assert_true(game_director_content.find(pattern) == -1, "GameDirector must delegate extracted policies instead of owning pattern: %s" % pattern)
 
 	var game_state_content := FileAccess.get_file_as_string(GAME_STATE_PATH)
 	assert_true(game_state_content.find("func autosave_run") != -1, "GameState must expose public autosave_run()")

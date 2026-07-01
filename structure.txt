@@ -679,8 +679,11 @@
 │   ├── ScaryStepsAndDoor.mp3.import
 │   ├── game_director.gd
 │   ├── game_director.gd.uid
+│   ├── game_director_death_cursor_coordinator.gd
 │   ├── game_director_death_title_presenter.gd
 │   ├── game_director_death_title_presenter.gd.uid
+│   ├── game_director_overlay_layer_coordinator.gd
+│   ├── game_director_stalker_service.gd
 │   ├── interaction_prompts.gd
 │   ├── interaction_prompts.gd.uid
 │   ├── music_manager.gd
@@ -1488,6 +1491,9 @@
 │   │   ├── test_gamepad_pick_place_flow.gd.uid
 │   │   ├── test_gamepad_runtime_navigation.gd
 │   │   ├── test_gamepad_runtime_navigation.gd.uid
+│   │   ├── test_game_director_death_cursor_coordinator.gd
+│   │   ├── test_game_director_overlay_layer_coordinator.gd
+│   │   ├── test_game_director_stalker_service.gd
 │   │   ├── test_generator_activates_required_lamps.gd
 │   │   ├── test_generator_activates_required_lamps.gd.uid
 │   │   ├── test_input_actions.gd

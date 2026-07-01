@@ -2,6 +2,7 @@ extends Node
 
 signal distortion_started
 
+const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const OverlayLayerCoordinator = preload("res://levels/game_director_overlay_layer_coordinator.gd")
 const StalkerService = preload("res://levels/game_director_stalker_service.gd")
@@ -110,7 +111,7 @@ var _death_camera_base_rotation: float = 0.0
 var _death_camera_base_zoom: Vector2 = Vector2.ONE
 var _death_camera_base_offset: Vector2 = Vector2.ZERO
 var _input_kind: int = 0
-var _death_focus_style_hidden: StyleBoxEmpty
+var _death_cursor_coordinator: RefCounted
 var _death_title_presenter: RefCounted
 var _overlay_layer_coordinator: RefCounted
 var _stalker_service: RefCounted
@@ -132,6 +133,7 @@ func _ready() -> void:
 	add_child(_timer)
 	_create_distortion_overlay()
 	_create_death_overlay()
+	_death_cursor_coordinator = DeathCursorCoordinator.new()
 	_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	_stalker_service = StalkerService.new()
 	_sync_stalker_service()
@@ -414,7 +416,6 @@ func _update_for_scene(scene: Node) -> void:
 	_minigame_active = false
 	_minigame_blocks_distortion = false
 	_pending_distortion_activation = false
-	_set_mouse_visibility(_in_game_scene)
 	if _in_game_scene:
 		_apply_level_settings(scene)
 		return
@@ -448,10 +449,6 @@ func _resolve_timer_duration(scene: Node) -> float:
 	if scene.has_method("get_timer_duration"):
 		return float(scene.get_timer_duration())
 	return default_time
-
-func _set_mouse_visibility(in_game: bool) -> void:
-	if CursorManager:
-		CursorManager.set_in_game(in_game)
 
 func _create_death_overlay() -> void:
 	_death_layer = CanvasLayer.new()
@@ -514,7 +511,6 @@ func _create_death_overlay() -> void:
 	_death_retry_button.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	_death_retry_button.pressed.connect(_on_death_retry_pressed)
 	content.add_child(_death_retry_button)
-	_death_focus_style_hidden = StyleBoxEmpty.new()
 
 func trigger_death_screen() -> void:
 	if _death_sequence_active:
@@ -772,26 +768,14 @@ func _resolve_primary_camera() -> Camera2D:
 	return null
 
 func _apply_death_input_mode() -> void:
-	var using_gamepad := _input_kind == INPUT_KIND_GAMEPAD
-	if _death_retry_button:
-		if using_gamepad:
-			if _death_focus_style_hidden == null:
-				_death_focus_style_hidden = StyleBoxEmpty.new()
-			_death_retry_button.add_theme_stylebox_override("focus", _death_focus_style_hidden)
-			_death_retry_button.grab_focus()
-		else:
-			_death_retry_button.remove_theme_stylebox_override("focus")
-			if _death_retry_button.has_focus():
-				_death_retry_button.release_focus()
-	if CursorManager:
-		if using_gamepad:
-			CursorManager.release_visible(self)
-		else:
-			CursorManager.request_visible(self)
+	if _death_cursor_coordinator == null:
+		_death_cursor_coordinator = DeathCursorCoordinator.new()
+	_death_cursor_coordinator.apply_input_mode(_death_retry_button, CursorManager, self, _input_kind)
 
 func _release_death_cursor_request() -> void:
-	if CursorManager:
-		CursorManager.release_visible(self)
+	if _death_cursor_coordinator == null:
+		_death_cursor_coordinator = DeathCursorCoordinator.new()
+	_death_cursor_coordinator.release_cursor_request(CursorManager, self)
 
 func _resolve_input_kind(event: InputEvent) -> int:
 	return InputDeviceUtilsClass.resolve_input_kind(event)

@@ -55,9 +55,9 @@
 
 Риск не в том, что класс прямо сейчас сломан, а в цене изменений: любая новая механика уровня может задеть смерть, чекпоинт, музыку или курсор.
 
-Статус: частично разгружен. Pause ownership для death screen закрыт через owner-token API `PauseManager`, death-title sequence/glitch layout/material factory вынесены в `levels/game_director_death_title_presenter.gd`, stalker spawn/find/capture/restore вынесен в `levels/game_director_stalker_service.gd`, а overlay layer policy вынесена в `levels/game_director_overlay_layer_coordinator.gd`; оба новых helper-а покрыты отдельными тестами. Сам класс всё ещё владеет cycle timer, distortion, death lifecycle, checkpoint bridge и cursor coordination.
+Статус: частично разгружен. Pause ownership для death screen закрыт через owner-token API `PauseManager`, death-title sequence/glitch layout/material factory вынесены в `levels/game_director_death_title_presenter.gd`, stalker spawn/find/capture/restore вынесен в `levels/game_director_stalker_service.gd`, overlay layer policy вынесена в `levels/game_director_overlay_layer_coordinator.gd`, а death cursor/input policy вынесена в `levels/game_director_death_cursor_coordinator.gd`; новые helper-ы покрыты отдельными тестами. Сам класс всё ещё владеет cycle timer, distortion, death lifecycle и checkpoint bridge.
 
-Следующий ремонт: выносить death/checkpoint lifecycle, distortion flow и cursor coordination отдельными tested slices.
+Следующий ремонт: выносить death/checkpoint lifecycle и distortion flow отдельными tested slices.
 
 ## P2: `UIMessage` Стал Service Locator
 
@@ -106,7 +106,7 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 
 ## Мелкие Smells
 
-- `CursorManager` больше не держит dead `_in_game` state; внешний `set_in_game(...)` оставлен как compatibility API для `GameDirector`.
+- `CursorManager` больше не держит dead `_in_game` state; внешний `set_in_game(...)` оставлен как compatibility API, но `GameDirector` больше не вызывает его для scene sync.
 - `ending_credits.gd` имеет export `return_scene`, но resolver всегда возвращает main menu.
 - `Bed._try_sleep` делает ручной fade и затем вызывает scene-change с fade delay.
 - Первичный аудит находил `level_09_сrazy.tscn` с кириллической `с`; файл переименован в `level_09_crazy.tscn`.

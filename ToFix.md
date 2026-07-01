@@ -53,7 +53,7 @@
 - Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`; STU hardcoded paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`.
 - Пустые target marker STU-двери, которые должны быть недоступны, явно locked; `level_13_stu_3.gd` сделал отсутствующий primary fridge path явным optional default.
 - Naming debt закрыт Godot-aware rename-ами: `chiken` -> `chicken`, `meet` -> `meat`, `Без названия *.png` -> descriptive background names, `toilet and bathroom` -> `toilet_bathroom`, `DoorNSTU_highevel.png` -> `DoorNSTU_highlevel.png`, `FridgeNoizeE.wav` -> `FridgeNoiseE.wav`.
-- Первый god-class split закрыт: `UIMessage` вынес fade/tween state в `ui_fade_controller.gd`, `MinigameController` вынес backdrop registry/presentation в `minigame_backdrop_presenter.gd`, `GameDirector` вынес death-title/glitch presentation в `game_director_death_title_presenter.gd`.
+- Первый god-class split закрыт: `UIMessage` вынес fade/tween state в `ui_fade_controller.gd`, `MinigameController` вынес backdrop registry/presentation в `minigame_backdrop_presenter.gd`, `GameDirector` вынес death-title/glitch presentation в `game_director_death_title_presenter.gd`, stalker spawn/checkpoint service в `game_director_stalker_service.gd`, overlay layer policy в `game_director_overlay_layer_coordinator.gd` и death cursor/input policy в `game_director_death_cursor_coordinator.gd`.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -84,6 +84,7 @@
 - `player/ui_message.gd` больше не владеет fade tween/token state напрямую: это вынесено в `player/ui_fade_controller.gd`, а публичный `UIMessage` facade сохранён.
 - `levels/minigames/minigame_controller.gd` больше не держит backdrop registry/fullscreen-backdrop detection: это вынесено в `levels/minigames/minigame_backdrop_presenter.gd`.
 - `levels/game_director.gd` больше не держит death-title sequence, readable glitch layout и material factory: это вынесено в `levels/game_director_death_title_presenter.gd`.
+- `levels/game_director.gd` больше не держит stalker spawn/checkpoint service, overlay layer policy и death cursor/input policy напрямую: это вынесено в отдельные `game_director_*` helper-ы с focused tests.
 - `MusicManager` facade оставлен без распила в этом проходе: он уже защищён private-API тестом, а рискованный широкий audio-stack refactor лучше делать отдельной задачей с audio-regression focus.
 - Оставшаяся крупность `GameDirector`, `MusicManager` и `Player` теперь зафиксирована как future architecture refactor, а не открытый долг этого remediation списка.
 
@@ -236,7 +237,7 @@
 Статус: закрыто.
 
 - Dead `_in_game` state удалён из `levels/minigames/cursor_manager.gd`.
-- `set_in_game(...)` оставлен как compatibility API для `GameDirector`, но больше не хранит лишнее состояние.
+- `set_in_game(...)` оставлен как compatibility API для внешних callers, но `GameDirector` больше не вызывает его для scene sync.
 
 ### 30. Дедуплицировать input-device detection
 
