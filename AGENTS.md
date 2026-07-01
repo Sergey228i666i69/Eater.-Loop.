@@ -13,6 +13,7 @@
 - [Тесты, ассеты, export и воспроизводимость](docs/audit_tooling_assets_tests.md)
 - [Гигиена репозитория, naming и мусор](docs/audit_repo_hygiene.md)
 - [Рефакторинг-роадмап](docs/audit_refactor_roadmap.md)
+- [Content authoring guide](docs/content_authoring_guide.md)
 
 ## Короткая Оценка
 

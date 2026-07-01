@@ -43,3 +43,4 @@
 - [Тесты, ассеты, export и воспроизводимость](audit_tooling_assets_tests.md)
 - [Гигиена репозитория](audit_repo_hygiene.md)
 - [Рефакторинг-роадмап](audit_refactor_roadmap.md)
+- [Content authoring guide](content_authoring_guide.md)
