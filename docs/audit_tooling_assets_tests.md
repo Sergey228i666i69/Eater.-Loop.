@@ -88,6 +88,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Project-config contract для main scene, включённых editor plugins и configured translations.
 - Resource UID contract для tracked `.gd`/`.gdshader` sidecars и уникальности `uid://` значений.
 - Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage, включая custom/default gamepad hints.
+- Gamepad binding contract теперь сам находит scripts with `MinigameController.set_gamepad_scheme(self, ...)` и требует cleanup, чтобы новые мини-игры не выпадали из проверки.
 - Gamepad callback router regression для lookup/invoke/consumed semantics пользовательских схем мини-игр.
 - Gamepad confirm-release gate regression для защиты мини-игр от подтверждения, зажатого до старта runtime.
 - Level authoring contract для cycle metadata, configured bed transitions, conditional respawn paths и включённых стартовых текстов.
