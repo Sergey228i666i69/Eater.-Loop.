@@ -9,7 +9,7 @@
 - Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
 - После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 99 тестов.
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
-- Полный export/build не запускался, чтобы не писать в output paths и импорт-кэш.
+- Первичный полный export/build не запускался, чтобы не писать в output paths и импорт-кэш; после ремонта добавлен CI debug export smoke.
 
 ## Resolved: Fresh Clone/CI Почти Наверняка Не Воспроизводит Игру
 
@@ -31,7 +31,7 @@
 
 Статический аудит нашёл 387 уникальных `res://` ссылок на ассеты; 381 из них существуют локально, но не tracked. Это означает, что локальная машина богаче Git-репозитория.
 
-Статус: закрыто на уровне репозитория. Выбран Git LFS, source assets и `.import` tracked, root `export_presets.cfg` tracked, а CI делает checkout с LFS и `git lfs pull`.
+Статус: закрыто на уровне репозитория. Выбран Git LFS, source assets и `.import` tracked, root `export_presets.cfg` tracked, а CI делает checkout с LFS, `git lfs pull`, runtime suite и отдельный MacOS debug export smoke.
 
 ## Resolved: Полный Тестовый Suite Красный
 
@@ -68,9 +68,9 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`export_presets.cfg`](../export_presets.cfg), около строки 11.
 - [`tools/macos_dmg_fix/export_macos_dmg.sh`](../tools/macos_dmg_fix/export_macos_dmg.sh), около строк 20 и 24.
 
-Оставшийся релизный апгрейд: добавить отдельный full export job, если нужно автоматически проверять сами release artifacts в CI.
+Релизный апгрейд, который остаётся вне CI smoke: signed/notarized distributable. Debug export теперь проверяется автоматически после тестов.
 
-Текущий static export smoke покрыт обычным suite: `tests/cases/test_export_presets_contract.gd` проверяет, что `export_presets.cfg` парсится и все `export_path` остаются repo-local. Локальный `godot --headless --path . --export-debug "MacOS" /tmp/eater-loop-export-smoke/EaterLoop.app` на машине с templates прошёл с exit code `0`.
+Текущий static export smoke покрыт обычным suite: `tests/cases/test_export_presets_contract.gd` проверяет, что `export_presets.cfg` парсится и все `export_path` остаются repo-local. Локальный `mkdir -p /tmp/eater-loop-ci-export-smoke && godot --headless --path . --export-debug "MacOS" /tmp/eater-loop-ci-export-smoke/EaterLoop.app` на машине с templates прошёл с exit code `0`, а GitHub Actions повторяет debug export в `exports/ci/EaterLoop.app`.
 
 ## Resolved: CI-Like Слой Есть, Но Был Неполный
 
@@ -83,6 +83,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 Добавлено:
 
 - [`.github/workflows/godot-tests.yml`](../.github/workflows/godot-tests.yml), который делает checkout с LFS, `git lfs pull`, ставит Godot 4.6.1, запускает parser-only и full suite.
+- Отдельный `export-smoke` job в том же workflow, который ставит export templates и запускает MacOS debug export после зелёного test job.
 - Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
 - Project-config contract для main scene, включённых editor plugins и configured translations.
 - Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage, включая custom/default gamepad hints.
@@ -102,4 +103,4 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - shell helper вычисляет project root относительно себя и запускает Godot с `--path`, поэтому может запускаться не из корня.
 
-Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и localization hygiene/key coverage для русскоязычных player-facing строк, включая custom/default gamepad hints; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.
+Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и localization hygiene/key coverage для русскоязычных player-facing строк, включая custom/default gamepad hints; отдельный CI job запускает MacOS debug export smoke с установленными templates. Signed/notarized release artifact можно добавить позже как release-hardening, но presets и базовая собираемость больше не остаются локальной догадкой.

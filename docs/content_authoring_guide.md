@@ -63,7 +63,7 @@
 1. Source assets и `.import` должны быть tracked. Бинарные ассеты идут через Git LFS.
 2. После fresh clone нужен `git lfs install && git lfs pull`.
 3. Export paths должны оставаться внутри `exports/`; это проверяет `test_export_presets_contract.gd`.
-4. Перед release-выводами дополнительно запускай реальный export smoke на машине с Godot templates. CI пока проверяет preset contract, но не собирает release artifact автоматически.
+4. CI запускает MacOS debug export smoke после тестов. Перед release-выводами дополнительно запускай signed/notarized release export на машине с нужными Apple credentials/templates.
 
 ## Когда Добавлять Validator
 

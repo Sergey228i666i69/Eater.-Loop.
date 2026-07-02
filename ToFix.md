@@ -43,7 +43,7 @@
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
 - Stale current-state docs обновлены под `level_14_end.*` и текущий suite.
 - Obstacle special-case покрыт контрактным тестом.
-- Export presets проверяются static contract-тестом в suite; локальный macOS export smoke прошёл с templates.
+- Export presets проверяются static contract-тестом в suite; локальный macOS export smoke прошёл с templates, а GitHub Actions получил отдельный MacOS debug export smoke job.
 - Удалены `.gitignore.save`, ignored `global/export_presets.cfg`, legacy icon copies и неиспользуемый `Projector2`.
 - Убран dead `CursorManager._in_game` state и пустая `laptop_money.gd` specialization-wrapper.
 - Legacy-комментарии из runtime-кода очищены в `InteractiveObject`, `fridge.gd` и `laptop.gd`.
@@ -177,13 +177,14 @@
 - `ending_screen.gd` и `ending_credits.gd` маркируют себя как ending scenes; локальный blocker в credits оставлен как страховка.
 - Regression покрыт в `tests/cases/test_scene_context_pause_classification.gd`.
 
-### 20. CI не проверяет export presets dry-run
+### 20. CI/export smoke для presets
 
 Статус: закрыто на уровне обычного suite + локального smoke.
 
 - `tests/cases/test_export_presets_contract.gd` проверяет, что `export_presets.cfg` парсится, содержит preset и не уводит `export_path` наружу из repo-local `exports/`.
-- Полный локальный smoke `godot --headless --path . --export-debug "MacOS" /tmp/eater-loop-export-smoke/EaterLoop.app` прошёл с exit code `0` на машине с installed templates.
-- Отдельный full export job в GitHub Actions остаётся возможным release-hardening, но presets больше не остаются непроверенными.
+- Полный локальный smoke `mkdir -p /tmp/eater-loop-ci-export-smoke && godot --headless --path . --export-debug "MacOS" /tmp/eater-loop-ci-export-smoke/EaterLoop.app` прошёл с exit code `0` на машине с installed templates.
+- GitHub Actions теперь дополнительно ставит export templates и запускает `godot --headless --path . --export-debug "MacOS" exports/ci/EaterLoop.app` после зелёного runtime suite.
+- Signed/notarized release export всё ещё остаётся отдельной release-задачей; CI smoke проверяет, что preset и ресурсы собираются в debug artifact.
 
 ### 21. `tests/run_tests.sh` зависит от запуска из root
 
