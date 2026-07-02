@@ -111,6 +111,8 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~отделить code-lock scene adapter.~~ `FridgeCodeLockSession` создаёт lock scene и пишет `code_value`/legacy `target_code`; `Fridge` сохраняет outcome/signal ownership.
    - ~~отделить feeding minigame setup.~~ `FridgeFeedingSession` проверяет config, создаёт game node, валидирует `minigame_finished` и вызывает `setup_game`.
    - ~~отделить story/checkpoint/teleport hooks.~~ `FridgeCompletionSession` владеет cycle marks, chase cleanup, teleport и checkpoint/autosave fallback.
+6. `Player`:
+   - ~~отделить run/stamina state.~~ `PlayerStaminaState` владеет drain/recovery/checkpoint state, а `Player` сохраняет прежние export-поля и публичные `get_stamina_ratio()`/`is_running()`.
 
 Definition of done: новые уровни не требуют править глобальный директор для локальных интерактивов.
 

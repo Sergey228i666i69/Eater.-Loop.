@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const PlayerStaminaState = preload("res://player/player_stamina_state.gd")
+
 signal player_made_sound
 signal flashlight_recharged
 signal flashlight_activation_denied(charge_ratio: float)
@@ -109,12 +111,11 @@ var _sprite_anim_scale: Vector2 = Vector2.ONE
 var _sprite_under_pivot: bool = false
 var _walk_loop_start: int = 0
 var _walk_loop_end: int = 0
-var _stamina: float = 0.0
 var _flashlight_charge: float = 0.0
 var _time_since_flashlight_use: float = 0.0
-var _time_since_run: float = 0.0
 var _adjusting_frame: bool = false
 var _movement_blocked: bool = false
+var _stamina_state: RefCounted
 var _current_skeleton_animation: StringName = StringName()
 var _skeleton_step_counter: int = 0
 var _last_skeleton_step_animation: StringName = StringName()
@@ -177,7 +178,9 @@ func _ready() -> void:
 		_flashlight_base_offset = flashlight.offset
 		flashlight.enabled = false 
 	
-	_stamina = stamina_max
+	_stamina_state = PlayerStaminaState.new()
+	_sync_stamina_config()
+	_get_stamina_state().reset_full()
 	_flashlight_charge = max(0.0, flashlight_use_duration)
 	_time_since_flashlight_use = max(0.0, flashlight_recharge_delay)
 	_apply_facing()
@@ -247,54 +250,12 @@ func _is_screen_dark() -> bool:
 	return false
 
 func _resolve_running_state(delta: float, direction: float) -> bool:
-	if not allow_running:
-		_time_since_run += delta
-		_try_restore_stamina(delta)
-		return false
-
-	if direction == 0.0:
-		_time_since_run += delta
-		_try_restore_stamina(delta)
-		return false
-
-	if stamina_max <= 0.0:
-		var unlimited_run := Input.is_action_pressed("run")
-		if unlimited_run:
-			_time_since_run = 0.0
-		else:
-			_time_since_run += delta
-		return unlimited_run
-
-	if Input.is_action_pressed("run") and _stamina > stamina_min_to_run:
-		_time_since_run = 0.0
-		_drain_stamina(delta)
-		return true
-
-	_time_since_run += delta
-	_try_restore_stamina(delta)
-	return false
-
-func _drain_stamina(delta: float) -> void:
-	if stamina_drain_rate <= 0.0:
-		return
-	_stamina = max(0.0, _stamina - stamina_drain_rate * delta)
-
-func _restore_stamina(delta: float) -> void:
-	if stamina_recovery_rate <= 0.0:
-		return
-	if stamina_max <= 0.0:
-		return
-	_stamina = min(stamina_max, _stamina + stamina_recovery_rate * delta)
-
-func _try_restore_stamina(delta: float) -> void:
-	if _time_since_run < stamina_recovery_delay:
-		return
-	_restore_stamina(delta)
+	_sync_stamina_config()
+	return _get_stamina_state().resolve_running(delta, direction, Input.is_action_pressed("run"))
 
 func get_stamina_ratio() -> float:
-	if stamina_max <= 0.0:
-		return 1.0
-	return clamp(_stamina / stamina_max, 0.0, 1.0)
+	_sync_stamina_config()
+	return _get_stamina_state().get_ratio()
 
 func get_flashlight_charge_ratio() -> float:
 	if flashlight_use_duration <= 0.0:
@@ -656,13 +617,14 @@ func _input(event: InputEvent) -> void:
 		_toggle_flashlight()
 
 func capture_checkpoint_state() -> Dictionary:
+	var stamina_state: Dictionary = _get_stamina_state().capture_checkpoint_state()
 	return {
 		"keys": keys.keys(),
 		"facing_dir": _facing_dir,
-		"stamina": _stamina,
+		"stamina": float(stamina_state.get("stamina", 0.0)),
 		"flashlight_charge": _flashlight_charge,
 		"time_since_flashlight_use": _time_since_flashlight_use,
-		"time_since_run": _time_since_run,
+		"time_since_run": float(stamina_state.get("time_since_run", 0.0)),
 		"flashlight_enabled": flashlight != null and flashlight.enabled,
 	}
 
@@ -673,15 +635,30 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 		for key_id in key_list:
 			keys[str(key_id)] = true
 	_facing_dir = float(state.get("facing_dir", _facing_dir))
-	_stamina = float(state.get("stamina", _stamina))
+	_sync_stamina_config()
+	_get_stamina_state().apply_checkpoint_state(state)
 	_flashlight_charge = float(state.get("flashlight_charge", _flashlight_charge))
 	_time_since_flashlight_use = float(state.get("time_since_flashlight_use", _time_since_flashlight_use))
-	_time_since_run = float(state.get("time_since_run", _time_since_run))
 	_apply_facing()
 	if flashlight != null:
 		var should_enable := bool(state.get("flashlight_enabled", false)) and has_flashlight_available()
 		flashlight.enabled = should_enable
 	_update_skeleton_flashlight_visibility()
+
+func _get_stamina_state() -> RefCounted:
+	if _stamina_state == null:
+		_stamina_state = PlayerStaminaState.new()
+	return _stamina_state
+
+func _sync_stamina_config() -> void:
+	_get_stamina_state().configure(
+		allow_running,
+		stamina_max,
+		stamina_drain_rate,
+		stamina_recovery_rate,
+		stamina_recovery_delay,
+		stamina_min_to_run
+	)
 
 # ===== Работа с ключами =====
 func add_key(key_id: String) -> void:
