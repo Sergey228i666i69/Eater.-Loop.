@@ -23,10 +23,10 @@
 - `InputDeviceUtils` (`res://global/input_device_utils.gd`)
   Общий helper определения keyboard/mouse/gamepad/Sony input-событий для UI prompt-ов,
   меню и директорского input-mode state.
-- Внутренние helper-и крупных фасадов:
-  `GameDirectorCyclePhaseBridge`, `GameDirectorCycleTimerState`, `GameDirectorDeathCameraCoordinator`, `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathRetryCoordinator`, `GameDirectorDeathTitlePresenter`, `GameDirectorDistortionGate`, `GameDirectorDistortionOverlayCoordinator`, `GameDirectorDistortionPhaseState`, `GameDirectorDistortionProgress`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `GameDirectorTimerNodeCoordinator`, `GamepadCallbackRouter`, `GamepadConfirmReleaseGate`, `GamepadHintBuilder`, `GamepadNavigationRepeat`, `GamepadNodeResolver`, `GamepadSchemeRegistry`, `MinigameBackdropPresenter`, `MinigameModalOwnership`, `MinigameMusicSession`, `MinigamePromptVisibilityCoordinator`, `MinigameTimerState`, `UIFadeController`.
+- Внутренние helper-и крупных фасадов и state services:
+  `CheckpointDynamicRestore`, `GameDirectorCyclePhaseBridge`, `GameDirectorCycleTimerState`, `GameDirectorDeathCameraCoordinator`, `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathRetryCoordinator`, `GameDirectorDeathTitlePresenter`, `GameDirectorDistortionGate`, `GameDirectorDistortionOverlayCoordinator`, `GameDirectorDistortionPhaseState`, `GameDirectorDistortionProgress`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `GameDirectorTimerNodeCoordinator`, `GamepadCallbackRouter`, `GamepadConfirmReleaseGate`, `GamepadHintBuilder`, `GamepadNavigationRepeat`, `GamepadNodeResolver`, `GamepadSchemeRegistry`, `MinigameBackdropPresenter`, `MinigameModalOwnership`, `MinigameMusicSession`, `MinigamePromptVisibilityCoordinator`, `MinigameTimerState`, `UIFadeController`.
   Они не являются публичными autoload API и используются для снижения размера
-  `GameDirector`, `MinigameController` и `UIMessage` без смены внешних вызовов.
+  `GameDirector`, `GameState`, `MinigameController` и `UIMessage` без смены внешних вызовов.
 
 ## 2. Ключевые контуры
 
@@ -181,6 +181,7 @@
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Добавлены scene-contract validators для critical NodePath/child contracts, utility-level NodePaths, cycle/lab/fridge-level authoring contracts, configured trigger target/property wiring, key-door/search-key wiring и отдельные STU path contracts.
+- `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
 - `UIMessage`, `MinigameController` backdrop/prompt/timer/modal/music-session/gamepad-registry lifecycle, `GamepadRuntime` hint/repeat/resolving/callback/confirm-release policy, CycleState phase bridge, cycle timer/checkpoint state, timer node lifecycle, death-title часть, stalker spawn/checkpoint часть, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken/reload policy, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state `GameDirector` получили facade-preserving helper split-ы.

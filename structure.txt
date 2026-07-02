@@ -9,6 +9,7 @@
 │   ├── audit_refactor_roadmap.md
 │   ├── audit_repo_hygiene.md
 │   ├── audit_tooling_assets_tests.md
+│   ├── content_authoring_guide.md
 │   ├── level_end_endings.md
 │   ├── macos-dmg-export-fix.md
 │   └── minigame_gamepad_system.md
@@ -301,6 +302,10 @@
 ├── levels
 │   ├── cycles
 │   │   ├── TextureDistortionManager.tscn
+│   │   ├── checkpoint_dynamic_restore.gd
+│   │   ├── checkpoint_dynamic_restore.gd.uid
+│   │   ├── checkpoint_scene_snapshot.gd
+│   │   ├── checkpoint_scene_snapshot.gd.uid
 │   │   ├── corridor_distortion.gd
 │   │   ├── corridor_distortion.gd.uid
 │   │   ├── crazy_level_event.gd
@@ -1472,6 +1477,10 @@
 │   │   ├── test_audio_menu_to_level01_bedroom_runtime.gd.uid
 │   │   ├── test_autoloads.gd
 │   │   ├── test_autoloads.gd.uid
+│   │   ├── test_checkpoint_dynamic_restore.gd
+│   │   ├── test_checkpoint_dynamic_restore.gd.uid
+│   │   ├── test_checkpoint_scene_snapshot.gd
+│   │   ├── test_checkpoint_scene_snapshot.gd.uid
 │   │   ├── test_cycle_state_flashlight_unlock.gd
 │   │   ├── test_cycle_state_flashlight_unlock.gd.uid
 │   │   ├── test_cycle_state_lab_scope.gd

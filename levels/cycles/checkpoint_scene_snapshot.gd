@@ -1,5 +1,9 @@
 extends RefCounted
 
+const CheckpointDynamicRestoreClass = preload("res://levels/cycles/checkpoint_dynamic_restore.gd")
+
+var _dynamic_restore = CheckpointDynamicRestoreClass.new()
+
 func collect_participant_paths(scene: Node, tree: SceneTree, previous_paths: PackedStringArray) -> Array[String]:
 	var paths: Array[String] = []
 	var seen: Dictionary = {}
@@ -40,7 +44,7 @@ func capture_scene_state(scene: Node, participant_paths: PackedStringArray) -> D
 			"exists": true,
 			"snapshot": CheckpointStateUtils.capture_node_snapshot(node),
 		}
-		var dynamic_restore_data := _capture_dynamic_restore_data(scene, node)
+		var dynamic_restore_data: Dictionary = _dynamic_restore.capture_restore_data(scene, node)
 		if not dynamic_restore_data.is_empty():
 			entry["dynamic_restore"] = dynamic_restore_data
 		scene_state[path_text] = entry
@@ -64,64 +68,9 @@ func apply_scene_state(scene: Node, participant_paths: PackedStringArray, scene_
 			CheckpointStateUtils.remove_absent_node(node)
 			continue
 		if node == null:
-			node = _restore_dynamic_checkpoint_node(scene, entry)
+			node = _dynamic_restore.restore_node(scene, entry)
 			if node == null:
 				continue
 		var snapshot_raw: Variant = entry.get("snapshot", {})
 		if snapshot_raw is Dictionary:
 			CheckpointStateUtils.apply_node_snapshot(node, snapshot_raw)
-
-func _capture_dynamic_restore_data(scene: Node, node: Node) -> Dictionary:
-	if scene == null or node == null:
-		return {}
-	if not node.is_in_group("enemies"):
-		return {}
-	if node.owner != null:
-		return {}
-	var scene_file_path := String(node.scene_file_path)
-	if scene_file_path == "":
-		return {}
-	var parent := node.get_parent()
-	if parent == null:
-		return {}
-	var parent_path := CheckpointStateUtils.get_scene_relative_path(scene, parent)
-	if parent_path == "":
-		return {}
-	return {
-		"scene_path": scene_file_path,
-		"parent_path": parent_path,
-		"node_name": String(node.name),
-	}
-
-func _restore_dynamic_checkpoint_node(scene: Node, entry: Dictionary) -> Node:
-	var restore_raw: Variant = entry.get("dynamic_restore", {})
-	if not (restore_raw is Dictionary):
-		return null
-	var restore_data := restore_raw as Dictionary
-	var scene_path := str(restore_data.get("scene_path", ""))
-	if scene_path == "" or not ResourceLoader.exists(scene_path):
-		return null
-	var packed := load(scene_path) as PackedScene
-	if packed == null:
-		return null
-	var parent := _resolve_dynamic_restore_parent(scene, str(restore_data.get("parent_path", ".")))
-	if parent == null:
-		return null
-	var restored := packed.instantiate()
-	if restored == null:
-		return null
-	var node_name := str(restore_data.get("node_name", ""))
-	if node_name != "":
-		restored.name = node_name
-	parent.add_child(restored)
-	return restored
-
-func _resolve_dynamic_restore_parent(scene: Node, parent_path: String) -> Node:
-	if scene == null:
-		return null
-	if parent_path == "" or parent_path == ".":
-		return scene
-	var parent := scene.get_node_or_null(NodePath(parent_path))
-	if parent != null:
-		return parent
-	return scene

@@ -67,7 +67,7 @@ Definition of done: overlapping Area2D больше не вызывает нес
 1. ~~Добавить validators для required child nodes.~~ Закрыто для critical interactables через `test_scene_nodepath_contracts.gd`.
 2. ~~Проверять groups/methods вроде `reactive_light_source`, `turn_on`, `is_point_lit`.~~ Runtime scripts, которые добавляют себя в эти группы, теперь обязаны объявлять нужные методы.
 3. ~~Проверять missing/broken NodePath.~~ Закрыто для active level/interactable scenes, utility-level paths and STU hardcoded paths.
-4. ~~Проверять checkpoint participants: capture/apply, stable id, dynamic restore.~~ Базовый и dynamic restore покрыты; content scripts с custom checkpoint API обязаны объявлять capture/apply парой, а scene snapshot/restore вынесен в `checkpoint_scene_snapshot.gd` с focused unit-тестом.
+4. ~~Проверять checkpoint participants: capture/apply, stable id, dynamic restore.~~ Базовый и dynamic restore покрыты; content scripts с custom checkpoint API обязаны объявлять capture/apply парой, scene snapshot/restore вынесен в `checkpoint_scene_snapshot.gd`, а dynamic runtime restore policy вынесена в `checkpoint_dynamic_restore.gd` с focused unit-тестом.
 5. ~~Проверять базовый localization CSV/mojibake contract.~~ `test_localization_contracts.gd` проверяет колонки `keys`/`ru`/`en`, пустые значения и mojibake в runtime text sources.
 6. ~~Проверять localization keys для русскоязычных player-facing строк.~~ Тест покрывает `text`, `prompt_text`, message export-поля, `UIMessage.show_*("...")` и `tr("...")`.
 7. ~~Проверять configured trigger target/property wiring.~~ `test_trigger_set_property_contracts.gd` валидирует `TriggerSetProperty`/`PropertyChange` target paths и property names.
