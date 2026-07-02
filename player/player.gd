@@ -1,5 +1,6 @@
 extends CharacterBody2D
 
+const PlayerFlashlightChargeState = preload("res://player/player_flashlight_charge_state.gd")
 const PlayerStaminaState = preload("res://player/player_stamina_state.gd")
 
 signal player_made_sound
@@ -111,8 +112,7 @@ var _sprite_anim_scale: Vector2 = Vector2.ONE
 var _sprite_under_pivot: bool = false
 var _walk_loop_start: int = 0
 var _walk_loop_end: int = 0
-var _flashlight_charge: float = 0.0
-var _time_since_flashlight_use: float = 0.0
+var _flashlight_charge_state: RefCounted
 var _adjusting_frame: bool = false
 var _movement_blocked: bool = false
 var _stamina_state: RefCounted
@@ -181,8 +181,9 @@ func _ready() -> void:
 	_stamina_state = PlayerStaminaState.new()
 	_sync_stamina_config()
 	_get_stamina_state().reset_full()
-	_flashlight_charge = max(0.0, flashlight_use_duration)
-	_time_since_flashlight_use = max(0.0, flashlight_recharge_delay)
+	_flashlight_charge_state = PlayerFlashlightChargeState.new()
+	_sync_flashlight_charge_config()
+	_get_flashlight_charge_state().reset_full()
 	_apply_facing()
 	_update_skeleton_motion_animation(false)
 	_update_skeleton_flashlight_visibility()
@@ -258,9 +259,8 @@ func get_stamina_ratio() -> float:
 	return _get_stamina_state().get_ratio()
 
 func get_flashlight_charge_ratio() -> float:
-	if flashlight_use_duration <= 0.0:
-		return 1.0
-	return clampf(_flashlight_charge / flashlight_use_duration, 0.0, 1.0)
+	_sync_flashlight_charge_config()
+	return _get_flashlight_charge_state().get_ratio()
 
 func has_flashlight_available() -> bool:
 	if CycleState != null and CycleState.has_method("has_flashlight_for_current_cycle"):
@@ -286,36 +286,13 @@ func is_point_lit(point: Vector2) -> bool:
 func _update_flashlight_charge(delta: float) -> void:
 	if flashlight == null:
 		return
-	if flashlight.enabled and not has_flashlight_available():
+	_sync_flashlight_charge_config()
+	var result: Dictionary = _get_flashlight_charge_state().update(delta, flashlight.enabled, has_flashlight_available())
+	if bool(result.get(PlayerFlashlightChargeState.RESULT_FORCE_DISABLE, false)):
 		_force_disable_flashlight()
-
-	var max_charge: float = maxf(0.0, flashlight_use_duration)
-	_flashlight_charge = clampf(_flashlight_charge, 0.0, max_charge)
-	if max_charge <= 0.0:
-		return
-
-	if flashlight.enabled:
-		_time_since_flashlight_use = 0.0
-		_flashlight_charge = maxf(0.0, _flashlight_charge - delta)
-		if _flashlight_charge <= 0.0:
-			_set_flashlight_enabled(false)
-		return
-
-	_time_since_flashlight_use += delta
-	if _time_since_flashlight_use < maxf(0.0, flashlight_recharge_delay):
-		return
-
-	if flashlight_recharge_duration <= 0.0:
-		var was_below_full_instant := _flashlight_charge < max_charge
-		_flashlight_charge = max_charge
-		if was_below_full_instant:
-			_emit_flashlight_recharged()
-		return
-
-	var prev_charge: float = _flashlight_charge
-	var recharge_rate: float = max_charge / flashlight_recharge_duration
-	_flashlight_charge = minf(max_charge, _flashlight_charge + recharge_rate * delta)
-	if prev_charge < max_charge and _flashlight_charge >= max_charge:
+	elif bool(result.get(PlayerFlashlightChargeState.RESULT_TOGGLE_DISABLE, false)):
+		_set_flashlight_enabled(false)
+	if bool(result.get(PlayerFlashlightChargeState.RESULT_RECHARGED, false)):
 		_emit_flashlight_recharged()
 
 func _update_skeleton_flashlight_visibility() -> void:
@@ -345,9 +322,8 @@ func _toggle_flashlight() -> void:
 	_emit_flashlight_activation_denied()
 
 func _can_enable_flashlight() -> bool:
-	if flashlight_use_duration <= 0.0:
-		return true
-	return _flashlight_charge > 0.0
+	_sync_flashlight_charge_config()
+	return _get_flashlight_charge_state().can_enable()
 
 func _set_flashlight_enabled(enabled_state: bool) -> void:
 	if flashlight == null:
@@ -618,12 +594,13 @@ func _input(event: InputEvent) -> void:
 
 func capture_checkpoint_state() -> Dictionary:
 	var stamina_state: Dictionary = _get_stamina_state().capture_checkpoint_state()
+	var flashlight_state: Dictionary = _get_flashlight_charge_state().capture_checkpoint_state()
 	return {
 		"keys": keys.keys(),
 		"facing_dir": _facing_dir,
 		"stamina": float(stamina_state.get("stamina", 0.0)),
-		"flashlight_charge": _flashlight_charge,
-		"time_since_flashlight_use": _time_since_flashlight_use,
+		"flashlight_charge": float(flashlight_state.get("flashlight_charge", 0.0)),
+		"time_since_flashlight_use": float(flashlight_state.get("time_since_flashlight_use", 0.0)),
 		"time_since_run": float(stamina_state.get("time_since_run", 0.0)),
 		"flashlight_enabled": flashlight != null and flashlight.enabled,
 	}
@@ -637,13 +614,25 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	_facing_dir = float(state.get("facing_dir", _facing_dir))
 	_sync_stamina_config()
 	_get_stamina_state().apply_checkpoint_state(state)
-	_flashlight_charge = float(state.get("flashlight_charge", _flashlight_charge))
-	_time_since_flashlight_use = float(state.get("time_since_flashlight_use", _time_since_flashlight_use))
+	_sync_flashlight_charge_config()
+	_get_flashlight_charge_state().apply_checkpoint_state(state)
 	_apply_facing()
 	if flashlight != null:
 		var should_enable := bool(state.get("flashlight_enabled", false)) and has_flashlight_available()
 		flashlight.enabled = should_enable
 	_update_skeleton_flashlight_visibility()
+
+func _get_flashlight_charge_state() -> RefCounted:
+	if _flashlight_charge_state == null:
+		_flashlight_charge_state = PlayerFlashlightChargeState.new()
+	return _flashlight_charge_state
+
+func _sync_flashlight_charge_config() -> void:
+	_get_flashlight_charge_state().configure(
+		flashlight_use_duration,
+		flashlight_recharge_duration,
+		flashlight_recharge_delay
+	)
 
 func _get_stamina_state() -> RefCounted:
 	if _stamina_state == null:

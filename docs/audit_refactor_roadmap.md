@@ -113,6 +113,7 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~отделить story/checkpoint/teleport hooks.~~ `FridgeCompletionSession` владеет cycle marks, chase cleanup, teleport и checkpoint/autosave fallback.
 6. `Player`:
    - ~~отделить run/stamina state.~~ `PlayerStaminaState` владеет drain/recovery/checkpoint state, а `Player` сохраняет прежние export-поля и публичные `get_stamina_ratio()`/`is_running()`.
+   - ~~отделить flashlight charge/recharge state.~~ `PlayerFlashlightChargeState` владеет drain/recharge/instant-full/checkpoint state, а `Player` сохраняет прежние export-поля, сигналы и публичный `get_flashlight_charge_ratio()`.
 
 Definition of done: новые уровни не требуют править глобальный директор для локальных интерактивов.
 
