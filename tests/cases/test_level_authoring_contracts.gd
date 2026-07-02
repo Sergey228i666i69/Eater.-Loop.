@@ -39,6 +39,7 @@ func _test_cycle_levels_have_single_player() -> void:
 		if players.size() == 1:
 			var player := players[0] as Node
 			assert_true(player is Node2D, "Cycle level Player must be a Node2D: %s:%s" % [path, root.get_path_to(player)])
+			_assert_player_authoring_config(path, root, player)
 		root.free()
 
 func _test_cycle_level_bed_transitions_are_loadable() -> void:
@@ -120,6 +121,35 @@ func _assert_enabled_text_is_non_empty(path: String, node: Node, enabled_propert
 	var text := str(node.get(text_property)).strip_edges()
 	assert_true(text != "", "%s must be non-empty when %s is enabled: %s" % [text_property, enabled_property, path])
 
+func _assert_player_authoring_config(path: String, root: Node, player: Node) -> void:
+	_assert_float_at_least(path, root, player, "speed", 0.01)
+	_assert_float_at_least(path, root, player, "run_speed_multiplier", 1.0)
+	_assert_float_at_least(path, root, player, "stamina_max", 0.0)
+	_assert_float_at_least(path, root, player, "stamina_drain_rate", 0.0)
+	_assert_float_at_least(path, root, player, "stamina_recovery_rate", 0.0)
+	_assert_float_at_least(path, root, player, "stamina_recovery_delay", 0.0)
+	_assert_float_at_least(path, root, player, "stamina_min_to_run", 0.0)
+	if _has_property(player, "stamina_max") and _has_property(player, "stamina_min_to_run"):
+		var stamina_max := float(player.get("stamina_max"))
+		var stamina_min_to_run := float(player.get("stamina_min_to_run"))
+		if stamina_max > 0.0:
+			assert_true(stamina_min_to_run < stamina_max, "Player stamina_min_to_run must be below stamina_max: %s:%s" % [path, root.get_path_to(player)])
+	_assert_float_at_least(path, root, player, "flashlight_use_duration", 0.0)
+	_assert_float_at_least(path, root, player, "flashlight_recharge_duration", 0.0)
+	_assert_float_at_least(path, root, player, "flashlight_recharge_delay", 0.0)
+	_assert_float_at_least(path, root, player, "walk_frame_time", 0.001)
+	_assert_int_at_least(path, root, player, "walk_loop_start_index", 1)
+	if _has_property(player, "walk_loop_start_index") and _has_property(player, "walk_loop_end_index"):
+		var walk_loop_start := int(player.get("walk_loop_start_index"))
+		var walk_loop_end := int(player.get("walk_loop_end_index"))
+		assert_true(walk_loop_end == -1 or walk_loop_end >= walk_loop_start, "Player walk_loop_end_index must be -1 or >= walk_loop_start_index: %s:%s" % [path, root.get_path_to(player)])
+	_assert_positive_int_array(path, root, player, "step_frame_indices")
+	_assert_float_at_least(path, root, player, "skeleton_animation_blend_time", 0.0)
+	_assert_sorted_non_negative_float_array(path, root, player, "skeleton_walk_step_times")
+	_assert_sorted_non_negative_float_array(path, root, player, "skeleton_light_walk_step_times")
+	_assert_sorted_non_negative_float_array(path, root, player, "skeleton_run_step_times")
+	_assert_sorted_non_negative_float_array(path, root, player, "skeleton_light_run_step_times")
+
 func _get_int_property_or_method(node: Node, property_name: String, method_name: String) -> int:
 	if node.has_method(method_name):
 		return int(node.call(method_name))
@@ -160,6 +190,36 @@ func _find_nodes_with_script(root: Node, script_path: String) -> Array[Node]:
 		if _script_path(node) == script_path:
 			matches.append(node)
 	return matches
+
+func _assert_float_at_least(path: String, root: Node, node: Node, property_name: String, minimum: float) -> void:
+	if not _has_property(node, property_name):
+		return
+	var value := float(node.get(property_name))
+	assert_true(value >= minimum, "%s must be >= %s: %s:%s" % [property_name, str(minimum), path, root.get_path_to(node)])
+
+func _assert_int_at_least(path: String, root: Node, node: Node, property_name: String, minimum: int) -> void:
+	if not _has_property(node, property_name):
+		return
+	var value := int(node.get(property_name))
+	assert_true(value >= minimum, "%s must be >= %d: %s:%s" % [property_name, minimum, path, root.get_path_to(node)])
+
+func _assert_positive_int_array(path: String, root: Node, node: Node, property_name: String) -> void:
+	if not _has_property(node, property_name):
+		return
+	var values: Array = node.get(property_name)
+	for index in range(values.size()):
+		assert_true(int(values[index]) > 0, "%s entries must be positive frame indices: %s:%s[%d]" % [property_name, path, root.get_path_to(node), index])
+
+func _assert_sorted_non_negative_float_array(path: String, root: Node, node: Node, property_name: String) -> void:
+	if not _has_property(node, property_name):
+		return
+	var values: PackedFloat32Array = node.get(property_name)
+	var previous := -INF
+	for index in range(values.size()):
+		var value := float(values[index])
+		assert_true(value >= 0.0, "%s entries must be non-negative: %s:%s[%d]" % [property_name, path, root.get_path_to(node), index])
+		assert_true(value >= previous, "%s entries must be sorted ascending: %s:%s[%d]" % [property_name, path, root.get_path_to(node), index])
+		previous = value
 
 func _has_property(node: Object, property_name: String) -> bool:
 	if node == null:

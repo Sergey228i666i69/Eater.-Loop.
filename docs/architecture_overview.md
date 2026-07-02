@@ -126,6 +126,7 @@
 - Для проверки сценного z-order использовать `python3 tools/player_rig_preview/export_player_rig_scene_context.py --flashlight --output /tmp/andry_player_rig_scene_context.png`. Этот preview сортирует отдельные `Visual*` части по effective z-index, кладёт настоящую дверь за игроком и foreground-стул перед ним, чтобы ловить регрессии, где рука или нога снова уходят за объект позади персонажа; без `--flashlight` sheet показывает `idle`/`walk`/`run`, а с `--flashlight` - `light_idle`/`light_walk`/`light_run`. Для проверки тёмного close-up кадра как в игровых скриншотах использовать `--dark-closeup --pose-animation light_run --pose-time 0.1375`; `--pose-animation` принимает `idle`, `light_idle`, `walk`, `light_walk`, `run` и `light_run`, а для диагностики владельца артефакта добавить `--layer-overlay`.
 - Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 - Cycle-level authoring contract требует ровно один Player instance в игровой сцене: respawn, enemies, UI bars и checkpoint flow используют единственный runtime `player`.
+- Тот же authoring contract валидирует диапазоны scene-level Player exports для движения, выносливости, фонарика и step timing, чтобы новые уровни не могли тихо задать отрицательные тайминги, нулевую скорость или неупорядоченные skeleton step times.
 
 ## 3. Границы API (важно)
 
