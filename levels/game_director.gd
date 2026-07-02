@@ -424,7 +424,7 @@ func _create_death_overlay() -> void:
 	center.add_child(content)
 
 	_death_title_label = Label.new()
-	_death_title_label.text = death_title_text
+	_death_title_label.text = tr(death_title_text)
 	_death_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_death_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_death_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -440,7 +440,7 @@ func _create_death_overlay() -> void:
 	_death_title_presenter.apply_title(death_title_text, false)
 
 	_death_retry_button = Button.new()
-	_death_retry_button.text = death_retry_text
+	_death_retry_button.text = tr(death_retry_text)
 	_death_retry_button.custom_minimum_size = Vector2(420, 92)
 	_death_retry_button.focus_mode = Control.FOCUS_ALL
 	_death_retry_button.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
@@ -464,7 +464,7 @@ func trigger_death_screen() -> void:
 	if _death_title_presenter != null:
 		_death_title_presenter.apply_next_title(death_title_text)
 	if _death_retry_button:
-		_death_retry_button.text = death_retry_text
+		_death_retry_button.text = tr(death_retry_text)
 	if _death_root:
 		_death_root.visible = false
 	if _death_fade_rect:

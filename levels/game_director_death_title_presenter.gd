@@ -2,7 +2,7 @@ extends RefCounted
 
 const DEATH_TITLE_GLITCH_SHADER: Shader = preload("res://shaders/death_text_glitch.gdshader")
 const DEATH_TITLE_PENANCE_LINE := "Никогда не заслужу прощения."
-const DEATH_TITLE_PENANCE_TEXT := "Никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения, никогда, никогда, никогда, никогда не заслужу прощения"
+const DEATH_TITLE_PENANCE_BACKGROUND_REPEATS := 28
 const DEATH_TITLE_SEQUENCE: Array[String] = [
 	"Ошибся",
 	"Напортачил",
@@ -11,7 +11,7 @@ const DEATH_TITLE_SEQUENCE: Array[String] = [
 	"Провинился",
 	"Облажался",
 	"Согрешил",
-	DEATH_TITLE_PENANCE_TEXT,
+	DEATH_TITLE_PENANCE_LINE,
 ]
 const DEATH_GLITCH_BACKGROUND_LAYOUT := [
 	{"anchor": Vector2(0.06, 0.08), "offset": Vector2(-280.0, -120.0), "width": 860.0, "font_size": 70, "rotation": -0.22, "scale": Vector2(1.26, 1.26), "alpha": 0.2, "strength": 0.82},
@@ -52,7 +52,8 @@ func apply_title(text: String, glitchy: bool) -> void:
 	if _title_label == null:
 		return
 	_update_title_layout(glitchy)
-	_title_label.text = _get_readable_death_glitch_text(text) if glitchy else text
+	var localized_text := _translate_text(text)
+	_title_label.text = _get_readable_death_glitch_text(text, localized_text) if glitchy else localized_text
 	_title_label.rotation = 0.0
 	_title_label.scale = Vector2.ONE
 	_title_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
@@ -67,12 +68,18 @@ func apply_title(text: String, glitchy: bool) -> void:
 		_title_label.add_theme_constant_override("shadow_offset_x", 3)
 		_title_label.add_theme_constant_override("shadow_offset_y", 3)
 		_title_label.material = _title_readable_glitch_material
-		_show_glitch_background(text)
+		_show_glitch_background(text, localized_text)
 	else:
 		_title_label.add_theme_font_size_override("font_size", 112)
 		_title_label.material = null
 		if _glitch_background:
 			_glitch_background.visible = false
+
+
+func _translate_text(text: String) -> String:
+	if _owner != null:
+		return _owner.tr(text)
+	return text
 
 
 func _update_title_layout(glitchy: bool = false) -> void:
@@ -87,19 +94,19 @@ func _update_title_layout(glitchy: bool = false) -> void:
 	_title_label.custom_minimum_size = Vector2(title_width, 0.0)
 
 
-func _get_readable_death_glitch_text(text: String) -> String:
-	if text == DEATH_TITLE_PENANCE_TEXT:
-		return "%s\n%s" % [DEATH_TITLE_PENANCE_LINE, DEATH_TITLE_PENANCE_LINE]
-	return text
+func _get_readable_death_glitch_text(raw_text: String, localized_text: String) -> String:
+	if _is_penance_title(raw_text):
+		return "%s\n%s" % [localized_text, localized_text]
+	return localized_text
 
 
-func _show_glitch_background(text: String) -> void:
+func _show_glitch_background(raw_text: String, localized_text: String) -> void:
 	if _glitch_background == null:
 		return
 	var viewport_size := Vector2(1920.0, 1080.0)
 	if _owner != null and _owner.get_viewport():
 		viewport_size = _owner.get_viewport().get_visible_rect().size
-	var background_text := _build_glitch_background_text(text)
+	var background_text := _build_glitch_background_text(raw_text, localized_text)
 	for child in _glitch_background.get_children():
 		child.free()
 	for layout_variant in DEATH_GLITCH_BACKGROUND_LAYOUT:
@@ -137,13 +144,24 @@ func _show_glitch_background(text: String) -> void:
 	_glitch_background.visible = true
 
 
-func _build_glitch_background_text(text: String) -> String:
-	var compact := text.replace("\n", " ").strip_edges()
+func _build_glitch_background_text(raw_text: String, localized_text: String) -> String:
+	var compact := localized_text.replace("\n", " ").strip_edges()
 	if compact == "":
-		compact = DEATH_TITLE_PENANCE_LINE
-	if compact == DEATH_TITLE_PENANCE_TEXT:
-		return DEATH_TITLE_PENANCE_TEXT
+		compact = _translate_text(DEATH_TITLE_PENANCE_LINE)
+	if _is_penance_title(raw_text):
+		return _build_penance_background_text(compact)
 	return ("%s %s %s" % [compact, compact, compact]).strip_edges()
+
+
+func _build_penance_background_text(line: String) -> String:
+	var parts: Array[String] = []
+	for _index in range(DEATH_TITLE_PENANCE_BACKGROUND_REPEATS):
+		parts.append(line)
+	return " ".join(parts)
+
+
+func _is_penance_title(text: String) -> bool:
+	return text == DEATH_TITLE_PENANCE_LINE
 
 
 func _build_death_glitch_material(glitch_strength: float, line_jitter: float, chroma_shift: float, scanline_strength: float, flicker_speed: float, tint: Color) -> ShaderMaterial:

@@ -170,6 +170,7 @@
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Добавлены scene-contract validators для critical NodePath/child contracts, utility-level NodePaths, cycle/lab/fridge-level authoring contracts, configured trigger target/property wiring, key-door/search-key wiring и отдельные STU path contracts.
+- Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
 - `UIMessage`, `MinigameController`, CycleState phase bridge, cycle timer/checkpoint state, timer node lifecycle, death-title часть, stalker spawn/checkpoint часть, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken policy, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state `GameDirector` получили facade-preserving helper split-ы.
 - Добавлен скелетный `PlayerSkeletonRig` и активный skeleton-only `player.tscn`.
