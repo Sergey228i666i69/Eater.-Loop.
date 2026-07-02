@@ -5,6 +5,7 @@ const GamepadSpatialNavClass = preload("res://levels/minigames/gamepad/gamepad_s
 const GamepadHighlighterClass = preload("res://levels/minigames/gamepad/gamepad_highlighter.gd")
 const GamepadHintBarClass = preload("res://levels/minigames/gamepad/gamepad_hint_bar.gd")
 const GamepadHintBuilderClass = preload("res://levels/minigames/gamepad/gamepad_hint_builder.gd")
+const GamepadNavigationRepeatClass = preload("res://levels/minigames/gamepad/gamepad_navigation_repeat.gd")
 
 const MODE_FOCUS := "focus"
 const MODE_PICK_PLACE := "pick_place"
@@ -34,12 +35,8 @@ var _nav = GamepadSpatialNavClass.new()
 var _highlighter = GamepadHighlighterClass.new()
 var _hint_bar = GamepadHintBarClass.new()
 var _hint_builder = GamepadHintBuilderClass.new()
+var _nav_repeat = GamepadNavigationRepeatClass.new()
 
-var _held_dir := Vector2.ZERO
-var _held_elapsed := 0.0
-var _repeat_accumulator := 0.0
-var _nav_repeat_delay: float = DEFAULT_NAV_REPEAT_DELAY
-var _nav_repeat_interval: float = DEFAULT_NAV_REPEAT_INTERVAL
 var _show_gamepad_hints: bool = false
 var _confirm_release_gate: bool = false
 var _show_navigation_visuals: bool = false
@@ -68,11 +65,8 @@ func clear() -> void:
 	_source_selection = null
 	_target_selection = null
 	_selected_source = null
-	_held_dir = Vector2.ZERO
-	_held_elapsed = 0.0
-	_repeat_accumulator = 0.0
-	_nav_repeat_delay = DEFAULT_NAV_REPEAT_DELAY
-	_nav_repeat_interval = DEFAULT_NAV_REPEAT_INTERVAL
+	_nav_repeat.configure(DEFAULT_NAV_REPEAT_DELAY, DEFAULT_NAV_REPEAT_INTERVAL)
+	_nav_repeat.clear()
 	_show_gamepad_hints = false
 	_confirm_release_gate = false
 	_show_navigation_visuals = false
@@ -165,8 +159,10 @@ func _apply_scheme(scheme: Dictionary) -> void:
 	_mode = String(_scheme.get("mode", MODE_FOCUS))
 	if _mode != MODE_PICK_PLACE:
 		_mode = MODE_FOCUS
-	_nav_repeat_delay = maxf(0.05, float(_scheme.get("nav_repeat_delay", DEFAULT_NAV_REPEAT_DELAY)))
-	_nav_repeat_interval = maxf(0.05, float(_scheme.get("nav_repeat_interval", DEFAULT_NAV_REPEAT_INTERVAL)))
+	_nav_repeat.configure(
+		float(_scheme.get("nav_repeat_delay", DEFAULT_NAV_REPEAT_DELAY)),
+		float(_scheme.get("nav_repeat_interval", DEFAULT_NAV_REPEAT_INTERVAL))
+	)
 	_section = SECTION_SOURCE if _mode == MODE_PICK_PLACE else SECTION_FOCUS
 	_selected_source = null
 	_focus_selection = null
@@ -301,26 +297,12 @@ func _step_navigation(direction: Vector2) -> void:
 
 func _process_navigation_hold(delta: float) -> void:
 	var direction := _read_pressed_direction()
-	if direction == Vector2.ZERO:
-		_held_dir = Vector2.ZERO
-		_held_elapsed = 0.0
-		_repeat_accumulator = 0.0
-		return
-	if direction != _held_dir:
-		_prime_navigation_hold(direction)
-		return
-	_held_elapsed += delta
-	if _held_elapsed < _nav_repeat_delay:
-		return
-	_repeat_accumulator += delta
-	while _repeat_accumulator >= _nav_repeat_interval:
-		_repeat_accumulator -= _nav_repeat_interval
+	var repeat_count := _nav_repeat.consume_repeats(direction, delta)
+	for _index in range(repeat_count):
 		_step_navigation(direction)
 
 func _prime_navigation_hold(direction: Vector2) -> void:
-	_held_dir = direction
-	_held_elapsed = 0.0
-	_repeat_accumulator = 0.0
+	_nav_repeat.prime(direction)
 
 func _read_pressed_direction() -> Vector2:
 	var x := 0
