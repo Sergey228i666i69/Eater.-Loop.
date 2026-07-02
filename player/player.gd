@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 const PlayerFlashlightChargeState = preload("res://player/player_flashlight_charge_state.gd")
+const PlayerInventoryState = preload("res://player/player_inventory_state.gd")
 const PlayerStaminaState = preload("res://player/player_stamina_state.gd")
 
 signal player_made_sound
@@ -85,8 +86,6 @@ signal flashlight_activation_denied(charge_ratio: float)
 ## Моменты касания стопы пола внутри light_run-клипа. Держать синхронно с ключами стоп в PlayerSkeletonRig.
 @export var skeleton_light_run_step_times: PackedFloat32Array = PackedFloat32Array([0.1375, 0.4125])
 
-var keys: Dictionary = {}
-
 # Ссылки на узлы
 @onready var pivot: Node2D = get_node_or_null("Pivot") as Node2D
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
@@ -114,6 +113,7 @@ var _walk_loop_start: int = 0
 var _walk_loop_end: int = 0
 var _flashlight_charge_state: RefCounted
 var _adjusting_frame: bool = false
+var _inventory_state: RefCounted
 var _movement_blocked: bool = false
 var _stamina_state: RefCounted
 var _current_skeleton_animation: StringName = StringName()
@@ -593,10 +593,11 @@ func _input(event: InputEvent) -> void:
 		_toggle_flashlight()
 
 func capture_checkpoint_state() -> Dictionary:
+	var inventory_state: Dictionary = _get_inventory_state().capture_checkpoint_state()
 	var stamina_state: Dictionary = _get_stamina_state().capture_checkpoint_state()
 	var flashlight_state: Dictionary = _get_flashlight_charge_state().capture_checkpoint_state()
 	return {
-		"keys": keys.keys(),
+		"keys": inventory_state.get("keys", []),
 		"facing_dir": _facing_dir,
 		"stamina": float(stamina_state.get("stamina", 0.0)),
 		"flashlight_charge": float(flashlight_state.get("flashlight_charge", 0.0)),
@@ -606,11 +607,7 @@ func capture_checkpoint_state() -> Dictionary:
 	}
 
 func apply_checkpoint_state(state: Dictionary) -> void:
-	keys.clear()
-	var key_list: Variant = state.get("keys", [])
-	if key_list is Array:
-		for key_id in key_list:
-			keys[str(key_id)] = true
+	_get_inventory_state().apply_checkpoint_state(state)
 	_facing_dir = float(state.get("facing_dir", _facing_dir))
 	_sync_stamina_config()
 	_get_stamina_state().apply_checkpoint_state(state)
@@ -621,6 +618,11 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 		var should_enable := bool(state.get("flashlight_enabled", false)) and has_flashlight_available()
 		flashlight.enabled = should_enable
 	_update_skeleton_flashlight_visibility()
+
+func _get_inventory_state() -> RefCounted:
+	if _inventory_state == null:
+		_inventory_state = PlayerInventoryState.new()
+	return _inventory_state
 
 func _get_flashlight_charge_state() -> RefCounted:
 	if _flashlight_charge_state == null:
@@ -651,14 +653,12 @@ func _sync_stamina_config() -> void:
 
 # ===== Работа с ключами =====
 func add_key(key_id: String) -> void:
-	if key_id == "": return
-	keys[key_id] = true
+	_get_inventory_state().add_key(key_id)
 
 func has_key(key_id: String) -> bool:
-	if key_id == "": return false
-	return keys.has(key_id)
+	return _get_inventory_state().has_key(key_id)
 
 func remove_key(key_id: String) -> void:
-	if keys.has(key_id): keys.erase(key_id)
+	_get_inventory_state().remove_key(key_id)
 	
 	
