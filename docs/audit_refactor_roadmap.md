@@ -106,6 +106,7 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~gamepad hint policy;~~ вынесено в `gamepad_hint_builder.gd`.
    - ~~gamepad navigation repeat state;~~ вынесено в `gamepad_navigation_repeat.gd`.
    - ~~gamepad node/provider resolving;~~ вынесено в `gamepad_node_resolver.gd`.
+   - ~~gamepad callback routing;~~ вынесено в `gamepad_callback_router.gd`.
    - ~~gamepad confirm release gate state;~~ вынесено в `gamepad_confirm_release_gate.gd`.
    - ~~pause/cursor ownership;~~ вынесено в `minigame_modal_ownership.gd`.
    - ~~music stack lifecycle;~~ вынесено в `minigame_music_session.gd`.

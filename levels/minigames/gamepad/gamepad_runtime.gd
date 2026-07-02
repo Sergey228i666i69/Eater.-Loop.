@@ -8,6 +8,7 @@ const GamepadHintBuilderClass = preload("res://levels/minigames/gamepad/gamepad_
 const GamepadNavigationRepeatClass = preload("res://levels/minigames/gamepad/gamepad_navigation_repeat.gd")
 const GamepadNodeResolverClass = preload("res://levels/minigames/gamepad/gamepad_node_resolver.gd")
 const GamepadConfirmReleaseGateClass = preload("res://levels/minigames/gamepad/gamepad_confirm_release_gate.gd")
+const GamepadCallbackRouterClass = preload("res://levels/minigames/gamepad/gamepad_callback_router.gd")
 
 const MODE_FOCUS := "focus"
 const MODE_PICK_PLACE := "pick_place"
@@ -40,6 +41,7 @@ var _hint_builder = GamepadHintBuilderClass.new()
 var _nav_repeat = GamepadNavigationRepeatClass.new()
 var _node_resolver = GamepadNodeResolverClass.new()
 var _confirm_release_gate = GamepadConfirmReleaseGateClass.new()
+var _callback_router = GamepadCallbackRouterClass.new()
 
 var _show_gamepad_hints: bool = false
 var _show_navigation_visuals: bool = false
@@ -433,28 +435,16 @@ func _build_context() -> Dictionary:
 	}
 
 func _has_callback(name: String) -> bool:
-	if not _scheme.has(name):
-		return false
-	var callback: Variant = _scheme.get(name, Callable())
-	return callback is Callable and (callback as Callable).is_valid()
+	return _callback_router.has_callback(_scheme, name)
 
 func _invoke_callback(name: String, args: Array = []) -> bool:
-	if not _has_callback(name):
-		return false
-	_call_callback(name, args)
-	return true
+	return _callback_router.invoke_callback(_scheme, name, args)
 
 func _invoke_callback_consumed(name: String, args: Array = []) -> bool:
-	if not _has_callback(name):
-		return false
-	var result = _call_callback(name, args)
-	if typeof(result) == TYPE_BOOL:
-		return bool(result)
-	return true
+	return _callback_router.invoke_callback_consumed(_scheme, name, args)
 
 func _call_callback(name: String, args: Array = []) -> Variant:
-	var callback := _scheme.get(name, Callable()) as Callable
-	return callback.callv(args)
+	return _callback_router.call_callback(_scheme, name, args)
 
 func _set_gamepad_hint_visibility(visible: bool) -> void:
 	if _show_gamepad_hints == visible:

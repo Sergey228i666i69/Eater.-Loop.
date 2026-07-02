@@ -24,7 +24,7 @@
   Общий helper определения keyboard/mouse/gamepad/Sony input-событий для UI prompt-ов,
   меню и директорского input-mode state.
 - Внутренние helper-и крупных фасадов:
-  `GameDirectorCyclePhaseBridge`, `GameDirectorCycleTimerState`, `GameDirectorDeathCameraCoordinator`, `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathRetryCoordinator`, `GameDirectorDeathTitlePresenter`, `GameDirectorDistortionGate`, `GameDirectorDistortionOverlayCoordinator`, `GameDirectorDistortionPhaseState`, `GameDirectorDistortionProgress`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `GameDirectorTimerNodeCoordinator`, `GamepadConfirmReleaseGate`, `GamepadHintBuilder`, `GamepadNavigationRepeat`, `GamepadNodeResolver`, `GamepadSchemeRegistry`, `MinigameBackdropPresenter`, `MinigameModalOwnership`, `MinigameMusicSession`, `MinigamePromptVisibilityCoordinator`, `MinigameTimerState`, `UIFadeController`.
+  `GameDirectorCyclePhaseBridge`, `GameDirectorCycleTimerState`, `GameDirectorDeathCameraCoordinator`, `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathRetryCoordinator`, `GameDirectorDeathTitlePresenter`, `GameDirectorDistortionGate`, `GameDirectorDistortionOverlayCoordinator`, `GameDirectorDistortionPhaseState`, `GameDirectorDistortionProgress`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `GameDirectorTimerNodeCoordinator`, `GamepadCallbackRouter`, `GamepadConfirmReleaseGate`, `GamepadHintBuilder`, `GamepadNavigationRepeat`, `GamepadNodeResolver`, `GamepadSchemeRegistry`, `MinigameBackdropPresenter`, `MinigameModalOwnership`, `MinigameMusicSession`, `MinigamePromptVisibilityCoordinator`, `MinigameTimerState`, `UIFadeController`.
   Они не являются публичными autoload API и используются для снижения размера
   `GameDirector`, `MinigameController` и `UIMessage` без смены внешних вызовов.
 
@@ -65,6 +65,7 @@
 - Gamepad hint values отображаются через `tr(...)`; русскоязычные hint strings должны иметь ключ в `global/localization/texts.csv`.
 - Navigation hold/repeat timing вынесен в `GamepadNavigationRepeat`; `GamepadRuntime` только читает текущее направление и применяет repeat count к active selection.
 - Node/NodePath/provider resolving для gamepad-схем вынесен в `GamepadNodeResolver`; он же централизует focusable filtering для invisible/disabled/custom nodes.
+- Callback lookup/invoke/consumed semantics для gamepad-схем вынесены в `GamepadCallbackRouter`; `GamepadRuntime` сохраняет порядок игровых переходов и context assembly.
 - Confirm, зажатый до старта мини-игры, фильтруется через `GamepadConfirmReleaseGate`; `GamepadRuntime` принимает подтверждение только после release/нового press.
 - Схема геймпада задаётся через `set_gamepad_scheme`/`clear_gamepad_scheme`.
 - Timed lab-мини-игры наследуются от `res://levels/minigames/labs/timed_lab_minigame_base.gd`.
@@ -182,7 +183,7 @@
 - Добавлены scene-contract validators для critical NodePath/child contracts, utility-level NodePaths, cycle/lab/fridge-level authoring contracts, configured trigger target/property wiring, key-door/search-key wiring и отдельные STU path contracts.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
-- `UIMessage`, `MinigameController` backdrop/prompt/timer/modal/music-session/gamepad-registry lifecycle, `GamepadRuntime` hint/repeat/resolving/confirm-release policy, CycleState phase bridge, cycle timer/checkpoint state, timer node lifecycle, death-title часть, stalker spawn/checkpoint часть, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken/reload policy, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state `GameDirector` получили facade-preserving helper split-ы.
+- `UIMessage`, `MinigameController` backdrop/prompt/timer/modal/music-session/gamepad-registry lifecycle, `GamepadRuntime` hint/repeat/resolving/callback/confirm-release policy, CycleState phase bridge, cycle timer/checkpoint state, timer node lifecycle, death-title часть, stalker spawn/checkpoint часть, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken/reload policy, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state `GameDirector` получили facade-preserving helper split-ы.
 - Добавлен скелетный `PlayerSkeletonRig` и активный skeleton-only `player.tscn`.
 - `PlayerSkeletonRig` получил первые loop-клипы `idle`, `walk` и `light_run`, а `Player` начал переключать их вместе с текущей логикой движения.
 - Активный `player.tscn` переведён на skeleton-only визуал, старый png-вариант сохранён в sprite-only `LEGASY-ANIMATIONS-CHARACTER.tscn`.

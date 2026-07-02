@@ -62,6 +62,8 @@
 - `mode`, `section`, `selected_source`, `active_node`,
 - `focus_nodes`, `source_nodes`, `target_nodes`.
 
+Callback lookup, вызов и consumed-семантика централизованы в `GamepadCallbackRouter`: callback, который возвращает `false`, не считается обработавшим input; callback без bool-результата сохраняет legacy consumed-поведение.
+
 ## Подключение к новой мини-игре (чеклист на ~10 минут)
 1. В `_ready()` мини-игры вызвать `MinigameController.set_gamepad_scheme(self, ...)`.
 2. В `_exit_tree()` обязательно вызвать `MinigameController.clear_gamepad_scheme(self)`.
