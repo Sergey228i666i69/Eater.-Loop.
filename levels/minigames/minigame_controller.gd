@@ -4,6 +4,7 @@ const MinigameBackdropPresenter = preload("res://levels/minigames/minigame_backd
 const MinigamePromptVisibilityCoordinator = preload("res://levels/minigames/minigame_prompt_visibility_coordinator.gd")
 const MinigameTimerState = preload("res://levels/minigames/minigame_timer_state.gd")
 const MinigameModalOwnership = preload("res://levels/minigames/minigame_modal_ownership.gd")
+const MinigameMusicSession = preload("res://levels/minigames/minigame_music_session.gd")
 const GamepadSchemeRegistry = preload("res://levels/minigames/gamepad/gamepad_scheme_registry.gd")
 const GamepadRuntimeClass = preload("res://levels/minigames/gamepad/gamepad_runtime.gd")
 
@@ -40,10 +41,6 @@ signal minigame_cancel_allowed_changed(allowed: bool)
 const CHASE_MUSIC_PAUSE_FADE_TIME := 0.1
 
 var _active_minigame: Node = null
-var _music_pushed: bool = false
-var _music_is_stream: bool = false
-var _music_stop_on_finish: bool = false
-var _music_fade_time: float = 0.3
 var _block_player_movement: bool = true
 var _pause_menu_open: bool = false
 var _allow_pause_menu: bool = true
@@ -56,6 +53,7 @@ var _backdrop_presenter: RefCounted
 var _prompt_visibility = null
 var _timer_state = null
 var _modal_ownership = null
+var _music_session = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -64,6 +62,7 @@ func _ready() -> void:
 	_ensure_prompt_visibility()
 	_ensure_timer_state()
 	_ensure_modal_ownership()
+	_ensure_music_session()
 	_ensure_gamepad_scheme_registry()
 	_gamepad_runtime = GamepadRuntimeClass.new()
 	if get_tree() and get_tree().has_signal("scene_changed"):
@@ -86,6 +85,11 @@ func _ensure_modal_ownership():
 	if _modal_ownership == null:
 		_modal_ownership = MinigameModalOwnership.new()
 	return _modal_ownership
+
+func _ensure_music_session():
+	if _music_session == null:
+		_music_session = MinigameMusicSession.new()
+	return _music_session
 
 func _ensure_gamepad_scheme_registry():
 	if _gamepad_scheme_registry == null:
@@ -196,8 +200,7 @@ func start_minigame(minigame: Node, config: Variant = null) -> void:
 	_active_minigame = minigame
 	var settings := _resolve_settings(config)
 	_ensure_modal_ownership().configure(settings.pause_game, settings.show_mouse_cursor)
-	_music_fade_time = settings.music_fade_time
-	_music_stop_on_finish = settings.stop_music_on_finish
+	_ensure_music_session().configure(settings.music_fade_time, settings.stop_music_on_finish)
 	_block_player_movement = settings.block_player_movement
 	_allow_pause_menu = settings.allow_pause_menu
 	_allow_cancel_action = settings.allow_cancel_action
@@ -240,29 +243,22 @@ func finish_minigame_with_fade(minigame: Node, success: bool = true, on_black: C
 	)
 
 func stop_minigame_music(fade_time: float = -1.0) -> void:
-	if MusicManager == null:
-		return
-	if not _music_pushed:
-		return
-	if _music_is_stream:
-		MusicManager.stop_minigame_music()
-		return
-	var target_fade := _music_fade_time if fade_time < 0.0 else fade_time
-	MusicManager.stop_music(target_fade)
+	_ensure_music_session().stop(MusicManager, fade_time)
 
 func update_minigame_music(stream: AudioStream, volume_db: float = 999.0, fade_time: float = -1.0) -> void:
 	if MusicManager == null:
 		return
 	if _active_minigame == null:
 		return
-	var target_fade := _music_fade_time if fade_time < 0.0 else fade_time
-	if not _music_pushed:
-		_music_pushed = true
-		_music_is_stream = true
-		MusicManager.start_minigame_music(stream, volume_db)
-		return
-	var mixed_volume := MusicManager.resolve_mix_volume_db(MusicManager.MIX_MINIGAME, volume_db)
-	MusicManager.play_music(stream, target_fade, mixed_volume, 0.0, 999.0, MusicManager.SOURCE_MINIGAME, MusicManager.SOURCE_KIND_MINIGAME)
+	_ensure_music_session().update(
+		MusicManager,
+		stream,
+		volume_db,
+		fade_time,
+		MusicManager.MIX_MINIGAME,
+		MusicManager.SOURCE_MINIGAME,
+		MusicManager.SOURCE_KIND_MINIGAME
+	)
 
 func get_time_left() -> float:
 	return _ensure_timer_state().get_time_left()
@@ -350,33 +346,10 @@ func _clear_timer() -> void:
 	_ensure_timer_state().clear()
 
 func _setup_music(stream: AudioStream, volume_db: float, suspend_music: bool) -> void:
-	if MusicManager == null:
-		_music_is_stream = false
-		return
-	_music_is_stream = stream != null
-	if stream == null and not suspend_music:
-		return
-	_music_pushed = true
-	if stream != null:
-		MusicManager.start_minigame_music(stream, volume_db)
-		return
-	MusicManager.push_music(null, _music_fade_time)
+	_ensure_music_session().setup(MusicManager, stream, volume_db, suspend_music)
 
 func _restore_music() -> void:
-	if MusicManager == null:
-		return
-	if not _music_pushed:
-		return
-	if _music_is_stream:
-		MusicManager.pop_music(0.0)
-		_music_pushed = false
-		_music_is_stream = false
-		return
-	if _music_stop_on_finish:
-		MusicManager.stop_music(_music_fade_time)
-	MusicManager.pop_music(_music_fade_time)
-	_music_pushed = false
-	_music_is_stream = false
+	_ensure_music_session().restore(MusicManager)
 
 func _resolve_minigame_layer(override_layer: int) -> int:
 	return default_minigame_layer if override_layer < 0 else override_layer
