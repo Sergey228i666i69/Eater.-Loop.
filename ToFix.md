@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 88 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 89 тестов.
 
 Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
@@ -55,7 +55,7 @@
 - Пустые target marker STU-двери, которые должны быть недоступны, явно locked; `level_13_stu_3.gd` сделал отсутствующий primary fridge path явным optional default.
 - `level_13_STU_3` cafeteria fridge больше не остаётся частично настроенным: после lab-gate у него есть feeding minigame scene, face/background/music/sfx и food config.
 - Naming debt закрыт Godot-aware rename-ами: `chiken` -> `chicken`, `meet` -> `meat`, `Без названия *.png` -> descriptive background names, `toilet and bathroom` -> `toilet_bathroom`, `DoorNSTU_highevel.png` -> `DoorNSTU_highlevel.png`, `FridgeNoizeE.wav` -> `FridgeNoiseE.wav`.
-- Первый god-class split закрыт: `UIMessage` вынес fade/tween state в `ui_fade_controller.gd`, `MinigameController` вынес backdrop registry/presentation в `minigame_backdrop_presenter.gd`, prompt suspend/restore lifecycle в `minigame_prompt_visibility_coordinator.gd` и timer state в `minigame_timer_state.gd`, `GameDirector` вынес death-title/glitch presentation в `game_director_death_title_presenter.gd`, stalker spawn/checkpoint service в `game_director_stalker_service.gd`, overlay layer policy в `game_director_overlay_layer_coordinator.gd`, death cursor/input policy в `game_director_death_cursor_coordinator.gd`, death camera capture/restore в `game_director_death_camera_coordinator.gd`, death retry restore/darken policy в `game_director_death_retry_coordinator.gd`, cycle timer/checkpoint state в `game_director_cycle_timer_state.gd`, CycleState phase bridge в `game_director_cycle_phase_bridge.gd`, timer node lifecycle в `game_director_timer_node_coordinator.gd`, minigame distortion gate в `game_director_distortion_gate.gd`, distortion progress/easing math в `game_director_distortion_progress.gd`, distortion overlay/material actuator в `game_director_distortion_overlay_coordinator.gd` и distortion phase/checkpoint state в `game_director_distortion_phase_state.gd`.
+- Первый god-class split закрыт: `UIMessage` вынес fade/tween state в `ui_fade_controller.gd`, `MinigameController` вынес backdrop registry/presentation в `minigame_backdrop_presenter.gd`, prompt suspend/restore lifecycle в `minigame_prompt_visibility_coordinator.gd`, timer state в `minigame_timer_state.gd` и gamepad scheme registry в `gamepad_scheme_registry.gd`, `GameDirector` вынес death-title/glitch presentation в `game_director_death_title_presenter.gd`, stalker spawn/checkpoint service в `game_director_stalker_service.gd`, overlay layer policy в `game_director_overlay_layer_coordinator.gd`, death cursor/input policy в `game_director_death_cursor_coordinator.gd`, death camera capture/restore в `game_director_death_camera_coordinator.gd`, death retry restore/darken policy в `game_director_death_retry_coordinator.gd`, cycle timer/checkpoint state в `game_director_cycle_timer_state.gd`, CycleState phase bridge в `game_director_cycle_phase_bridge.gd`, timer node lifecycle в `game_director_timer_node_coordinator.gd`, minigame distortion gate в `game_director_distortion_gate.gd`, distortion progress/easing math в `game_director_distortion_progress.gd`, distortion overlay/material actuator в `game_director_distortion_overlay_coordinator.gd` и distortion phase/checkpoint state в `game_director_distortion_phase_state.gd`.
 
 ## P2 - Системные Долги И Хрупкие Контракты
 
@@ -87,6 +87,7 @@
 - `levels/minigames/minigame_controller.gd` больше не держит backdrop registry/fullscreen-backdrop detection: это вынесено в `levels/minigames/minigame_backdrop_presenter.gd`.
 - `levels/minigames/minigame_controller.gd` больше не держит prompt suspend/restore target lifecycle напрямую: это вынесено в `levels/minigames/minigame_prompt_visibility_coordinator.gd` и покрыто `tests/cases/test_minigame_prompt_visibility_coordinator.gd`.
 - `levels/minigames/minigame_controller.gd` больше не держит timer state напрямую: это вынесено в `levels/minigames/minigame_timer_state.gd` и покрыто `tests/cases/test_minigame_timer_state.gd`.
+- `levels/minigames/minigame_controller.gd` больше не держит registry зарегистрированных gamepad-схем напрямую: это вынесено в `levels/minigames/gamepad/gamepad_scheme_registry.gd` и покрыто `tests/cases/test_gamepad_scheme_registry.gd`.
 - `levels/game_director.gd` больше не держит death-title sequence, readable glitch layout и material factory: это вынесено в `levels/game_director_death_title_presenter.gd`.
 - `levels/game_director.gd` больше не держит stalker spawn/checkpoint service, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken/reload policy, cycle timer/checkpoint state, CycleState phase bridge, timer node lifecycle, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state напрямую: это вынесено в отдельные `game_director_*` helper-ы с focused tests.
 - `MusicManager` facade оставлен стабильным: он уже защищён private-API тестом, а mix-offset policy вынесена в `MusicMixSettings`; рискованный широкий audio-stack refactor лучше делать отдельной задачей с audio-regression focus.
@@ -190,7 +191,7 @@
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (88)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (89)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 

@@ -3,6 +3,7 @@ extends Node
 const MinigameBackdropPresenter = preload("res://levels/minigames/minigame_backdrop_presenter.gd")
 const MinigamePromptVisibilityCoordinator = preload("res://levels/minigames/minigame_prompt_visibility_coordinator.gd")
 const MinigameTimerState = preload("res://levels/minigames/minigame_timer_state.gd")
+const GamepadSchemeRegistry = preload("res://levels/minigames/gamepad/gamepad_scheme_registry.gd")
 const GamepadRuntimeClass = preload("res://levels/minigames/gamepad/gamepad_runtime.gd")
 
 ## Центральный контроллер мини-игр.
@@ -52,7 +53,7 @@ var _allow_cancel_action: bool = false
 var _transition_active: bool = false
 var _transition_queue: Array = []
 var _gamepad_runtime = null
-var _gamepad_schemes: Dictionary = {}
+var _gamepad_scheme_registry = null
 var _backdrop_presenter: RefCounted
 var _prompt_visibility = null
 var _timer_state = null
@@ -63,6 +64,7 @@ func _ready() -> void:
 	_backdrop_presenter.backdrop_color = minigame_backdrop_color
 	_ensure_prompt_visibility()
 	_ensure_timer_state()
+	_ensure_gamepad_scheme_registry()
 	_gamepad_runtime = GamepadRuntimeClass.new()
 	if get_tree() and get_tree().has_signal("scene_changed"):
 		get_tree().scene_changed.connect(_on_scene_changed)
@@ -79,6 +81,11 @@ func _ensure_timer_state():
 	if _timer_state == null:
 		_timer_state = MinigameTimerState.new()
 	return _timer_state
+
+func _ensure_gamepad_scheme_registry():
+	if _gamepad_scheme_registry == null:
+		_gamepad_scheme_registry = GamepadSchemeRegistry.new()
+	return _gamepad_scheme_registry
 
 func _input(event: InputEvent) -> void:
 	if _active_minigame == null:
@@ -164,19 +171,14 @@ func get_active_minigame_layer() -> int:
 func set_gamepad_scheme(minigame: Node, scheme: Dictionary) -> void:
 	if minigame == null:
 		return
-	var id := minigame.get_instance_id()
-	_gamepad_schemes[id] = {
-		"ref": weakref(minigame),
-		"scheme": scheme.duplicate(true)
-	}
-	_cleanup_gamepad_schemes()
+	_ensure_gamepad_scheme_registry().set_scheme(minigame, scheme)
 	if minigame == _active_minigame:
 		_apply_registered_gamepad_scheme(minigame)
 
 func clear_gamepad_scheme(minigame: Node) -> void:
 	if minigame == null:
 		return
-	_gamepad_schemes.erase(minigame.get_instance_id())
+	_ensure_gamepad_scheme_registry().clear_scheme(minigame)
 	if _active_minigame == minigame and _gamepad_runtime:
 		_gamepad_runtime.clear_scheme(minigame)
 
@@ -620,7 +622,7 @@ func _call_callable_if_alive(callback: Callable) -> void:
 func _apply_registered_gamepad_scheme(minigame: Node) -> void:
 	if _gamepad_runtime == null:
 		return
-	var scheme := _get_registered_scheme(minigame)
+	var scheme: Dictionary = _ensure_gamepad_scheme_registry().get_scheme(minigame)
 	if scheme.is_empty():
 		_gamepad_runtime.clear()
 		return
@@ -628,29 +630,3 @@ func _apply_registered_gamepad_scheme(minigame: Node) -> void:
 		_gamepad_runtime.set_scheme(minigame, scheme)
 		return
 	_gamepad_runtime.start(minigame, scheme)
-
-func _get_registered_scheme(minigame: Node) -> Dictionary:
-	if minigame == null:
-		return {}
-	var id := minigame.get_instance_id()
-	if not _gamepad_schemes.has(id):
-		return {}
-	var entry: Dictionary = _gamepad_schemes[id]
-	var ref: WeakRef = entry.get("ref", null)
-	if ref == null or ref.get_ref() != minigame:
-		_gamepad_schemes.erase(id)
-		return {}
-	var scheme: Variant = entry.get("scheme", {})
-	if scheme is Dictionary:
-		return (scheme as Dictionary).duplicate(true)
-	return {}
-
-func _cleanup_gamepad_schemes() -> void:
-	var stale_ids: Array[int] = []
-	for id in _gamepad_schemes.keys():
-		var entry: Dictionary = _gamepad_schemes[id]
-		var ref: WeakRef = entry.get("ref", null)
-		if ref == null or ref.get_ref() == null:
-			stale_ids.append(id)
-	for id in stale_ids:
-		_gamepad_schemes.erase(id)

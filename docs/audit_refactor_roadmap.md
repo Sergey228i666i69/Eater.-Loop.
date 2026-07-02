@@ -100,7 +100,8 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~backdrop registry/presentation;~~ вынесено в `minigame_backdrop_presenter.gd`.
    - ~~prompt suspend/restore lifecycle;~~ вынесено в `minigame_prompt_visibility_coordinator.gd`.
    - ~~timer state;~~ вынесено в `minigame_timer_state.gd`.
-   - pause/music/gamepad lifecycle можно дробить отдельными tested slices.
+   - ~~gamepad scheme registry;~~ вынесено в `gamepad_scheme_registry.gd`.
+   - pause/music/gamepad runtime lifecycle можно дробить отдельными tested slices.
 5. `Fridge`:
    - ~~отделить code-lock scene adapter.~~ `FridgeCodeLockSession` создаёт lock scene и пишет `code_value`/legacy `target_code`; `Fridge` сохраняет outcome/signal ownership.
    - ~~отделить feeding minigame setup.~~ `FridgeFeedingSession` проверяет config, создаёт game node, валидирует `minigame_finished` и вызывает `setup_game`.
