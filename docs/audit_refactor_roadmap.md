@@ -98,6 +98,7 @@ Definition of done: типовые ошибки сцен падают тесто
    - дальше дробить audio stack только отдельными tested slices.
 4. `MinigameController`:
    - ~~backdrop registry/presentation;~~ вынесено в `minigame_backdrop_presenter.gd`.
+   - ~~prompt suspend/restore lifecycle;~~ вынесено в `minigame_prompt_visibility_coordinator.gd`.
    - timer/pause/music/gamepad lifecycle можно дробить отдельными tested slices.
 5. `Fridge`:
    - ~~отделить code-lock scene adapter.~~ `FridgeCodeLockSession` создаёт lock scene и пишет `code_value`/legacy `target_code`; `Fridge` сохраняет outcome/signal ownership.
