@@ -12,7 +12,7 @@ These tests are lightweight smoke checks for project health. They run headless a
 - Lab authoring contracts cover lab laptop timing, timed-lab minigame scenes, explicit lab IDs, and required-lab references.
 - Fridge authoring contracts cover feeding, code-lock, and final-feeding scene configs.
 - Architecture contracts keep external `GameState`/`CycleState` access on public methods.
-- Localization CSV and runtime text sources do not contain empty required values or mojibake.
+- Localization CSV and runtime text sources do not contain empty required values or mojibake; RU player-facing strings, including gamepad hints, must have CSV keys.
 - Runtime regressions for critical audio transitions (including menu -> level start).
 
 ## Run

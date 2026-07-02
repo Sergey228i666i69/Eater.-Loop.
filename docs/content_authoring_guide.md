@@ -55,7 +55,7 @@
 
 1. Новый player-facing текст добавляй в `global/localization/texts.csv` с заполненными `keys`, `ru` и `en`.
 2. Не копируй строки из браузера/мессенджера без проверки кодировки. `test_localization_contracts.gd` ловит mojibake в CSV и runtime text sources.
-3. Русскоязычные player-facing строки в `text`, `prompt_text`, message export-полях, death/ending UI, note/obstacle prompts, lab dialogue exports, money reward reasons, `UIMessage.show_*("...")` и `tr("...")` должны иметь ключ в CSV; это проверяется тестом. Технические строки без кириллицы вроде таймеров, SQL-заголовков и кнопочных цифр пока не блокируются.
+3. Русскоязычные player-facing строки в `text`, `prompt_text`, message export-полях, death/ending UI, note/obstacle prompts, lab dialogue exports, money reward reasons, gamepad `hints`, `UIMessage.show_*("...")` и `tr("...")` должны иметь ключ в CSV; это проверяется тестом. Технические строки без кириллицы вроде таймеров, SQL-заголовков и кнопочных цифр пока не блокируются.
 
 ## Ассеты И Export
 

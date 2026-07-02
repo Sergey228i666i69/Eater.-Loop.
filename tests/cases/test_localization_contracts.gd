@@ -120,14 +120,18 @@ func _assert_player_facing_text_has_key(path: String, keys: Dictionary) -> void:
     if text == "":
         return
     var lines := text.split("\n")
+    var gamepad_hints_depth := -1
     for line_index in range(lines.size()):
         var line := String(lines[line_index])
         var stripped := line.strip_edges()
         if stripped.begins_with("#"):
             continue
+        gamepad_hints_depth = _update_gamepad_hints_depth(stripped, gamepad_hints_depth)
         _assert_property_line_has_key(path, line_index + 1, line, keys)
         if path.ends_with(".gd"):
             _assert_call_line_has_key(path, line_index + 1, line, keys)
+            if gamepad_hints_depth >= 0:
+                _assert_gamepad_hint_line_has_key(path, line_index + 1, line, keys)
 
 func _assert_property_line_has_key(path: String, line_number: int, line: String, keys: Dictionary) -> void:
     var equals_index := line.find("=")
@@ -148,6 +152,16 @@ func _assert_call_line_has_key(path: String, line_number: int, line: String, key
     if not has_player_facing_call:
         return
     for value in _extract_quoted_strings(line):
+        _assert_localization_key_exists(path, line_number, value, keys)
+
+func _assert_gamepad_hint_line_has_key(path: String, line_number: int, line: String, keys: Dictionary) -> void:
+    var colon_index := line.find(":")
+    if colon_index == -1:
+        return
+    var raw_key := line.substr(0, colon_index).strip_edges()
+    if _extract_quoted_strings(raw_key).size() != 1:
+        return
+    for value in _extract_quoted_strings(line.substr(colon_index + 1)):
         _assert_localization_key_exists(path, line_number, value, keys)
 
 func _assert_localization_key_exists(path: String, line_number: int, value: String, keys: Dictionary) -> void:
@@ -205,6 +219,26 @@ func _extract_quoted_strings(value: String) -> Array[String]:
         if not closed:
             break
     return results
+
+func _update_gamepad_hints_depth(stripped_line: String, current_depth: int) -> int:
+    var next_depth := current_depth
+    if current_depth < 0 and stripped_line.find("\"hints\"") != -1 and stripped_line.find("{") != -1:
+        next_depth = 0
+    if next_depth < 0:
+        return next_depth
+    next_depth += _count_char(stripped_line, "{")
+    next_depth -= _count_char(stripped_line, "}")
+    if next_depth <= 0:
+        return -1
+    return next_depth
+
+func _count_char(value: String, needle: String) -> int:
+    var count := 0
+    var index := value.find(needle)
+    while index != -1:
+        count += 1
+        index = value.find(needle, index + 1)
+    return count
 
 func _unescape_character(character: String) -> String:
     match character:

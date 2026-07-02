@@ -62,6 +62,7 @@
 - Music stack/session state вынесен в `MinigameMusicSession`; `MinigameController` сохраняет публичные `stop_minigame_music(...)`/`update_minigame_music(...)` и ходит к `MusicManager` только через его публичный фасад.
 - Registry зарегистрированных gamepad-схем вынесен в `GamepadSchemeRegistry`; контроллер сохраняет публичные `set_gamepad_scheme`/`clear_gamepad_scheme`.
 - Player-facing gamepad hint policy вынесен в `GamepadHintBuilder`; `GamepadRuntime` сохраняет input/navigation/callback lifecycle.
+- Gamepad hint values отображаются через `tr(...)`; русскоязычные hint strings должны иметь ключ в `global/localization/texts.csv`.
 - Navigation hold/repeat timing вынесен в `GamepadNavigationRepeat`; `GamepadRuntime` только читает текущее направление и применяет repeat count к active selection.
 - Node/NodePath/provider resolving для gamepad-схем вынесен в `GamepadNodeResolver`; он же централизует focusable filtering для invisible/disabled/custom nodes.
 - Схема геймпада задаётся через `set_gamepad_scheme`/`clear_gamepad_scheme`.

@@ -73,7 +73,7 @@ Definition of done: overlapping Area2D больше не вызывает нес
 9. ~~Проверять cycle-level authoring metadata и sleep transitions.~~ `test_level_authoring_contracts.gd` валидирует metadata, bed `next_level_path`, root exported paths и включённые стартовые тексты.
 10. ~~Проверять lab laptop IDs и fridge required-lab references.~~ `test_lab_authoring_contracts.gd` валидирует timer settings, explicit lab IDs и required-lab references.
 11. ~~Проверять feeding/code-lock/final fridge configs.~~ `test_fridge_authoring_contracts.gd` валидирует minigame scenes, signals/setup methods, food scenes, face/background и code-lock scene; `level_13_STU_3` cafeteria fridge получил полный feeding config.
-12. ~~Расширить localization coverage на новые player-facing export-поля при активной работе с UI.~~ Death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons теперь входят в `test_localization_contracts.gd`; технические строки без кириллицы по-прежнему не блокируются.
+12. ~~Расширить localization coverage на новые player-facing export-поля при активной работе с UI.~~ Death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names, money reward reasons и gamepad hints теперь входят в `test_localization_contracts.gd`; технические строки без кириллицы по-прежнему не блокируются.
 
 Definition of done: типовые ошибки сцен падают тестом, а не silently no-op. Крупный visual/DRY-разбор STU-сцен теперь можно делать отдельным scene-authoring refactor поверх этих validators.
 
