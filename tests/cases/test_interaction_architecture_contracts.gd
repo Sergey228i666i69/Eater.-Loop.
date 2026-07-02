@@ -36,6 +36,7 @@ const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
+const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
@@ -179,7 +180,9 @@ func run() -> Array[String]:
 	assert_true(game_state_content.find("func autosave_run") != -1, "GameState must expose public autosave_run()")
 
 	var fridge_content := FileAccess.get_file_as_string(FRIDGE_PATH)
-	assert_true(fridge_content.find("autosave_run") != -1, "Fridge must trigger autosave after successful interaction")
+	assert_true(fridge_content.find("FridgeCompletionSessionScript.save_after_feeding") != -1, "Fridge must delegate post-feeding save policy")
+	var fridge_completion_content := FileAccess.get_file_as_string(FRIDGE_COMPLETION_SESSION_PATH)
+	assert_true(fridge_completion_content.find("autosave_run") != -1, "Fridge completion session must keep autosave fallback after successful interaction")
 
 	return get_failures()
 

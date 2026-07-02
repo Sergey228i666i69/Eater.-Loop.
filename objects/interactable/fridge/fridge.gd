@@ -5,6 +5,7 @@ signal feeding_finished
 
 const FridgeCodeLockSessionScript := preload("res://objects/interactable/fridge/fridge_code_lock_session.gd")
 const FridgeFeedingSessionScript := preload("res://objects/interactable/fridge/fridge_feeding_session.gd")
+const FridgeCompletionSessionScript := preload("res://objects/interactable/fridge/fridge_completion_session.gd")
 
 @export_group("Minigame (Feeding)")
 ## Сцена мини-игры (еда).
@@ -281,12 +282,9 @@ func _on_feeding_finished() -> void:
 func _finish_feeding_logic() -> void:
 	if enable_teleport:
 		_clear_chase_after_teleport_success()
-	if CycleState != null:
-		CycleState.mark_ate()
+	FridgeCompletionSessionScript.mark_cycle_feeding_completed(CycleState)
 	UIMessage.show_notification("Вкуснятина")
 	
-	if CycleState != null:
-		CycleState.mark_fridge_interacted()
 	feeding_finished.emit()
 
 	# ВАЖНО: Помечаем объект выполненным только ПОСЛЕ еды.
@@ -294,17 +292,10 @@ func _finish_feeding_logic() -> void:
 	complete_interaction() 
 
 	_teleport_player_if_needed()
-	var tree := get_tree() if is_inside_tree() else null
-	if GameState != null and GameState.has_method("capture_fridge_checkpoint") and tree != null:
-		GameState.capture_fridge_checkpoint(tree.current_scene)
-	elif GameState != null and GameState.has_method("autosave_run"):
-		GameState.autosave_run()
+	_save_after_feeding()
 
 func _clear_chase_after_teleport_success() -> void:
-	if get_tree() != null:
-		get_tree().call_group("enemies", "force_stop_chase")
-	if MusicManager != null and MusicManager.has_method("clear_chase_music_sources"):
-		MusicManager.clear_chase_music_sources(0.2)
+	FridgeCompletionSessionScript.clear_chase_after_teleport_success(get_tree(), MusicManager)
 
 func _show_locked_message() -> void:
 	if _requires_lab_gate() and not _has_required_lab_completion():
@@ -377,13 +368,13 @@ func _on_ate_this_cycle_changed(_is_ate: bool) -> void:
 	_update_visuals()
 
 func _teleport_player_if_needed() -> void:
-	if not enable_teleport or teleport_target.is_empty():
-		return
-	var marker = get_node_or_null(teleport_target)
-	if marker:
-		var player = get_tree().get_first_node_in_group("player")
-		if player:
-			player.global_position = marker.global_position
+	FridgeCompletionSessionScript.teleport_player_if_needed(self, enable_teleport, teleport_target)
+
+func _save_after_feeding() -> void:
+	FridgeCompletionSessionScript.save_after_feeding(
+		GameState,
+		FridgeCompletionSessionScript.current_scene_from_owner(self)
+	)
 
 func _has_required_lab_completion() -> bool:
 	if CycleState == null:
