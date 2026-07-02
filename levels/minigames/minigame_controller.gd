@@ -3,6 +3,7 @@ extends Node
 const MinigameBackdropPresenter = preload("res://levels/minigames/minigame_backdrop_presenter.gd")
 const MinigamePromptVisibilityCoordinator = preload("res://levels/minigames/minigame_prompt_visibility_coordinator.gd")
 const MinigameTimerState = preload("res://levels/minigames/minigame_timer_state.gd")
+const MinigameModalOwnership = preload("res://levels/minigames/minigame_modal_ownership.gd")
 const GamepadSchemeRegistry = preload("res://levels/minigames/gamepad/gamepad_scheme_registry.gd")
 const GamepadRuntimeClass = preload("res://levels/minigames/gamepad/gamepad_runtime.gd")
 
@@ -39,9 +40,6 @@ signal minigame_cancel_allowed_changed(allowed: bool)
 const CHASE_MUSIC_PAUSE_FADE_TIME := 0.1
 
 var _active_minigame: Node = null
-var _pause_requested: bool = true
-var _pause_token_requested: bool = false
-var _show_mouse_cursor: bool = true
 var _music_pushed: bool = false
 var _music_is_stream: bool = false
 var _music_stop_on_finish: bool = false
@@ -57,6 +55,7 @@ var _gamepad_scheme_registry = null
 var _backdrop_presenter: RefCounted
 var _prompt_visibility = null
 var _timer_state = null
+var _modal_ownership = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -64,6 +63,7 @@ func _ready() -> void:
 	_backdrop_presenter.backdrop_color = minigame_backdrop_color
 	_ensure_prompt_visibility()
 	_ensure_timer_state()
+	_ensure_modal_ownership()
 	_ensure_gamepad_scheme_registry()
 	_gamepad_runtime = GamepadRuntimeClass.new()
 	if get_tree() and get_tree().has_signal("scene_changed"):
@@ -81,6 +81,11 @@ func _ensure_timer_state():
 	if _timer_state == null:
 		_timer_state = MinigameTimerState.new()
 	return _timer_state
+
+func _ensure_modal_ownership():
+	if _modal_ownership == null:
+		_modal_ownership = MinigameModalOwnership.new()
+	return _modal_ownership
 
 func _ensure_gamepad_scheme_registry():
 	if _gamepad_scheme_registry == null:
@@ -190,8 +195,7 @@ func start_minigame(minigame: Node, config: Variant = null) -> void:
 
 	_active_minigame = minigame
 	var settings := _resolve_settings(config)
-	_pause_requested = settings.pause_game
-	_show_mouse_cursor = settings.show_mouse_cursor
+	_ensure_modal_ownership().configure(settings.pause_game, settings.show_mouse_cursor)
 	_music_fade_time = settings.music_fade_time
 	_music_stop_on_finish = settings.stop_music_on_finish
 	_block_player_movement = settings.block_player_movement
@@ -304,36 +308,16 @@ func _update_timer(delta: float) -> void:
 			finish_minigame(_active_minigame, false)
 
 func _setup_pause() -> void:
-	if not _pause_requested:
-		return
-	if _pause_token_requested:
-		return
-	_pause_token_requested = true
-	if PauseManager != null and PauseManager.has_method("request_pause"):
-		PauseManager.request_pause(self, "minigame")
-	else:
-		get_tree().paused = true
+	_ensure_modal_ownership().request_pause(self, get_tree(), PauseManager)
 
 func _restore_pause() -> void:
-	if not _pause_token_requested:
-		return
-	_pause_token_requested = false
-	if PauseManager != null and PauseManager.has_method("release_pause"):
-		PauseManager.release_pause(self, "minigame")
-	else:
-		get_tree().paused = false
+	_ensure_modal_ownership().release_pause(self, get_tree(), PauseManager)
 
 func _setup_mouse_cursor() -> void:
-	if not _show_mouse_cursor:
-		return
-	if CursorManager:
-		CursorManager.request_visible(self)
+	_ensure_modal_ownership().request_cursor(self, CursorManager)
 
 func _restore_mouse_cursor() -> void:
-	if not _show_mouse_cursor:
-		return
-	if CursorManager:
-		CursorManager.release_visible(self)
+	_ensure_modal_ownership().release_cursor(self, CursorManager)
 
 func _setup_prompts() -> void:
 	if InteractionPrompts == null:
