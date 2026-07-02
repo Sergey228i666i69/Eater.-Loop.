@@ -61,6 +61,7 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"restore_autosave_run",
 	"reset_cycle_state()",
 	"queue_respawn_blackout",
+	"reload_current_scene",
 	"set_screen_dark(true)",
 	"fade_out(0.0)",
 	"var _minigame_active: bool",

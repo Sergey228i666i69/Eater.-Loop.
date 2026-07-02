@@ -500,13 +500,13 @@ func _on_death_retry_pressed() -> void:
 	if not _death_sequence_active:
 		return
 	await _get_death_retry_coordinator().prepare_retry(GameState, CycleState, UIMessage)
-	_restore_death_camera()
-	if _death_root:
-		_death_root.visible = false
-	_release_death_cursor_request()
-	_release_death_pause()
-	if get_tree():
-		get_tree().call_deferred("reload_current_scene")
+	_get_death_retry_coordinator().finish_retry_transition(
+		_death_root,
+		get_tree(),
+		Callable(self, "_restore_death_camera"),
+		Callable(self, "_release_death_cursor_request"),
+		Callable(self, "_release_death_pause")
+	)
 
 func _reset_death_screen_state() -> void:
 	_death_sequence_active = false
