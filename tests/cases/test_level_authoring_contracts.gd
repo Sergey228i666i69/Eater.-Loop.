@@ -2,6 +2,7 @@ extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
 const BED_SCRIPT := "res://objects/interactable/bed/bed.gd"
+const SceneContextScript = preload("res://global/scene_context.gd")
 
 func run() -> Array[String]:
 	_test_cycle_level_metadata_is_sane()
@@ -69,6 +70,19 @@ func _assert_bed_next_level_path(path: String, root: Node, bed: Node, current_sc
 	if next_scene == null:
 		return
 	assert_true(next_scene != current_scene, "Bed next_level_path must not point to the same scene: %s:%s -> %s" % [path, root.get_path_to(bed), next_level_path])
+	_assert_bed_next_level_scene_type(path, root, bed, next_level_path, next_scene)
+
+func _assert_bed_next_level_scene_type(path: String, root: Node, bed: Node, next_level_path: String, next_scene: PackedScene) -> void:
+	var next_root := next_scene.instantiate()
+	assert_true(next_root != null, "Bed next_level_path scene must instantiate for type validation: %s:%s -> %s" % [path, root.get_path_to(bed), next_level_path])
+	if next_root == null:
+		return
+	var valid_target := _is_cycle_level(next_root)
+	var scene_context := SceneContextScript.new()
+	valid_target = valid_target or scene_context.is_ending_scene(next_root)
+	scene_context.free()
+	assert_true(valid_target, "Bed next_level_path must point to a cycle level or ending scene: %s:%s -> %s" % [path, root.get_path_to(bed), next_level_path])
+	next_root.free()
 
 func _assert_optional_nodepath_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> void:
 	if not _has_property(node, property_name):

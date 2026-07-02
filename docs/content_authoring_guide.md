@@ -16,7 +16,7 @@
 1. Используй существующий `levels/cycles/level.gd`-контур, если сцена является игровой. Не добавляй локальные проверки вида `path.find("/levels/cycles/")`; классификация сцены должна идти через `SceneContext`.
 2. Не правь `GameDirector` ради локальной механики уровня, пока это можно выразить интерактивом, trigger-ом, resource/config-ом или отдельным scene script.
 3. Двери должны иметь resolving `target_marker`. Self-target допустим только для inert/locked двери, иначе fade-to-self снова станет runtime-багом.
-4. Cycle-level scene должна иметь положительный `cycle_number`, неотрицательный `timer_duration` и хотя бы одну кровать с loadable `next_level_path`. Self-loop кровати запрещён `test_level_authoring_contracts.gd`.
+4. Cycle-level scene должна иметь положительный `cycle_number`, неотрицательный `timer_duration` и хотя бы одну кровать с loadable `next_level_path`. Self-loop кровати запрещён, а `next_level_path` должен вести только в cycle-level или ending scene; это проверяет `test_level_authoring_contracts.gd`.
 5. Если включаешь стартовый hint/subtitle, текст должен быть непустым. Если задаёшь `fridge_interacted_spawn_marker_path`, путь должен резолвиться в `Node2D`.
 6. Если уровень зависит от холодильника, лабораторной, еды, денег или телефона, обращайся к `CycleState`/`GameState` через публичные методы. Прямой доступ к ключевым полям запрещён архитектурным тестом.
 7. Настройки игрока задавай через existing player export-поля сцены: бег через `allow_running`, `stamina_*`, `run_speed_multiplier`, фонарик через `flashlight_use_duration`, `flashlight_recharge_duration`, `flashlight_recharge_delay`, скелетные step times через `skeleton_*_step_times`. Drain/recovery/checkpoint semantics живут в `PlayerStaminaState` и `PlayerFlashlightChargeState`, key add/has/remove/checkpoint semantics живут в `PlayerInventoryState`, а arming/wrap/counter semantics скелетных шагов живут в `PlayerSkeletonStepState`; эти helper-ы покрыты тестами.
@@ -73,7 +73,7 @@
 - required child name or `NodePath`;
 - required group/method contract;
 - scene script должен явно задать condition/config;
-- cycle-level metadata or bed transition contract;
+- cycle-level metadata or bed transition/target scene type contract;
 - lab completion id or required lab reference contract;
 - lab minigame scene contract;
 - trigger target path or property contract;
