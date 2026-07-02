@@ -4,6 +4,7 @@ class_name GamepadRuntime
 const GamepadSpatialNavClass = preload("res://levels/minigames/gamepad/gamepad_spatial_nav.gd")
 const GamepadHighlighterClass = preload("res://levels/minigames/gamepad/gamepad_highlighter.gd")
 const GamepadHintBarClass = preload("res://levels/minigames/gamepad/gamepad_hint_bar.gd")
+const GamepadHintBuilderClass = preload("res://levels/minigames/gamepad/gamepad_hint_builder.gd")
 
 const MODE_FOCUS := "focus"
 const MODE_PICK_PLACE := "pick_place"
@@ -32,6 +33,7 @@ var _selected_source: Node = null
 var _nav = GamepadSpatialNavClass.new()
 var _highlighter = GamepadHighlighterClass.new()
 var _hint_bar = GamepadHintBarClass.new()
+var _hint_builder = GamepadHintBuilderClass.new()
 
 var _held_dir := Vector2.ZERO
 var _held_elapsed := 0.0
@@ -485,30 +487,14 @@ func _apply_visual_state() -> void:
 	_invoke_callback("on_focus_changed", [active, _build_context()])
 
 func _build_hints() -> Dictionary:
-	var hints: Dictionary = {}
-	var custom_hints: Variant = _scheme.get("hints", {})
-	if custom_hints is Dictionary:
-		hints = (custom_hints as Dictionary).duplicate(true)
-	if _mode == MODE_PICK_PLACE:
-		if not hints.has("confirm"):
-			hints["confirm"] = "Поместить" if _selected_source != null else "Выбрать"
-		if _selected_source != null:
-			hints["cancel"] = "Отменить выбор"
-			if _source_nodes.size() > 0 and _target_nodes.size() > 0:
-				if not hints.has("tab_left"):
-					hints["tab_left"] = "Секция"
-				if not hints.has("tab_right"):
-					hints["tab_right"] = "Секция"
-		elif not hints.has("cancel"):
-			hints["cancel"] = "Выход"
-	else:
-		if not hints.has("confirm"):
-			hints["confirm"] = "Подтвердить"
-		if not hints.has("cancel"):
-			hints["cancel"] = "Выход"
-	if not _has_callback("on_secondary") and not hints.has("secondary"):
-		hints.erase("secondary")
-	return hints
+	return _hint_builder.build(
+		_scheme,
+		_mode,
+		_selected_source,
+		_source_nodes,
+		_target_nodes,
+		_has_callback("on_secondary")
+	)
 
 func _build_context() -> Dictionary:
 	return {
