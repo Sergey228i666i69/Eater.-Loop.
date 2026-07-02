@@ -16,14 +16,15 @@
 1. Используй существующий `levels/cycles/level.gd`-контур, если сцена является игровой. Не добавляй локальные проверки вида `path.find("/levels/cycles/")`; классификация сцены должна идти через `SceneContext`.
 2. Не правь `GameDirector` ради локальной механики уровня, пока это можно выразить интерактивом, trigger-ом, resource/config-ом или отдельным scene script.
 3. Двери должны иметь resolving `target_marker`. Self-target допустим только для inert/locked двери, иначе fade-to-self снова станет runtime-багом.
-4. Cycle-level scene должна иметь положительный `cycle_number`, неотрицательный `timer_duration` и хотя бы одну кровать с loadable `next_level_path`. Self-loop кровати запрещён, а `next_level_path` должен вести только в cycle-level или ending scene; это проверяет `test_level_authoring_contracts.gd`.
-5. Если включаешь стартовый hint/subtitle, текст должен быть непустым. Если задаёшь `fridge_interacted_spawn_marker_path`, путь должен резолвиться в `Node2D`.
-6. Если уровень зависит от холодильника, лабораторной, еды, денег или телефона, обращайся к `CycleState`/`GameState` через публичные методы. Прямой доступ к ключевым полям запрещён архитектурным тестом.
-7. Настройки игрока задавай через existing player export-поля сцены: бег через `allow_running`, `stamina_*`, `run_speed_multiplier`, фонарик через `flashlight_use_duration`, `flashlight_recharge_duration`, `flashlight_recharge_delay`, скелетные step times через `skeleton_*_step_times`. Drain/recovery/checkpoint semantics живут в `PlayerStaminaState` и `PlayerFlashlightChargeState`, key add/has/remove/checkpoint semantics живут в `PlayerInventoryState`, а arming/wrap/counter semantics скелетных шагов живут в `PlayerSkeletonStepState`; эти helper-ы покрыты тестами.
-8. Для checkpoint-состояния добавляй `checkpoint_stateful` только тем объектам, которым нужен restore позиции/видимости/velocity/existence или custom state. Если объект объявляет custom `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, объявляй оба метода парой; это проверяется тестом. Runtime-spawned objects требуют отдельного restore contract; сейчас factory restore безопасно разрешён только enemy/spawner сценариям через `CheckpointDynamicRestore` и `CheckpointSceneSnapshot`.
-9. Если используешь `TriggerSetProperty`, configured `target_paths`/`changes` должны указывать на существующие узлы и реальные property. Чисто музыкальные/sfx trigger-ы могут не иметь target changes; target-changing trigger-ы проверяются `test_trigger_set_property_contracts.gd`.
-10. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
-11. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
+4. Cycle-level scene должна иметь ровно один Player instance из `res://player/player.tscn`; respawn, enemies, UI bars и checkpoint flow завязаны на единственный runtime `player`.
+5. Cycle-level scene должна иметь положительный `cycle_number`, неотрицательный `timer_duration` и хотя бы одну кровать с loadable `next_level_path`. Self-loop кровати запрещён, а `next_level_path` должен вести только в cycle-level или ending scene; это проверяет `test_level_authoring_contracts.gd`.
+6. Если включаешь стартовый hint/subtitle, текст должен быть непустым. Если задаёшь `fridge_interacted_spawn_marker_path`, путь должен резолвиться в `Node2D`.
+7. Если уровень зависит от холодильника, лабораторной, еды, денег или телефона, обращайся к `CycleState`/`GameState` через публичные методы. Прямой доступ к ключевым полям запрещён архитектурным тестом.
+8. Настройки игрока задавай через existing player export-поля сцены: бег через `allow_running`, `stamina_*`, `run_speed_multiplier`, фонарик через `flashlight_use_duration`, `flashlight_recharge_duration`, `flashlight_recharge_delay`, скелетные step times через `skeleton_*_step_times`. Drain/recovery/checkpoint semantics живут в `PlayerStaminaState` и `PlayerFlashlightChargeState`, key add/has/remove/checkpoint semantics живут в `PlayerInventoryState`, а arming/wrap/counter semantics скелетных шагов живут в `PlayerSkeletonStepState`; эти helper-ы покрыты тестами.
+9. Для checkpoint-состояния добавляй `checkpoint_stateful` только тем объектам, которым нужен restore позиции/видимости/velocity/existence или custom state. Если объект объявляет custom `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, объявляй оба метода парой; это проверяется тестом. Runtime-spawned objects требуют отдельного restore contract; сейчас factory restore безопасно разрешён только enemy/spawner сценариям через `CheckpointDynamicRestore` и `CheckpointSceneSnapshot`.
+10. Если используешь `TriggerSetProperty`, configured `target_paths`/`changes` должны указывать на существующие узлы и реальные property. Чисто музыкальные/sfx trigger-ы могут не иметь target changes; target-changing trigger-ы проверяются `test_trigger_set_property_contracts.gd`.
+11. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
+12. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
 
 ## Новый Интерактив
 
@@ -73,7 +74,7 @@
 - required child name or `NodePath`;
 - required group/method contract;
 - scene script должен явно задать condition/config;
-- cycle-level metadata or bed transition/target scene type contract;
+- cycle-level metadata, Player instance or bed transition/target scene type contract;
 - lab completion id or required lab reference contract;
 - lab minigame scene contract;
 - trigger target path or property contract;

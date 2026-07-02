@@ -2,10 +2,12 @@ extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
 const BED_SCRIPT := "res://objects/interactable/bed/bed.gd"
+const PLAYER_SCRIPT := "res://player/player.gd"
 const SceneContextScript = preload("res://global/scene_context.gd")
 
 func run() -> Array[String]:
 	_test_cycle_level_metadata_is_sane()
+	_test_cycle_levels_have_single_player()
 	_test_cycle_level_bed_transitions_are_loadable()
 	_test_cycle_level_exported_paths_are_valid()
 	return get_failures()
@@ -22,6 +24,21 @@ func _test_cycle_level_metadata_is_sane() -> void:
 		var timer_duration := _get_float_property_or_method(root, "timer_duration", "get_timer_duration")
 		assert_true(cycle_number > 0, "Cycle level must have a positive cycle_number: %s" % path)
 		assert_true(timer_duration >= 0.0, "Cycle level timer_duration must be non-negative: %s" % path)
+		root.free()
+
+func _test_cycle_levels_have_single_player() -> void:
+	for path in _list_level_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		if not _is_cycle_level(root):
+			root.free()
+			continue
+		var players := _find_nodes_with_script(root, PLAYER_SCRIPT)
+		assert_eq(players.size(), 1, "Cycle level must include exactly one Player instance: %s" % path)
+		if players.size() == 1:
+			var player := players[0] as Node
+			assert_true(player is Node2D, "Cycle level Player must be a Node2D: %s:%s" % [path, root.get_path_to(player)])
 		root.free()
 
 func _test_cycle_level_bed_transitions_are_loadable() -> void:
@@ -136,6 +153,13 @@ func _script_path(node: Node) -> String:
 	if script == null:
 		return ""
 	return String(script.resource_path)
+
+func _find_nodes_with_script(root: Node, script_path: String) -> Array[Node]:
+	var matches: Array[Node] = []
+	for node in root.find_children("*", "", true, false):
+		if _script_path(node) == script_path:
+			matches.append(node)
+	return matches
 
 func _has_property(node: Object, property_name: String) -> bool:
 	if node == null:
