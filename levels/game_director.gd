@@ -5,6 +5,7 @@ signal distortion_started
 const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_coordinator.gd")
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
+const DeathScreenReset = preload("res://levels/game_director_death_screen_reset.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const CyclePhaseBridge = preload("res://levels/game_director_cycle_phase_bridge.gd")
 const CycleTimerState = preload("res://levels/game_director_cycle_timer_state.gd")
@@ -106,6 +107,7 @@ var _input_kind: int = 0
 var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
 var _death_retry_coordinator: RefCounted
+var _death_screen_reset: RefCounted
 var _death_title_presenter: RefCounted
 var _cycle_phase_bridge: RefCounted
 var _cycle_timer_state: RefCounted
@@ -134,6 +136,7 @@ func _ready() -> void:
 	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
 	_death_retry_coordinator = DeathRetryCoordinator.new()
+	_death_screen_reset = DeathScreenReset.new()
 	_cycle_timer_state = CycleTimerState.new()
 	_distortion_gate = DistortionGate.new()
 	_distortion_phase_state = DistortionPhaseState.new()
@@ -510,18 +513,15 @@ func _on_death_retry_pressed() -> void:
 
 func _reset_death_screen_state() -> void:
 	_death_sequence_active = false
-	_restore_death_camera()
-	if _death_root:
-		_death_root.visible = false
-	if _death_glitch_background:
-		_death_glitch_background.visible = false
-	if _death_fade_rect:
-		_death_fade_rect.visible = false
-		_death_fade_rect.color = Color(0, 0, 0, 0)
-	if _death_retry_button:
-		_death_retry_button.remove_theme_stylebox_override("focus")
-	_release_death_cursor_request()
-	_release_death_pause()
+	_get_death_screen_reset().reset(
+		_death_root,
+		_death_glitch_background,
+		_death_fade_rect,
+		_death_retry_button,
+		Callable(self, "_restore_death_camera"),
+		Callable(self, "_release_death_cursor_request"),
+		Callable(self, "_release_death_pause")
+	)
 
 func _restore_death_camera() -> void:
 	if _death_camera_coordinator == null:
@@ -532,6 +532,11 @@ func _get_death_retry_coordinator() -> RefCounted:
 	if _death_retry_coordinator == null:
 		_death_retry_coordinator = DeathRetryCoordinator.new()
 	return _death_retry_coordinator
+
+func _get_death_screen_reset() -> RefCounted:
+	if _death_screen_reset == null:
+		_death_screen_reset = DeathScreenReset.new()
+	return _death_screen_reset
 
 func _request_death_pause() -> void:
 	if _death_pause_requested:
