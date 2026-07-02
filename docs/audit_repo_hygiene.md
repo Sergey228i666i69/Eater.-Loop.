@@ -52,7 +52,7 @@ Git почти не трекает аудио/изображения, но сц�
 
 - `GameDirector`: было 1171 строка, стало около 844 строк + `game_director_cycle_phase_bridge.gd` + `game_director_cycle_timer_state.gd` + `game_director_death_title_presenter.gd` + `game_director_death_camera_coordinator.gd` + `game_director_death_cursor_coordinator.gd` + `game_director_death_retry_coordinator.gd` + `game_director_distortion_gate.gd` + `game_director_distortion_overlay_coordinator.gd` + `game_director_distortion_phase_state.gd` + `game_director_distortion_progress.gd` + `game_director_timer_node_coordinator.gd` + `game_director_stalker_service.gd` + `game_director_overlay_layer_coordinator.gd`;
 - `MusicManager`: около 1133 строк, публичный facade оставлен стабильным;
-- `MinigameController`: стало около 671 строки + `minigame_backdrop_presenter.gd`;
+- `MinigameController`: стало около 656 строк + `minigame_backdrop_presenter.gd` + `minigame_prompt_visibility_coordinator.gd` + `minigame_timer_state.gd`;
 - `UIMessage`: стало около 589 строк + `ui_fade_controller.gd`.
 
 Примеры:
@@ -62,7 +62,7 @@ Git почти не трекает аудио/изображения, но сц�
 - [`levels/minigames/minigame_controller.gd`](../levels/minigames/minigame_controller.gd).
 - [`player/ui_message.gd`](../player/ui_message.gd).
 
-Не каждый большой файл плох сам по себе, но здесь размеры совпадали со смешением обязанностей. Безопасные pass-ы вынесли fade/tween state из `UIMessage`, backdrop registry/presentation и prompt suspend/restore lifecycle из `MinigameController`, death-title/glitch presentation, stalker spawn/checkpoint service, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken policy, cycle timer/checkpoint state, CycleState phase bridge, timer node lifecycle, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state из `GameDirector`. Более широкий распил `MusicManager`/`GameDirector` остаётся future refactor-ом, а не hygiene-блокером текущего состояния.
+Не каждый большой файл плох сам по себе, но здесь размеры совпадали со смешением обязанностей. Безопасные pass-ы вынесли fade/tween state из `UIMessage`, backdrop registry/presentation, prompt suspend/restore lifecycle и timer state из `MinigameController`, death-title/glitch presentation, stalker spawn/checkpoint service, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken policy, cycle timer/checkpoint state, CycleState phase bridge, timer node lifecycle, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state из `GameDirector`. Более широкий распил `MusicManager`/`GameDirector` остаётся future refactor-ом, а не hygiene-блокером текущего состояния.
 
 ## Resolved: Naming Inconsistent И Местами Опасный
 

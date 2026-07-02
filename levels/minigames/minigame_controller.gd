@@ -2,6 +2,7 @@ extends Node
 
 const MinigameBackdropPresenter = preload("res://levels/minigames/minigame_backdrop_presenter.gd")
 const MinigamePromptVisibilityCoordinator = preload("res://levels/minigames/minigame_prompt_visibility_coordinator.gd")
+const MinigameTimerState = preload("res://levels/minigames/minigame_timer_state.gd")
 const GamepadRuntimeClass = preload("res://levels/minigames/gamepad/gamepad_runtime.gd")
 
 ## Центральный контроллер мини-игр.
@@ -37,10 +38,6 @@ signal minigame_cancel_allowed_changed(allowed: bool)
 const CHASE_MUSIC_PAUSE_FADE_TIME := 0.1
 
 var _active_minigame: Node = null
-var _time_limit: float = -1.0
-var _time_left: float = 0.0
-var _auto_finish_on_timeout: bool = false
-var _timeout_emitted: bool = false
 var _pause_requested: bool = true
 var _pause_token_requested: bool = false
 var _show_mouse_cursor: bool = true
@@ -58,12 +55,14 @@ var _gamepad_runtime = null
 var _gamepad_schemes: Dictionary = {}
 var _backdrop_presenter: RefCounted
 var _prompt_visibility = null
+var _timer_state = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_backdrop_presenter = MinigameBackdropPresenter.new()
 	_backdrop_presenter.backdrop_color = minigame_backdrop_color
 	_ensure_prompt_visibility()
+	_ensure_timer_state()
 	_gamepad_runtime = GamepadRuntimeClass.new()
 	if get_tree() and get_tree().has_signal("scene_changed"):
 		get_tree().scene_changed.connect(_on_scene_changed)
@@ -75,6 +74,11 @@ func _ensure_prompt_visibility():
 	if not _prompt_visibility.is_connected("restore_requested", callback):
 		_prompt_visibility.connect("restore_requested", callback)
 	return _prompt_visibility
+
+func _ensure_timer_state():
+	if _timer_state == null:
+		_timer_state = MinigameTimerState.new()
+	return _timer_state
 
 func _input(event: InputEvent) -> void:
 	if _active_minigame == null:
@@ -188,7 +192,6 @@ func start_minigame(minigame: Node, config: Variant = null) -> void:
 	_show_mouse_cursor = settings.show_mouse_cursor
 	_music_fade_time = settings.music_fade_time
 	_music_stop_on_finish = settings.stop_music_on_finish
-	_auto_finish_on_timeout = settings.auto_finish_on_timeout
 	_block_player_movement = settings.block_player_movement
 	_allow_pause_menu = settings.allow_pause_menu
 	_allow_cancel_action = settings.allow_cancel_action
@@ -196,7 +199,7 @@ func start_minigame(minigame: Node, config: Variant = null) -> void:
 	_setup_pause()
 	_setup_mouse_cursor()
 	_setup_prompts()
-	_setup_timer(settings.time_limit)
+	_setup_timer(settings.time_limit, settings.auto_finish_on_timeout)
 	_setup_music(
 		settings.music_stream,
 		settings.music_volume_db,
@@ -256,10 +259,10 @@ func update_minigame_music(stream: AudioStream, volume_db: float = 999.0, fade_t
 	MusicManager.play_music(stream, target_fade, mixed_volume, 0.0, 999.0, MusicManager.SOURCE_MINIGAME, MusicManager.SOURCE_KIND_MINIGAME)
 
 func get_time_left() -> float:
-	return _time_left
+	return _ensure_timer_state().get_time_left()
 
 func get_time_limit() -> float:
-	return _time_limit
+	return _ensure_timer_state().get_time_limit()
 
 func is_active(minigame: Node) -> bool:
 	return minigame != null and minigame == _active_minigame
@@ -289,14 +292,13 @@ func _process(delta: float) -> void:
 func _update_timer(delta: float) -> void:
 	if _active_minigame == null:
 		return
-	if _time_limit <= 0.0:
+	var result: Dictionary = _ensure_timer_state().update(delta)
+	if result.is_empty():
 		return
-	_time_left = max(0.0, _time_left - delta)
-	minigame_time_updated.emit(_active_minigame, _time_left, _time_limit)
-	if _time_left <= 0.0 and not _timeout_emitted:
-		_timeout_emitted = true
+	minigame_time_updated.emit(_active_minigame, float(result.get("time_left", 0.0)), float(result.get("time_limit", 0.0)))
+	if bool(result.get("expired", false)):
 		minigame_time_expired.emit(_active_minigame)
-		if _auto_finish_on_timeout:
+		if bool(result.get("auto_finish_on_timeout", false)):
 			finish_minigame(_active_minigame, false)
 
 func _setup_pause() -> void:
@@ -355,18 +357,11 @@ func _restore_prompts_if_safe() -> void:
 func _clear_prompt_restore_target() -> void:
 	_ensure_prompt_visibility().clear_restore_target()
 
-func _setup_timer(limit: float) -> void:
-	_timeout_emitted = false
-	_time_limit = float(limit)
-	if _time_limit > 0.0:
-		_time_left = _time_limit
-	else:
-		_time_left = 0.0
+func _setup_timer(limit: float, auto_finish_on_timeout: bool) -> void:
+	_ensure_timer_state().setup(limit, auto_finish_on_timeout)
 
 func _clear_timer() -> void:
-	_time_limit = -1.0
-	_time_left = 0.0
-	_timeout_emitted = false
+	_ensure_timer_state().clear()
 
 func _setup_music(stream: AudioStream, volume_db: float, suspend_music: bool) -> void:
 	if MusicManager == null:
