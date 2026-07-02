@@ -85,7 +85,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - [`.github/workflows/godot-tests.yml`](../.github/workflows/godot-tests.yml), который делает checkout с LFS, `git lfs pull`, ставит Godot 4.6.1, запускает parser-only и full suite.
 - Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
 - Project-config contract для main scene, включённых editor plugins и configured translations.
-- Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage, включая gamepad hints.
+- Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage, включая custom/default gamepad hints.
 - Level authoring contract для cycle metadata, configured bed transitions, conditional respawn paths и включённых стартовых текстов.
 - Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.
 - Fridge authoring contract для feeding/code-lock/final fridge configs, minigame signals/setup methods, food scenes, face/background и code-lock scene.
@@ -97,4 +97,4 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - shell helper вычисляет project root относительно себя и запускает Godot с `--path`, поэтому может запускаться не из корня.
 
-Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и localization hygiene/key coverage для русскоязычных player-facing строк, включая gamepad hints; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.
+Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и localization hygiene/key coverage для русскоязычных player-facing строк, включая custom/default gamepad hints; локальный macOS export smoke прошёл с установленными templates. Отдельный full export job можно добавить позже как release-hardening, но presets больше не остаются непроверенными.

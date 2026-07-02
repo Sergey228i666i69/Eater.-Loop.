@@ -110,7 +110,7 @@
 - `tests/cases/test_lab_authoring_contracts.gd` валидирует lab laptop `time_limit`/`penalty_time`, timed-lab minigame scene contract, уникальные `lab_completion_id` там, где сцена требует явные lab IDs, и соответствие `Fridge.required_lab_completion_ids` реальным ноутбукам в той же сцене.
 - `tests/cases/test_fridge_authoring_contracts.gd` валидирует active level feeding/code-lock/final fridge configs, включая minigame signals/setup methods, food scenes, face/background и code-lock scene.
 - `tests/cases/test_stu_level_path_contracts.gd` валидирует STU exported/hardcoded paths and dynamic door target constants.
-- `tests/cases/test_localization_contracts.gd` теперь покрывает больше player-facing export-полей и script literals: death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names, money reward reasons и gamepad hints.
+- `tests/cases/test_localization_contracts.gd` теперь покрывает больше player-facing export-полей и script literals: death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names, money reward reasons, gamepad hints и default gamepad hints.
 - STU doors with intentionally empty targets are now explicitly locked.
 - Null override cleanup intentionally left out: tests now guard behavior first, and bulk Godot reserialization remains separate from gameplay fixes.
 

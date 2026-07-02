@@ -52,6 +52,9 @@ const PLAYER_FACING_CALL_MARKERS: Array[String] = [
     "UIMessage.show_notification(",
     "tr("
 ]
+const PLAYER_FACING_LITERAL_FILES: Array[String] = [
+    "res://levels/minigames/gamepad/gamepad_hint_builder.gd"
+]
 
 func run() -> Array[String]:
     _test_localization_csv_is_complete()
@@ -130,6 +133,8 @@ func _assert_player_facing_text_has_key(path: String, keys: Dictionary) -> void:
         _assert_property_line_has_key(path, line_index + 1, line, keys)
         if path.ends_with(".gd"):
             _assert_call_line_has_key(path, line_index + 1, line, keys)
+            if PLAYER_FACING_LITERAL_FILES.has(path):
+                _assert_all_line_literals_have_key(path, line_index + 1, line, keys)
             if gamepad_hints_depth >= 0:
                 _assert_gamepad_hint_line_has_key(path, line_index + 1, line, keys)
 
@@ -162,6 +167,10 @@ func _assert_gamepad_hint_line_has_key(path: String, line_number: int, line: Str
     if _extract_quoted_strings(raw_key).size() != 1:
         return
     for value in _extract_quoted_strings(line.substr(colon_index + 1)):
+        _assert_localization_key_exists(path, line_number, value, keys)
+
+func _assert_all_line_literals_have_key(path: String, line_number: int, line: String, keys: Dictionary) -> void:
+    for value in _extract_quoted_strings(line):
         _assert_localization_key_exists(path, line_number, value, keys)
 
 func _assert_localization_key_exists(path: String, line_number: int, value: String, keys: Dictionary) -> void:
