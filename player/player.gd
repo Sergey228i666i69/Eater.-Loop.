@@ -2,6 +2,7 @@ extends CharacterBody2D
 
 const PlayerFlashlightChargeState = preload("res://player/player_flashlight_charge_state.gd")
 const PlayerInventoryState = preload("res://player/player_inventory_state.gd")
+const PlayerSkeletonStepState = preload("res://player/player_skeleton_step_state.gd")
 const PlayerStaminaState = preload("res://player/player_stamina_state.gd")
 
 signal player_made_sound
@@ -117,9 +118,7 @@ var _inventory_state: RefCounted
 var _movement_blocked: bool = false
 var _stamina_state: RefCounted
 var _current_skeleton_animation: StringName = StringName()
-var _skeleton_step_counter: int = 0
-var _last_skeleton_step_animation: StringName = StringName()
-var _last_skeleton_step_position: float = -1.0
+var _skeleton_step_state: RefCounted
 
 # Переменные для аудио
 var _flashlight_player: AudioStreamPlayer
@@ -471,35 +470,22 @@ func _play_skeleton_animation(animation_name: StringName) -> void:
 	if _current_skeleton_animation == animation_name and skeleton_animation_player.is_playing():
 		return
 	_current_skeleton_animation = animation_name
-	_last_skeleton_step_animation = StringName()
-	_last_skeleton_step_position = -1.0
+	_get_skeleton_step_state().reset()
 	skeleton_animation_player.play(animation_name, skeleton_animation_blend_time)
 
 func _update_skeleton_step_audio(is_moving: bool) -> void:
 	if step_audio == null or skeleton_animation_player == null:
 		return
-	if not is_moving:
-		_skeleton_step_counter = 0
-		_last_skeleton_step_animation = StringName()
-		_last_skeleton_step_position = -1.0
-		return
 	var current_animation := StringName(skeleton_animation_player.current_animation)
 	var step_times := _resolve_skeleton_step_times(current_animation)
-	if step_times.is_empty():
-		_last_skeleton_step_animation = current_animation
-		_last_skeleton_step_position = skeleton_animation_player.current_animation_position
-		return
-	var current_position := skeleton_animation_player.current_animation_position
-	if _last_skeleton_step_animation != current_animation or _last_skeleton_step_position < 0.0:
-		_last_skeleton_step_animation = current_animation
-		_last_skeleton_step_position = current_position
-		return
-	var wrapped := current_position < _last_skeleton_step_position
-	for step_time in step_times:
-		if _did_cross_step_time(_last_skeleton_step_position, current_position, step_time, wrapped):
-			_skeleton_step_counter += 1
-			step_audio.trigger_step(_skeleton_step_counter, current_animation)
-	_last_skeleton_step_position = current_position
+	var step_numbers: Array = _get_skeleton_step_state().advance(
+		is_moving,
+		current_animation,
+		skeleton_animation_player.current_animation_position,
+		step_times
+	)
+	for step_number in step_numbers:
+		step_audio.trigger_step(step_number, current_animation)
 
 func _resolve_skeleton_step_times(animation_name: StringName) -> PackedFloat32Array:
 	if animation_name == skeleton_walk_animation:
@@ -511,11 +497,6 @@ func _resolve_skeleton_step_times(animation_name: StringName) -> PackedFloat32Ar
 	if animation_name == skeleton_light_run_animation:
 		return skeleton_light_run_step_times
 	return PackedFloat32Array()
-
-func _did_cross_step_time(previous_position: float, current_position: float, step_time: float, wrapped: bool) -> bool:
-	if wrapped:
-		return step_time > previous_position or step_time <= current_position
-	return previous_position < step_time and step_time <= current_position
 
 func _update_walk_animation_speed() -> void:
 	if sprite == null or sprite.sprite_frames == null:
@@ -623,6 +604,11 @@ func _get_inventory_state() -> RefCounted:
 	if _inventory_state == null:
 		_inventory_state = PlayerInventoryState.new()
 	return _inventory_state
+
+func _get_skeleton_step_state() -> RefCounted:
+	if _skeleton_step_state == null:
+		_skeleton_step_state = PlayerSkeletonStepState.new()
+	return _skeleton_step_state
 
 func _get_flashlight_charge_state() -> RefCounted:
 	if _flashlight_charge_state == null:

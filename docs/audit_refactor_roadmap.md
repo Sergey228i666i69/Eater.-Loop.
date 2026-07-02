@@ -114,6 +114,7 @@ Definition of done: типовые ошибки сцен падают тесто
 6. `Player`:
    - ~~отделить run/stamina state.~~ `PlayerStaminaState` владеет drain/recovery/checkpoint state, а `Player` сохраняет прежние export-поля и публичные `get_stamina_ratio()`/`is_running()`.
    - ~~отделить key inventory/checkpoint state.~~ `PlayerInventoryState` владеет add/has/remove, normalization, dedupe и checkpoint round-trip, а `Player` сохраняет прежний публичный API ключей.
+   - ~~отделить skeleton step timing state.~~ `PlayerSkeletonStepState` владеет arming/reset, wrap detection и step counter emission, а `Player` только передаёт current animation position в `StepAudioComponent`.
    - ~~отделить flashlight charge/recharge state.~~ `PlayerFlashlightChargeState` владеет drain/recharge/instant-full/checkpoint state, а `Player` сохраняет прежние export-поля, сигналы и публичный `get_flashlight_charge_ratio()`.
 
 Definition of done: новые уровни не требуют править глобальный директор для локальных интерактивов.

@@ -7,7 +7,7 @@
 - Godot: `4.6.1.stable`.
 - `godot --headless --check-only -s res://tests/run_tests.gd` прошёл.
 - Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
-- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 98 тестов.
+- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 99 тестов.
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
 - Полный export/build не запускался, чтобы не писать в output paths и импорт-кэш.
 
@@ -43,7 +43,7 @@
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Последующие полные прогоны это не воспроизводят, поэтому пункт остался историческим наблюдением, а не текущим known failure.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (98)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (99)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -78,7 +78,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 98 тестов.
+- 99 тестов.
 
 Добавлено:
 
@@ -95,6 +95,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Checkpoint scene snapshot contract для dynamic runtime participants и removed participant state.
 - Player stamina state contract для run drain/recovery/unlimited/checkpoint semantics.
 - Player inventory state contract для key add/has/remove normalization, dedupe и checkpoint round-trip.
+- Player skeleton step state contract для first-sample arming, clip wrap step crossing и reset semantics.
 - Player flashlight charge state contract для drain/recharge/instant-full/checkpoint semantics.
 
 Ограничения:
