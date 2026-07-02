@@ -6,6 +6,7 @@ const GamepadHighlighterClass = preload("res://levels/minigames/gamepad/gamepad_
 const GamepadHintBarClass = preload("res://levels/minigames/gamepad/gamepad_hint_bar.gd")
 const GamepadHintBuilderClass = preload("res://levels/minigames/gamepad/gamepad_hint_builder.gd")
 const GamepadNavigationRepeatClass = preload("res://levels/minigames/gamepad/gamepad_navigation_repeat.gd")
+const GamepadNodeResolverClass = preload("res://levels/minigames/gamepad/gamepad_node_resolver.gd")
 
 const MODE_FOCUS := "focus"
 const MODE_PICK_PLACE := "pick_place"
@@ -36,6 +37,7 @@ var _highlighter = GamepadHighlighterClass.new()
 var _hint_bar = GamepadHintBarClass.new()
 var _hint_builder = GamepadHintBuilderClass.new()
 var _nav_repeat = GamepadNavigationRepeatClass.new()
+var _node_resolver = GamepadNodeResolverClass.new()
 
 var _show_gamepad_hints: bool = false
 var _confirm_release_gate: bool = false
@@ -170,10 +172,10 @@ func _apply_scheme(scheme: Dictionary) -> void:
 	_target_selection = null
 
 func _refresh_state(force_initial: bool) -> void:
-	_focus_selection = _as_valid_node(_focus_selection)
-	_source_selection = _as_valid_node(_source_selection)
-	_target_selection = _as_valid_node(_target_selection)
-	_selected_source = _as_valid_node(_selected_source)
+	_focus_selection = _node_resolver.as_valid_node(_focus_selection)
+	_source_selection = _node_resolver.as_valid_node(_source_selection)
+	_target_selection = _node_resolver.as_valid_node(_target_selection)
+	_selected_source = _node_resolver.as_valid_node(_selected_source)
 	if _mode == MODE_FOCUS:
 		_focus_nodes = _resolve_nodes("focus_nodes", "focus_provider")
 		_focus_selection = _resolve_selection(_focus_selection, _focus_nodes, force_initial)
@@ -194,7 +196,7 @@ func _refresh_state(force_initial: bool) -> void:
 	_apply_visual_state()
 
 func _resolve_selection(current: Variant, nodes: Array[Node], force_initial: bool) -> Node:
-	var current_node := _as_valid_node(current)
+	var current_node := _node_resolver.as_valid_node(current)
 	if nodes.is_empty():
 		return null
 	if current_node != null and nodes.has(current_node):
@@ -204,62 +206,7 @@ func _resolve_selection(current: Variant, nodes: Array[Node], force_initial: boo
 	return nodes[0]
 
 func _resolve_nodes(nodes_key: String, provider_key: String) -> Array[Node]:
-	var raw_nodes: Variant = _scheme.get(nodes_key, [])
-	var provider: Variant = _scheme.get(provider_key, Callable())
-	if provider is Callable:
-		var callable_provider := provider as Callable
-		if callable_provider.is_valid():
-			raw_nodes = callable_provider.call()
-	return _coerce_nodes(raw_nodes)
-
-func _coerce_nodes(raw_nodes: Variant) -> Array[Node]:
-	var result: Array[Node] = []
-	if raw_nodes is Array:
-		for entry in raw_nodes:
-			var node := _resolve_node(entry)
-			if node == null:
-				continue
-			if result.has(node):
-				continue
-			if not _is_node_focusable(node):
-				continue
-			result.append(node)
-	return result
-
-func _resolve_node(entry: Variant) -> Node:
-	var entry_type := typeof(entry)
-	if entry_type == TYPE_OBJECT:
-		var direct_node := _as_valid_node(entry)
-		if direct_node != null:
-			return direct_node
-		var weak := entry as WeakRef
-		if weak == null:
-			return null
-		return _as_valid_node(weak.get_ref())
-	if entry_type == TYPE_NODE_PATH:
-		if _active_minigame == null:
-			return null
-		return _active_minigame.get_node_or_null(entry)
-	return null
-
-func _is_node_focusable(node: Node) -> bool:
-	if node == null:
-		return false
-	if not is_instance_valid(node):
-		return false
-	if node.is_queued_for_deletion():
-		return false
-	if node.has_method("is_gamepad_focusable"):
-		return bool(node.call("is_gamepad_focusable"))
-	if node is CanvasItem:
-		var item := node as CanvasItem
-		if not item.visible:
-			return false
-	if node is BaseButton:
-		var button := node as BaseButton
-		if button.disabled:
-			return false
-	return true
+	return _node_resolver.resolve_nodes(_scheme, _active_minigame, nodes_key, provider_key)
 
 func _try_handle_navigation_input(event: InputEvent) -> bool:
 	var dir := _direction_from_event(event)
@@ -525,25 +472,6 @@ func _set_navigation_visuals(visible: bool) -> void:
 	_show_navigation_visuals = visible
 	if not visible:
 		_highlighter.clear()
-
-func _as_valid_node(value: Variant) -> Node:
-	if value == null:
-		return null
-	if typeof(value) != TYPE_OBJECT:
-		return null
-	var object_value := value as Object
-	if object_value == null:
-		return null
-	if not is_instance_valid(object_value):
-		return null
-	if not (object_value is Node):
-		return null
-	var node := object_value as Node
-	if node == null:
-		return null
-	if node.is_queued_for_deletion():
-		return null
-	return node
 
 func _is_highlighter_enabled() -> bool:
 	return bool(_scheme.get("enable_highlighter", true))
