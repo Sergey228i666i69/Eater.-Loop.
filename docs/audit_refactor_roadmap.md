@@ -106,9 +106,10 @@ Definition of done: типовые ошибки сцен падают тесто
    - ~~gamepad hint policy;~~ вынесено в `gamepad_hint_builder.gd`.
    - ~~gamepad navigation repeat state;~~ вынесено в `gamepad_navigation_repeat.gd`.
    - ~~gamepad node/provider resolving;~~ вынесено в `gamepad_node_resolver.gd`.
+   - ~~gamepad confirm release gate state;~~ вынесено в `gamepad_confirm_release_gate.gd`.
    - ~~pause/cursor ownership;~~ вынесено в `minigame_modal_ownership.gd`.
    - ~~music stack lifecycle;~~ вынесено в `minigame_music_session.gd`.
-   - оставшийся gamepad runtime lifecycle можно дробить отдельными tested slices.
+   - оставшийся gamepad runtime lifecycle дробить только отдельными tested slices.
 5. `Fridge`:
    - ~~отделить code-lock scene adapter.~~ `FridgeCodeLockSession` создаёт lock scene и пишет `code_value`/legacy `target_code`; `Fridge` сохраняет outcome/signal ownership.
    - ~~отделить feeding minigame setup.~~ `FridgeFeedingSession` проверяет config, создаёт game node, валидирует `minigame_finished` и вызывает `setup_game`.

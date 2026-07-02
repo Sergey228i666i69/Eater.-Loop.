@@ -7,6 +7,7 @@ const GamepadHintBarClass = preload("res://levels/minigames/gamepad/gamepad_hint
 const GamepadHintBuilderClass = preload("res://levels/minigames/gamepad/gamepad_hint_builder.gd")
 const GamepadNavigationRepeatClass = preload("res://levels/minigames/gamepad/gamepad_navigation_repeat.gd")
 const GamepadNodeResolverClass = preload("res://levels/minigames/gamepad/gamepad_node_resolver.gd")
+const GamepadConfirmReleaseGateClass = preload("res://levels/minigames/gamepad/gamepad_confirm_release_gate.gd")
 
 const MODE_FOCUS := "focus"
 const MODE_PICK_PLACE := "pick_place"
@@ -38,9 +39,9 @@ var _hint_bar = GamepadHintBarClass.new()
 var _hint_builder = GamepadHintBuilderClass.new()
 var _nav_repeat = GamepadNavigationRepeatClass.new()
 var _node_resolver = GamepadNodeResolverClass.new()
+var _confirm_release_gate = GamepadConfirmReleaseGateClass.new()
 
 var _show_gamepad_hints: bool = false
-var _confirm_release_gate: bool = false
 var _show_navigation_visuals: bool = false
 
 func start(minigame: Node, scheme: Dictionary) -> void:
@@ -51,7 +52,7 @@ func start(minigame: Node, scheme: Dictionary) -> void:
 	_hint_bar.attach(minigame)
 	_show_gamepad_hints = false
 	_hint_bar.set_hint_mode(false)
-	_confirm_release_gate = _is_action_pressed("mg_confirm") or _is_action_pressed("ui_accept")
+	_confirm_release_gate.arm(_is_confirm_action_currently_pressed())
 	_show_navigation_visuals = false
 	_refresh_state(true)
 
@@ -70,7 +71,7 @@ func clear() -> void:
 	_nav_repeat.configure(DEFAULT_NAV_REPEAT_DELAY, DEFAULT_NAV_REPEAT_INTERVAL)
 	_nav_repeat.clear()
 	_show_gamepad_hints = false
-	_confirm_release_gate = false
+	_confirm_release_gate.clear()
 	_show_navigation_visuals = false
 	_highlighter.clear()
 	_hint_bar.clear()
@@ -274,12 +275,7 @@ func _is_action_pressed(action_name: StringName) -> bool:
 	return Input.is_action_pressed(action_name)
 
 func _is_confirm_pressed(event: InputEvent) -> bool:
-	var pressed := event.is_action_pressed("mg_confirm") or event.is_action_pressed("ui_accept")
-	if not pressed:
-		return false
-	if _confirm_release_gate:
-		return false
-	return true
+	return _confirm_release_gate.accepts_confirm(event)
 
 func _is_secondary_pressed(event: InputEvent) -> bool:
 	return event.is_action_pressed("mg_secondary")
@@ -477,11 +473,7 @@ func _is_highlighter_enabled() -> bool:
 	return bool(_scheme.get("enable_highlighter", true))
 
 func _update_confirm_release_gate(event: InputEvent) -> void:
-	if not _confirm_release_gate:
-		return
-	if event != null and (event.is_action_released("mg_confirm") or event.is_action_released("ui_accept")):
-		_confirm_release_gate = false
-		return
-	if _is_action_pressed("mg_confirm") or _is_action_pressed("ui_accept"):
-		return
-	_confirm_release_gate = false
+	_confirm_release_gate.update(event, _is_confirm_action_currently_pressed())
+
+func _is_confirm_action_currently_pressed() -> bool:
+	return _is_action_pressed("mg_confirm") or _is_action_pressed("ui_accept")
