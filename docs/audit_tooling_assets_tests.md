@@ -7,7 +7,7 @@
 - Godot: `4.6.1.stable`.
 - `godot --headless --check-only -s res://tests/run_tests.gd` прошёл.
 - Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
-- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 99 тестов.
+- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 100 тестов.
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
 - Первичный полный export/build не запускался, чтобы не писать в output paths и импорт-кэш; после ремонта добавлен CI debug export smoke.
 
@@ -43,7 +43,7 @@
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Последующие полные прогоны это не воспроизводят, поэтому пункт остался историческим наблюдением, а не текущим known failure.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (99)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (100)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -78,7 +78,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 99 тестов.
+- 100 тестов.
 
 Добавлено:
 
@@ -86,6 +86,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Отдельный `export-smoke` job в том же workflow, который ставит export templates и запускает MacOS debug export после зелёного test job.
 - Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
 - Project-config contract для main scene, включённых editor plugins и configured translations.
+- Resource UID contract для tracked `.gd`/`.gdshader` sidecars и уникальности `uid://` значений.
 - Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources и RU player-facing key coverage, включая custom/default gamepad hints.
 - Level authoring contract для cycle metadata, configured bed transitions, conditional respawn paths и включённых стартовых текстов.
 - Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.

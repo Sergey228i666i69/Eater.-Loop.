@@ -62,8 +62,9 @@
 
 1. Source assets и `.import` должны быть tracked. Бинарные ассеты идут через Git LFS.
 2. После fresh clone нужен `git lfs install && git lfs pull`.
-3. Export paths должны оставаться внутри `exports/`; это проверяет `test_export_presets_contract.gd`.
-4. CI запускает MacOS debug export smoke после тестов. Перед release-выводами дополнительно запускай signed/notarized release export на машине с нужными Apple credentials/templates.
+3. Новые `.gd` и `.gdshader` должны попадать в Git вместе с `.uid` sidecar; это проверяет `test_resource_uid_contracts.gd`. Если UID не создался, запусти `godot --headless --path . --import` и добавь только нужный sidecar.
+4. Export paths должны оставаться внутри `exports/`; это проверяет `test_export_presets_contract.gd`.
+5. CI запускает MacOS debug export smoke после тестов. Перед release-выводами дополнительно запускай signed/notarized release export на машине с нужными Apple credentials/templates.
 
 ## Когда Добавлять Validator
 

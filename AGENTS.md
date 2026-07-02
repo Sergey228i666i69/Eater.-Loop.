@@ -24,7 +24,7 @@
 ## Главные Риски
 
 1. **Fresh clone стал воспроизводимее, но требует Git LFS.** Ассеты и `*.import` теперь tracked, root `export_presets.cfg` tracked, бинарники идут через LFS. После clone нужен `git lfs install && git lfs pull`.
-2. **Полный тестовый прогон зелёный на момент последней проверки.** `bash tests/run_tests.sh` проходил с 99 тестами без `ObjectDB instances leaked at exit`.
+2. **Полный тестовый прогон зелёный на момент последней проверки.** `bash tests/run_tests.sh` проходил со 100 тестами без `ObjectDB instances leaked at exit`.
 3. **Runtime-входы света переведены на `interact`.** Старый `lamp_switch` больше не нужен лампе и старому прожектору.
 4. **Главные gameplay-баги закрыты.** Sleep/wake-флаг переживает переход цикла, run закрывается после титров, потолочный враг снова учитывает лампы, деньги level 12 и runtime-spawned threats сохраняются в checkpoint, холодильник fail-closed, minigame timeout одноразовый.
 5. **Интерактивы централизованы через `InteractionManager`.** Одно нажатие выбирает один объект по доступности, приоритету и расстоянию.
@@ -45,7 +45,7 @@
 ## Что В Проекте Хорошо
 
 - Main scene и autoload-и явно заданы в `project.godot`.
-- Есть локальный тест-раннер и 99 тестов.
+- Есть локальный тест-раннер и 100 тестов.
 - Тесты уже проверяют autoload-и, main scene, project config, localization CSV/mojibake hygiene, RU player-facing localization key coverage including gamepad hints, cycle/lab/fridge authoring contracts, загрузку сцен и запрет использования приватного API `MusicManager`.
 - `MusicManager` большой, но имеет осмысленный публичный фасад, а mix-offset policy уже живёт в `MusicMixSettings`.
 - `MinigameSettings` как `Resource` лучше, чем полностью ad-hoc Dictionary-конфиги.
@@ -56,7 +56,7 @@
 - Parser-only: `godot --headless --check-only -s res://tests/run_tests.gd`
 - Полный локальный suite: `bash tests/run_tests.sh`
 
-На момент последней проверки parser-only проходил, а полный suite проходил с 99 тестами. Перед релизными выводами или крупным рефакторингом нужно перепроверить текущее состояние командой выше.
+На момент последней проверки parser-only проходил, а полный suite проходил со 100 тестами. Перед релизными выводами или крупным рефакторингом нужно перепроверить текущее состояние командой выше.
 
 ## Правила Работы Для Агентов
 

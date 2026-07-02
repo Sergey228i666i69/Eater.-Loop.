@@ -24,6 +24,7 @@ Definition of done: `godot --headless --check-only -s res://tests/run_tests.gd` 
 4. ~~Убрать локальные пути вида `../Documents/EaterLoopExport/...`.~~
 5. ~~Добавить CI workflow с Godot 4.6.1, import, parser check, full tests.~~ `.github/workflows/godot-tests.yml` делает checkout с LFS, `git lfs pull`, parser check и full suite.
 6. ~~Добавить export smoke в CI.~~ Отдельный job ставит Godot export templates и запускает MacOS debug export после зелёного test job.
+7. ~~Закрепить Godot UID sidecars для новых скриптов.~~ `test_resource_uid_contracts.gd` требует tracked `.uid` рядом с каждым `.gd` и `.gdshader` вне `addons/`.
 
 Definition of done: проект можно склонировать на чистую машину и получить одинаковый test result по документированной инструкции и CI workflow; CI дополнительно проверяет, что MacOS debug export собирается.
 

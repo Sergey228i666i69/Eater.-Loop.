@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 99 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 100 тестов.
 
 Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
@@ -44,6 +44,7 @@
 - Stale current-state docs обновлены под `level_14_end.*` и текущий suite.
 - Obstacle special-case покрыт контрактным тестом.
 - Export presets проверяются static contract-тестом в suite; локальный macOS export smoke прошёл с templates, а GitHub Actions получил отдельный MacOS debug export smoke job.
+- Godot UID sidecars для `.gd`/`.gdshader` теперь проверяются контрактом: новые скрипты и shader-ы не должны попадать в репозиторий без tracked `.uid`.
 - Удалены `.gitignore.save`, ignored `global/export_presets.cfg`, legacy icon copies и неиспользуемый `Projector2`.
 - Убран dead `CursorManager._in_game` state и пустая `laptop_money.gd` specialization-wrapper.
 - Legacy-комментарии из runtime-кода очищены в `InteractiveObject`, `fridge.gd` и `laptop.gd`.
@@ -197,7 +198,7 @@
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (99)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (100)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 
