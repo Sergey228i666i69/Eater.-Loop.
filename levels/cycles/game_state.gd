@@ -1,5 +1,6 @@
 extends Node
 
+const CheckpointSceneSnapshot = preload("res://levels/cycles/checkpoint_scene_snapshot.gd")
 const SAVE_PATH := "user://run_save.cfg"
 const GAME_SECTION := "game"
 const CHECKPOINT_SECTION := "checkpoint"
@@ -19,6 +20,7 @@ var checkpoint_cycle_state: Dictionary = {}
 var checkpoint_director_state: Dictionary = {}
 var checkpoint_scene_state: Dictionary = {}
 var checkpoint_participant_paths: PackedStringArray = PackedStringArray()
+var _checkpoint_scene_snapshot: RefCounted
 
 func _ready() -> void:
 	if _saves_enabled():
@@ -311,127 +313,21 @@ func _export_director_state() -> Dictionary:
 	return {}
 
 func _collect_checkpoint_participant_paths(scene: Node) -> Array[String]:
-	var paths: Array[String] = []
-	var seen: Dictionary = {}
 	var tree := get_tree()
 	if tree == null:
-		return paths
-	for node in tree.get_nodes_in_group(CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP):
-		if node == null or not is_instance_valid(node):
-			continue
-		if node != scene and not scene.is_ancestor_of(node):
-			continue
-		var path := CheckpointStateUtils.get_scene_relative_path(scene, node)
-		if path == "" or seen.has(path):
-			continue
-		seen[path] = true
-		paths.append(path)
-	for path_value in checkpoint_participant_paths:
-		var existing_path := str(path_value)
-		if existing_path == "" or seen.has(existing_path):
-			continue
-		seen[existing_path] = true
-		paths.append(existing_path)
-	paths.sort()
-	return paths
+		return []
+	return _get_checkpoint_scene_snapshot().collect_participant_paths(scene, tree, checkpoint_participant_paths)
 
 func _capture_scene_checkpoint_state(scene: Node, participant_paths: PackedStringArray) -> Dictionary:
-	var scene_state: Dictionary = {}
-	for path_value in participant_paths:
-		var path_text := str(path_value)
-		if path_text == "":
-			continue
-		var node := scene.get_node_or_null(NodePath(path_text))
-		if node == null:
-			scene_state[path_text] = {"exists": false}
-			continue
-		var entry := {
-			"exists": true,
-			"snapshot": CheckpointStateUtils.capture_node_snapshot(node),
-		}
-		var dynamic_restore_data := _capture_dynamic_restore_data(scene, node)
-		if not dynamic_restore_data.is_empty():
-			entry["dynamic_restore"] = dynamic_restore_data
-		scene_state[path_text] = entry
-	return scene_state
+	return _get_checkpoint_scene_snapshot().capture_scene_state(scene, participant_paths)
 
 func _apply_scene_checkpoint_state(scene: Node) -> void:
-	for path_value in checkpoint_participant_paths:
-		var path_text := str(path_value)
-		if path_text == "":
-			continue
-		var entry_raw: Variant = checkpoint_scene_state.get(path_text, {})
-		if not (entry_raw is Dictionary):
-			continue
-		var entry := entry_raw as Dictionary
-		var node := scene.get_node_or_null(NodePath(path_text))
-		if not bool(entry.get("exists", true)):
-			if node == null:
-				continue
-			CheckpointStateUtils.remove_absent_node(node)
-			continue
-		if node == null:
-			node = _restore_dynamic_checkpoint_node(scene, entry)
-			if node == null:
-				continue
-		var snapshot_raw: Variant = entry.get("snapshot", {})
-		if snapshot_raw is Dictionary:
-			CheckpointStateUtils.apply_node_snapshot(node, snapshot_raw)
+	_get_checkpoint_scene_snapshot().apply_scene_state(scene, checkpoint_participant_paths, checkpoint_scene_state)
 
-func _capture_dynamic_restore_data(scene: Node, node: Node) -> Dictionary:
-	if scene == null or node == null:
-		return {}
-	if not node.is_in_group("enemies"):
-		return {}
-	if node.owner != null:
-		return {}
-	var scene_file_path := String(node.scene_file_path)
-	if scene_file_path == "":
-		return {}
-	var parent := node.get_parent()
-	if parent == null:
-		return {}
-	var parent_path := CheckpointStateUtils.get_scene_relative_path(scene, parent)
-	if parent_path == "":
-		return {}
-	return {
-		"scene_path": scene_file_path,
-		"parent_path": parent_path,
-		"node_name": String(node.name),
-	}
-
-func _restore_dynamic_checkpoint_node(scene: Node, entry: Dictionary) -> Node:
-	var restore_raw: Variant = entry.get("dynamic_restore", {})
-	if not (restore_raw is Dictionary):
-		return null
-	var restore_data := restore_raw as Dictionary
-	var scene_path := str(restore_data.get("scene_path", ""))
-	if scene_path == "" or not ResourceLoader.exists(scene_path):
-		return null
-	var packed := load(scene_path) as PackedScene
-	if packed == null:
-		return null
-	var parent := _resolve_dynamic_restore_parent(scene, str(restore_data.get("parent_path", ".")))
-	if parent == null:
-		return null
-	var restored := packed.instantiate()
-	if restored == null:
-		return null
-	var node_name := str(restore_data.get("node_name", ""))
-	if node_name != "":
-		restored.name = node_name
-	parent.add_child(restored)
-	return restored
-
-func _resolve_dynamic_restore_parent(scene: Node, parent_path: String) -> Node:
-	if scene == null:
-		return null
-	if parent_path == "" or parent_path == ".":
-		return scene
-	var parent := scene.get_node_or_null(NodePath(parent_path))
-	if parent != null:
-		return parent
-	return scene
+func _get_checkpoint_scene_snapshot() -> RefCounted:
+	if _checkpoint_scene_snapshot == null:
+		_checkpoint_scene_snapshot = CheckpointSceneSnapshot.new()
+	return _checkpoint_scene_snapshot
 
 func _saves_enabled() -> bool:
 	# Disable persistence while testing in the editor.
