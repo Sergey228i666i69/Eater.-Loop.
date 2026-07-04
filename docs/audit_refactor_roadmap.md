@@ -10,7 +10,7 @@
 2. ~~Расследовать ранее замеченный bedroom ambient failure.~~ Полный suite сейчас зелёный.
 3. ~~Разобраться с `ObjectDB instances leaked at exit`.~~ Async runtime-тесты теперь дожидаются своих transition states, runner делает короткий drain.
 4. ~~Вернуть или заменить `lamp_switch`.~~ Лампа и старый проектор используют `interact`.
-5. ~~Расширить `test_input_actions.gd`.~~ Тест проверяет реальные light-interactable actions.
+5. ~~Расширить `test_input_actions.gd`.~~ Тест проверяет реальные light-interactable actions и runtime string literals в `is_action_*` / gamepad nav wrappers.
 
 Definition of done: `godot --headless --check-only -s res://tests/run_tests.gd` и `bash tests/run_tests.sh` проходят локально.
 

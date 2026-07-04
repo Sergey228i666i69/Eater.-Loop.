@@ -86,6 +86,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Отдельный `export-smoke` job в том же workflow, который ставит export templates и запускает MacOS debug export после зелёного test job.
 - Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
 - Project-config contract для main scene, включённых editor plugins и configured translations.
+- Input action contract для required actions, light interactable actions и runtime string literals в `is_action_*` / gamepad nav wrappers.
 - Resource UID contract для tracked `.gd`/`.gdshader` sidecars и уникальности `uid://` значений.
 - Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources, запрета новых ASCII phrase translit keys для русских строк, CSV-key/technical-exception проверки статических non-Cyrillic `.tscn` player-facing строк, прямых non-Cyrillic GDScript call-literals в `UIMessage.show_*("...")` / `tr("...")` и RU player-facing key coverage, включая custom/default gamepad hints.
 - Gamepad binding contract теперь сам находит scripts with `MinigameController.set_gamepad_scheme(self, ...)` и требует cleanup, чтобы новые мини-игры не выпадали из проверки.

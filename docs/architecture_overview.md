@@ -104,6 +104,7 @@
 - `InteractionPrompts` может отличать Sony gamepad для player-facing button prompt-ов.
 - `GameDirector` и `MainMenu` используют тот же helper для переключения input mode и navigation mode.
 - Новые проверки устройств не должны дублировать local deadzone/name/GUID эвристики в сценовых скриптах.
+- Runtime string literals в `is_action_*` и gamepad navigation wrappers считаются InputMap contract: новый action нужно добавить в `project.godot`, иначе `test_input_actions.gd` упадёт.
 
 ### 2.8 Контур визуального рига героя
 
@@ -199,7 +200,7 @@
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
-- Добавлены scene-contract validators для critical NodePath/child contracts, scene audio-bus contracts, typed interaction signal subscriptions, utility-level NodePaths, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
+- Добавлены scene-contract validators для critical NodePath/child contracts, scene audio-bus contracts, typed interaction signal subscriptions, runtime input action literals, utility-level NodePaths, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
 - `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
