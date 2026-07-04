@@ -18,6 +18,15 @@ const GROUP_METHOD_CONTRACTS := [
 	{"group": "generator_required_light", "methods": ["turn_on"]},
 	{"group": "generator_required_lamp", "methods": ["turn_on"]}
 ]
+const FORBIDDEN_NULL_SCENE_OVERRIDES := [
+	"is_locked",
+	"required_key_id",
+	"required_key_name",
+	"consume_key_on_unlock",
+	"interact_area_node",
+	"one_shot",
+	"target_marker",
+]
 
 func run() -> Array[String]:
 	_test_key_search_spots_do_not_depend_on_the_door_they_unlock()
@@ -32,6 +41,7 @@ func run() -> Array[String]:
 	_test_scripts_that_join_runtime_groups_expose_required_methods()
 	_test_checkpoint_custom_methods_are_declared_in_pairs()
 	_test_checkpoint_participants_have_stable_scene_paths()
+	_test_typed_scene_config_overrides_do_not_use_null()
 	return get_failures()
 
 func _test_key_search_spots_do_not_depend_on_the_door_they_unlock() -> void:
@@ -228,6 +238,15 @@ func _test_checkpoint_participants_have_stable_scene_paths() -> void:
 				"Checkpoint participant path must be stable and explicit: %s:%s" % [path, relative_path]
 			)
 		root.free()
+
+func _test_typed_scene_config_overrides_do_not_use_null() -> void:
+	for path in _list_active_scenes():
+		for block in _scene_node_blocks(path):
+			for property_name in FORBIDDEN_NULL_SCENE_OVERRIDES:
+				assert_true(
+					block.find("%s = null" % property_name) == -1,
+					"Scene typed config override must use an explicit default instead of null: %s -> %s" % [path, property_name]
+				)
 
 func _list_active_scenes() -> Array[String]:
 	var scenes: Array[String] = []

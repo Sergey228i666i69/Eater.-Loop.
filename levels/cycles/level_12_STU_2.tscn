@@ -3791,7 +3791,7 @@ position = Vector2(14571, 83)
 is_locked = false
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
 target_marker = NodePath("../../../6thHall/InteractableObjects/Door(To604)")
-required_key_id = null
+required_key_id = ""
 
 [node name="Fridge" parent="6thLevel/604/InteractableObjects" unique_id=540039702 instance=ExtResource("86_0af5o")]
 z_index = 1

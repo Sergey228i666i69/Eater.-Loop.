@@ -97,6 +97,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
 - Trigger target/property contract для configured `TriggerSetProperty` и `PropertyChange`.
 - Key-door/search-key contract для required key sources и resolving `SearchKeyManager.search_spots`.
+- Scene typed override hygiene contract для явных door/interactable defaults вместо inherited `null`.
 - Checkpoint participant stable-path contract для active scenes: custom checkpoint nodes must resolve to non-empty scene-relative paths without generated `@...` segments.
 - Checkpoint scene snapshot contract для dynamic runtime participants и removed participant state.
 - Checkpoint dynamic restore helper contract для enemy-only factory restore allowlist, captured parent/name metadata и restoration target parent.

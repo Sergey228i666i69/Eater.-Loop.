@@ -23,8 +23,9 @@
 8. Настройки игрока задавай через existing player export-поля сцены: бег через `allow_running`, `stamina_*`, `run_speed_multiplier`, фонарик через `flashlight_use_duration`, `flashlight_recharge_duration`, `flashlight_recharge_delay`, скелетные step times через `skeleton_*_step_times`. Speed/run multiplier/timing values должны оставаться положительными или неотрицательными там, где `0` имеет явный смысл unlimited/instant; step indices должны быть положительными, а skeleton step times отсортированы. Drain/recovery/checkpoint semantics живут в `PlayerStaminaState` и `PlayerFlashlightChargeState`, key add/has/remove/checkpoint semantics живут в `PlayerInventoryState`, а arming/wrap/counter semantics скелетных шагов живут в `PlayerSkeletonStepState`; эти helper-ы и scene export ranges покрыты тестами.
 9. Для checkpoint-состояния добавляй `checkpoint_stateful` только тем объектам, которым нужен restore позиции/видимости/velocity/existence или custom state. Если объект объявляет custom `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, объявляй оба метода парой; это проверяется тестом. Checkpoint participants должны иметь стабильный scene-relative path: не используй сгенерированные `@...` имена для таких узлов и не оставляй их анонимными. Runtime-spawned objects требуют отдельного restore contract; сейчас factory restore безопасно разрешён только enemy/spawner сценариям через `CheckpointDynamicRestore` и `CheckpointSceneSnapshot`.
 10. Если используешь `TriggerSetProperty`, configured `target_paths`/`changes` должны указывать на существующие узлы и реальные property. Чисто музыкальные/sfx trigger-ы могут не иметь target changes; target-changing trigger-ы проверяются `test_trigger_set_property_contracts.gd`.
-11. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
-12. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
+11. Не оставляй inherited door/interactable config overrides как `null`: для typed defaults используй явные значения вроде `false`, `""` или `NodePath("")`. Это особенно важно для `is_locked`, `required_key_id`, `interact_area_node`, `target_marker` и `one_shot`, потому что `null` скрывает фактическую семантику сцены.
+12. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
+13. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
 
 ## Новый Интерактив
 
@@ -80,6 +81,7 @@
 - trigger target path or property contract;
 - utility-level condition/spawn path contract;
 - key-door source or search manager contract;
+- inherited scene override must use explicit typed defaults instead of `null`;
 - fridge feeding/code-lock/final minigame config contract;
 - state должен сохраняться в checkpoint/save;
 - checkpoint participant должен иметь стабильный scene-relative path;
