@@ -86,7 +86,7 @@ Definition of done: типовые ошибки сцен падают тесто
 1. `GameDirector`:
    - ~~death-title/glitch presentation;~~ вынесено в `game_director_death_title_presenter.gd`.
    - ~~stalker spawn/checkpoint service;~~ вынесено в `game_director_stalker_service.gd`.
-   - ~~death/checkpoint lifecycle service.~~ Death camera capture/restore вынесен в `game_director_death_camera_coordinator.gd`, retry checkpoint restore/darken и UI cleanup/reload transition вынесены в `game_director_death_retry_coordinator.gd`.
+   - ~~death/checkpoint lifecycle service.~~ Death entry presentation setup вынесен в `game_director_death_entry_presenter.gd`, fade/tween setup вынесен в `game_director_death_fade_coordinator.gd`, death sequence state вынесен в `game_director_death_sequence_state.gd`, death camera capture/restore вынесен в `game_director_death_camera_coordinator.gd`, retry checkpoint restore/darken и UI cleanup/reload transition вынесены в `game_director_death_retry_coordinator.gd`.
    - distortion service: minigame gate/pending activation state вынесен в `game_director_distortion_gate.gd`, progress/easing math вынесен в `game_director_distortion_progress.gd`, overlay/material actuator вынесен в `game_director_distortion_overlay_coordinator.gd`, phase/checkpoint state вынесен в `game_director_distortion_phase_state.gd`, cycle timer/checkpoint state вынесен в `game_director_cycle_timer_state.gd`, CycleState phase bridge вынесен в `game_director_cycle_phase_bridge.gd`, timer node lifecycle вынесен в `game_director_timer_node_coordinator.gd`.
    - ~~overlay layer policy;~~ вынесено в `game_director_overlay_layer_coordinator.gd`.
    - ~~death cursor/input coordinator;~~ вынесено в `game_director_death_cursor_coordinator.gd`.

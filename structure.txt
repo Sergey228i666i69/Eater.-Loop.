@@ -712,10 +712,16 @@
 │   ├── game_director_death_camera_coordinator.gd.uid
 │   ├── game_director_death_cursor_coordinator.gd
 │   ├── game_director_death_cursor_coordinator.gd.uid
+│   ├── game_director_death_entry_presenter.gd
+│   ├── game_director_death_entry_presenter.gd.uid
+│   ├── game_director_death_fade_coordinator.gd
+│   ├── game_director_death_fade_coordinator.gd.uid
 │   ├── game_director_death_retry_coordinator.gd
 │   ├── game_director_death_retry_coordinator.gd.uid
 │   ├── game_director_death_screen_reset.gd
 │   ├── game_director_death_screen_reset.gd.uid
+│   ├── game_director_death_sequence_state.gd
+│   ├── game_director_death_sequence_state.gd.uid
 │   ├── game_director_death_title_presenter.gd
 │   ├── game_director_death_title_presenter.gd.uid
 │   ├── game_director_distortion_gate.gd
@@ -1573,10 +1579,16 @@
 │   │   ├── test_game_director_death_camera_coordinator.gd.uid
 │   │   ├── test_game_director_death_cursor_coordinator.gd
 │   │   ├── test_game_director_death_cursor_coordinator.gd.uid
+│   │   ├── test_game_director_death_entry_presenter.gd
+│   │   ├── test_game_director_death_entry_presenter.gd.uid
+│   │   ├── test_game_director_death_fade_coordinator.gd
+│   │   ├── test_game_director_death_fade_coordinator.gd.uid
 │   │   ├── test_game_director_death_retry_coordinator.gd
 │   │   ├── test_game_director_death_retry_coordinator.gd.uid
 │   │   ├── test_game_director_death_screen_reset.gd
 │   │   ├── test_game_director_death_screen_reset.gd.uid
+│   │   ├── test_game_director_death_sequence_state.gd
+│   │   ├── test_game_director_death_sequence_state.gd.uid
 │   │   ├── test_game_director_death_title_presenter.gd
 │   │   ├── test_game_director_death_title_presenter.gd.uid
 │   │   ├── test_game_director_distortion_gate.gd
