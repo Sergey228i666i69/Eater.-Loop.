@@ -35,12 +35,16 @@ const LEGACY_SCENE_CALLBACK_PATTERNS := [
 const LEGACY_RUNTIME_TEXT_PATTERNS := [
 	"Frizzer"
 ]
+const INLINE_KEY_REWARD_PAYLOAD_PATTERNS := [
+	"\"reward_type\": \"key\""
+]
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
 const PLAYER_PATH := "res://player/player.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
+const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
@@ -158,6 +162,10 @@ func run() -> Array[String]:
 
 		for pattern in LEGACY_RUNTIME_TEXT_PATTERNS:
 			assert_true(content.find(pattern) == -1, "Legacy runtime text label is forbidden: %s (%s)" % [path, pattern])
+
+		if path != INTERACTION_RESULT_BUILDER_PATH:
+			for pattern in INLINE_KEY_REWARD_PAYLOAD_PATTERNS:
+				assert_true(content.find(pattern) == -1, "Key reward payloads must use InteractionResultBuilder.key_reward(...): %s (%s)" % [path, pattern])
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 

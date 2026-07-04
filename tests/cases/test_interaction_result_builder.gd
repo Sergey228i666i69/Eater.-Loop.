@@ -4,6 +4,7 @@ const InteractionResultBuilderScript = preload("res://objects/interactable/inter
 
 func run() -> Array[String]:
 	_test_build_adds_metadata_and_typed_payload()
+	_test_key_reward_uses_canonical_payload_schema()
 	_test_non_dictionary_payload_is_normalized()
 	return get_failures()
 
@@ -36,8 +37,8 @@ func _test_build_adds_metadata_and_typed_payload() -> void:
 	assert_true(result.get(InteractionResultBuilderScript.RESULT_PAYLOAD) is Dictionary, "Result payload must be a dictionary")
 
 	var payload: Dictionary = result.get(InteractionResultBuilderScript.RESULT_PAYLOAD, {})
-	assert_eq(str(payload.get("reward_type")), "key", "Payload must preserve reward type")
-	assert_eq(str(payload.get("key_id")), "door_key", "Payload must preserve key id")
+	assert_eq(str(payload.get(InteractionResultBuilderScript.PAYLOAD_REWARD_TYPE)), InteractionResultBuilderScript.REWARD_TYPE_KEY, "Payload must preserve reward type")
+	assert_eq(str(payload.get(InteractionResultBuilderScript.PAYLOAD_KEY_ID)), "door_key", "Payload must preserve key id")
 	var nested_payload: Dictionary = payload.get("nested", {})
 	assert_eq(int(nested_payload.get("count")), 1, "Payload must preserve nested data")
 
@@ -49,6 +50,23 @@ func _test_build_adds_metadata_and_typed_payload() -> void:
 
 	source.free()
 	player.free()
+
+func _test_key_reward_uses_canonical_payload_schema() -> void:
+	var result_data := InteractionResultBuilderScript.key_reward(" door_key ", {
+		"legacy_marker": "kept"
+	})
+	var result := InteractionResultBuilderScript.build(
+		InteractiveObject.InteractionOutcome.SUCCEEDED,
+		true,
+		null,
+		null,
+		result_data
+	)
+
+	assert_eq(str(result.get("legacy_marker")), "kept", "Key reward helper must preserve compatible top-level data")
+	var payload: Dictionary = result.get(InteractionResultBuilderScript.RESULT_PAYLOAD, {})
+	assert_eq(str(payload.get(InteractionResultBuilderScript.PAYLOAD_REWARD_TYPE)), InteractionResultBuilderScript.REWARD_TYPE_KEY, "Key reward helper must use canonical reward type")
+	assert_eq(str(payload.get(InteractionResultBuilderScript.PAYLOAD_KEY_ID)), "door_key", "Key reward helper must normalize key ids")
 
 func _test_non_dictionary_payload_is_normalized() -> void:
 	var result := InteractionResultBuilderScript.build(
