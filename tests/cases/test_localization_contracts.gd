@@ -55,6 +55,16 @@ const PLAYER_FACING_CALL_MARKERS: Array[String] = [
 const PLAYER_FACING_LITERAL_FILES: Array[String] = [
     "res://levels/minigames/gamepad/gamepad_hint_builder.gd"
 ]
+const ALLOWED_TECHNICAL_PLAYER_FACING_TEXT := {
+    "res://levels/minigames/labs/sql/sql_minigame.tscn": {
+        "SQL Editor - Query_Console_1.sql": true,
+        "Line 1, Col 1 | UTF-8 | SQL": true
+    },
+    "res://levels/minigames/labs/sql/sql_minigame_glitch.tscn": {
+        "SQL Editor - Query_Console_1.sql": true,
+        "Line 1, Col 1 | UTF-8 | SQL": true
+    }
+}
 
 func run() -> Array[String]:
     _test_localization_csv_is_complete()
@@ -163,8 +173,9 @@ func _assert_property_line_has_key(path: String, line_number: int, line: String,
     var property_name := _extract_property_name(line.substr(0, equals_index).strip_edges())
     if not PLAYER_FACING_PROPERTIES.has(property_name):
         return
+    var require_non_cyrillic_key := path.ends_with(".tscn")
     for value in _extract_quoted_strings(line.substr(equals_index + 1)):
-        _assert_localization_key_exists(path, line_number, value, keys)
+        _assert_localization_key_exists(path, line_number, value, keys, require_non_cyrillic_key)
 
 func _assert_call_line_has_key(path: String, line_number: int, line: String, keys: Dictionary) -> void:
     var has_player_facing_call := false
@@ -191,11 +202,18 @@ func _assert_all_line_literals_have_key(path: String, line_number: int, line: St
     for value in _extract_quoted_strings(line):
         _assert_localization_key_exists(path, line_number, value, keys)
 
-func _assert_localization_key_exists(path: String, line_number: int, value: String, keys: Dictionary) -> void:
+func _assert_localization_key_exists(path: String, line_number: int, value: String, keys: Dictionary, require_non_cyrillic_key: bool = false) -> void:
     var normalized := value.strip_edges()
-    if normalized == "" or not _has_cyrillic(normalized):
+    if normalized == "":
         return
-    assert_true(keys.has(normalized), "Player-facing text must have localization CSV key: %s:%d -> %s" % [path, line_number, normalized])
+    if _has_cyrillic(normalized):
+        assert_true(keys.has(normalized), "Player-facing text must have localization CSV key: %s:%d -> %s" % [path, line_number, normalized])
+        return
+    if not require_non_cyrillic_key:
+        return
+    if not _requires_non_cyrillic_localization_key(path, normalized):
+        return
+    assert_true(keys.has(normalized), "Non-Cyrillic player-facing text must have localization CSV key or be an explicit technical exception: %s:%d -> %s" % [path, line_number, normalized])
 
 func _load_localization_keys() -> Dictionary:
     var keys := {}
@@ -302,6 +320,17 @@ func _has_ascii_letter(value: String) -> bool:
         if (codepoint >= 65 and codepoint <= 90) or (codepoint >= 97 and codepoint <= 122):
             return true
     return false
+
+func _requires_non_cyrillic_localization_key(path: String, value: String) -> bool:
+    if not _has_ascii_letter(value):
+        return false
+    if value.find("%") != -1:
+        return false
+    if ALLOWED_TECHNICAL_PLAYER_FACING_TEXT.has(path):
+        var allowed_values: Dictionary = ALLOWED_TECHNICAL_PLAYER_FACING_TEXT[path]
+        if allowed_values.has(value):
+            return false
+    return true
 
 func _is_blank_row(row: PackedStringArray) -> bool:
     if row.size() == 0:

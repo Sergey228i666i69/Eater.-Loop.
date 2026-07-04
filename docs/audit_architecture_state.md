@@ -104,7 +104,7 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 
 Риск: английская локаль получит русские fallback-и или битый текст.
 
-Статус: mojibake исправлен, явные транслит-ключи level 12 заменены на русские source keys, а [`tests/cases/test_localization_contracts.gd`](../tests/cases/test_localization_contracts.gd) проверяет CSV-колонки `keys`/`ru`/`en`, пустые значения, mojibake в runtime text sources, отсутствие новых ASCII phrase translit keys для русских строк и наличие CSV-ключей у русскоязычных player-facing строк в сценах/скриптах. Оставшийся ремонт: решить, нужно ли блокировать non-Russian/technical UI labels тем же validator-ом.
+Статус: mojibake исправлен, явные транслит-ключи level 12 заменены на русские source keys, английский fallback в `drag_word.tscn` заменён на локализуемый русский default, а [`tests/cases/test_localization_contracts.gd`](../tests/cases/test_localization_contracts.gd) проверяет CSV-колонки `keys`/`ru`/`en`, пустые значения, mojibake в runtime text sources, отсутствие новых ASCII phrase translit keys для русских строк, наличие CSV-ключей у русскоязычных player-facing строк в сценах/скриптах и CSV-key/technical-exception contract для статических non-Cyrillic `.tscn` player-facing строк. Оставшийся ремонт: при активной работе с UI решить, нужно ли так же строго блокировать non-Cyrillic literals внутри GDScript call-lines.
 
 ## Мелкие Smells
 

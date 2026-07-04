@@ -24,7 +24,7 @@ font_weight = 400
 
 [node name="DragWord" type="Button"]
 custom_minimum_size = Vector2(80, 28)
-text = "Select"
+text = "Выбрать"
 focus_mode = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_1")
 theme_override_styles/hover = SubResource("StyleBoxFlat_1")
