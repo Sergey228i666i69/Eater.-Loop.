@@ -59,7 +59,7 @@
   - `credits_music_volume_db`
   - `credits_music_fade_time`
 - Можно назначить музыку позже прямо в `ending_credits.tscn`, не меняя код.
-- В главном меню кнопка `Авторы` открывает ту же сцену титров (`ending_credits.tscn`), что и после концовок.
+- В главном меню кнопка `Авторы` открывает ту же сцену титров (`ending_credits.tscn`), что и после концовок. Возврат после титров настраивается export-ом `return_scene`; пустой/невалидный target path fallback-ится в main menu.
 
 ## Управление титрами
 

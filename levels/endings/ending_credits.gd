@@ -236,6 +236,10 @@ func _change_to_return_scene() -> void:
 	_is_finishing = false
 
 func _resolve_return_scene_path() -> String:
+	if return_scene != null:
+		var scene_path := String(return_scene.resource_path).strip_edges()
+		if scene_path != "":
+			return scene_path
 	return MAIN_MENU_SCENE_PATH
 
 func _on_return_fade_finished(token: int) -> void:

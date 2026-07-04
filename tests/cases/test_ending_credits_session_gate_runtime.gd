@@ -2,6 +2,7 @@ extends "res://tests/test_case.gd"
 
 const CREDITS_SCENE_PATH := "res://levels/endings/ending_credits.tscn"
 const MAIN_MENU_SCENE_PATH := "res://levels/menu/main_menu.tscn"
+const DISCLAIMER_SCENE_PATH := "res://levels/menu/disclaimer_screen.tscn"
 const STARTUP_DISCLAIMER_META := "startup_disclaimer_shown_session"
 
 func run() -> Array[String]:
@@ -12,9 +13,11 @@ func run() -> Array[String]:
 
 	var credits_scene := assert_loads(CREDITS_SCENE_PATH) as PackedScene
 	var menu_scene := assert_loads(MAIN_MENU_SCENE_PATH) as PackedScene
+	var disclaimer_scene := assert_loads(DISCLAIMER_SCENE_PATH) as PackedScene
 	assert_true(credits_scene != null, "Credits scene failed to load")
 	assert_true(menu_scene != null, "Main menu scene failed to load")
-	if credits_scene == null or menu_scene == null:
+	assert_true(disclaimer_scene != null, "Disclaimer scene failed to load")
+	if credits_scene == null or menu_scene == null or disclaimer_scene == null:
 		return get_failures()
 
 	if GameState != null and GameState.has_meta(STARTUP_DISCLAIMER_META):
@@ -26,6 +29,11 @@ func run() -> Array[String]:
 	tree.root.add_child(credits)
 	await tree.process_frame
 	await tree.process_frame
+
+	assert_eq(credits.call("_resolve_return_scene_path"), MAIN_MENU_SCENE_PATH, "Credits default return_scene must resolve to main menu")
+	credits.set("return_scene", disclaimer_scene)
+	assert_eq(credits.call("_resolve_return_scene_path"), DISCLAIMER_SCENE_PATH, "Credits return_scene export must control the return target")
+	credits.set("return_scene", menu_scene)
 
 	credits.call("_perform_return_transition")
 	await tree.process_frame

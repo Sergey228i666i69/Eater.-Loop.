@@ -40,6 +40,7 @@
 - `InteractiveObject` явно unregister-ится из `InteractionManager` при `_exit_tree`.
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
 - Ending-сцены классифицируются через `SceneContext`, gameplay path fallback ограничен `level_*.tscn`, и pause menu не открывается поверх концовок.
+- `ending_credits.gd` уважает export `return_scene`, поэтому credits можно переиспользовать в другом menu/ending flow без правки кода.
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
 - Stale current-state docs обновлены под `level_14_end.*` и текущий suite.
 - Obstacle special-case покрыт контрактным тестом.

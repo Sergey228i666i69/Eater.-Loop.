@@ -109,6 +109,6 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 ## Мелкие Smells
 
 - `CursorManager` больше не держит dead `_in_game` state; внешний `set_in_game(...)` оставлен как compatibility API, но `GameDirector` больше не вызывает его для scene sync.
-- `ending_credits.gd` имеет export `return_scene`, но resolver всегда возвращает main menu.
+- `ending_credits.gd` теперь уважает export `return_scene` и только при пустом target path fallback-ится в main menu; это закреплено runtime-тестом.
 - `Bed._try_sleep` валидирует next scene до затемнения и использует единый `UIMessage.change_scene_with_fade_delay(...)` без ручного двойного fade; это закреплено архитектурным тестом.
 - Первичный аудит находил `level_09_сrazy.tscn` с кириллической `с`; файл переименован в `level_09_crazy.tscn`.
