@@ -50,7 +50,7 @@ Credits возвращают в меню и ставят только meta-фл�
 
 Практический эффект: после хорошей/плохой концовки можно получить Continue в старый финальный run.
 
-Статус: закрыто минимально. Credits сбрасывают active run через `GameState.reset_run()`, а тест фиксирует, что Continue не остаётся привязанным к финальному run.
+Статус: закрыто минимально. Credits сбрасывают active run через `GameState.reset_run()`, а тест фиксирует, что Continue не остаётся привязанным к финальному run. Базовый `CycleLevel` также держит стартовые subtitle/respawn blackout на прямом `UIMessage` facade contract вместо stringly method probes, чтобы новые уровни не наследовали тихий fallback.
 
 ## Resolved: Потолочный Враг Игнорирует Лампы
 

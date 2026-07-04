@@ -59,6 +59,7 @@ const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
+const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
@@ -146,6 +147,12 @@ const FORBIDDEN_ACTIVE_SCENE_PATTERNS := [
 ]
 const FORBIDDEN_PLAYER_PATTERNS := [
 	"var _facing_dir"
+]
+const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
+	"UIMessage.has_method(\"is_screen_dark\")",
+	"UIMessage.call(\"is_screen_dark\"",
+	"UIMessage.has_method(\"fade_out\")",
+	"UIMessage.has_method(\"fade_in\")"
 ]
 
 func run() -> Array[String]:
@@ -241,6 +248,14 @@ func run() -> Array[String]:
 	assert_true(bed_content.find("change_scene_with_fade_delay") != -1, "Bed sleep transition must use the shared UIMessage scene transition API")
 	assert_true(bed_content.find("UIMessage.fade_out") == -1, "Bed sleep transition must not add a manual fade_out before shared scene transition")
 	assert_true(bed_content.find("UIMessage.fade_in") == -1, "Bed sleep transition must not manually restore fade after load validation")
+
+	var cycle_level_content := FileAccess.get_file_as_string(CYCLE_LEVEL_PATH)
+	assert_true(cycle_level_content != "", "Failed to read script: %s" % CYCLE_LEVEL_PATH)
+	for pattern in FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS:
+		assert_true(
+			cycle_level_content.find(pattern) == -1,
+			"CycleLevel must use the stable UIMessage facade directly instead of stringly method probes: %s" % pattern
+		)
 
 	return get_failures()
 

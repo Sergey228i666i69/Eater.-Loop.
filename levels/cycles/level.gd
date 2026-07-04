@@ -139,12 +139,10 @@ func _capture_level_start_checkpoint() -> void:
 func _wait_until_screen_is_not_dark() -> void:
 	if UIMessage == null:
 		return
-	if not UIMessage.has_method("is_screen_dark"):
-		return
 	var remaining_frames := -1
 	if start_subtitle_wait_for_fade_timeout > 0.0:
 		remaining_frames = maxi(1, int(ceil(start_subtitle_wait_for_fade_timeout * 60.0)))
-	while bool(UIMessage.call("is_screen_dark", 0.02)):
+	while UIMessage.is_screen_dark(0.02):
 		if remaining_frames == 0:
 			return
 		await get_tree().process_frame
@@ -157,12 +155,10 @@ func _run_pending_respawn_blackout() -> void:
 	if UIMessage == null:
 		return
 	var hold_duration := _resolve_respawn_blackout_hold_duration()
-	if UIMessage.has_method("fade_out"):
-		await UIMessage.fade_out(0.0)
+	await UIMessage.fade_out(0.0)
 	if hold_duration > 0.0:
 		await get_tree().create_timer(hold_duration).timeout
-	if UIMessage.has_method("fade_in"):
-		await UIMessage.fade_in(maxf(0.0, respawn_blackout_fade_in_duration))
+	await UIMessage.fade_in(maxf(0.0, respawn_blackout_fade_in_duration))
 
 func _consume_pending_respawn_blackout() -> bool:
 	if CycleState == null:

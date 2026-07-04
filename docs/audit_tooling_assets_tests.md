@@ -93,6 +93,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Gamepad callback router regression для lookup/invoke/consumed semantics пользовательских схем мини-игр.
 - Gamepad confirm-release gate regression для защиты мини-игр от подтверждения, зажатого до старта runtime.
 - Typed interaction signal subscription contract запрещает runtime/scene authoring подписываться на legacy `interaction_finished`; новые level redirects и signal-driven spawner defaults используют `interaction_succeeded`.
+- CycleLevel UI facade contract запрещает возвращать стартовые subtitle/respawn blackout к stringly `UIMessage.has_method/call` probes.
 - SceneContext classification contract для gameplay path fallback, cycle/timer root contract, `gameplay_scene` group и ending pause-blocking.
 - Level authoring contract для cycle metadata, single Player instance, Player export ranges, configured bed transitions, bed target scene type, conditional respawn paths, LevelMusic configs и включённых стартовых текстов.
 - Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.
