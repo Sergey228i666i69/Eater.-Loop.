@@ -26,6 +26,7 @@ const RESULT_SUCCESS := "success"
 const RESULT_SOURCE := "source"
 const RESULT_REASON := "reason"
 const RESULT_PLAYER := "player"
+const RESULT_PAYLOAD := "payload"
 const FAIL_REASON_DISABLED := "disabled"
 const FAIL_REASON_DEPENDENCY := "dependency"
 const FAIL_REASON_UNAVAILABLE := "unavailable"
@@ -366,12 +367,13 @@ func _normalize_dependency_condition(condition: int) -> int:
 			return DependencyCondition.COMPLETED
 
 func _emit_interaction_result(outcome: int, result_data: Dictionary = {}) -> Dictionary:
-	var result := result_data.duplicate(true)
-	result[RESULT_OUTCOME] = outcome
-	result[RESULT_SUCCESS] = outcome == InteractionOutcome.SUCCEEDED
-	result[RESULT_SOURCE] = self
-	if _player_in_range != null and not result.has(RESULT_PLAYER):
-		result[RESULT_PLAYER] = _player_in_range
+	var result := InteractionResultBuilder.build(
+		outcome,
+		outcome == InteractionOutcome.SUCCEEDED,
+		self,
+		_player_in_range,
+		result_data
+	)
 	_last_interaction_result = result.duplicate(true)
 	interaction_result.emit(result)
 	match outcome:

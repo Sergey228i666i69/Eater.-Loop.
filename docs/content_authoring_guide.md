@@ -33,9 +33,10 @@
 2. Не обрабатывай один и тот же `interact` input параллельно с `InteractionManager`. Дай manager-у выбрать объект по availability, priority и distance.
 3. Для зависимостей указывай и объект, и typed condition: `COMPLETED` или `INTERACTION_REQUESTED`. Не возвращайся к старому one-shot fail-open поведению.
 4. Вызывай `complete_interaction()` только после успешного outcome. Failed/cancelled/requested outcomes не должны удовлетворять completed dependency.
-5. Если объект показывает prompt не из своей позиции, дай стабильный `get_prompt_world_position()` или корректный prompt anchor.
-6. Если дверь требует `required_key_id`, в этой же сцене должен быть источник такого ключа: `SearchSpot.key_id`, `Key.key_id` или `Note.reward_key_id`. Если используешь `SearchKeyManager`, его `search_spots` должен быть непустым и все paths должны резолвиться.
-7. Все exported `NodePath` для критичных детей должны либо быть пустыми и optional, либо резолвиться. Для новых обязательных child/path contracts добавляй проверку в `test_scene_nodepath_contracts.gd`.
+5. Для данных результата, которые могут понадобиться другим объектам (`reward_type`, `key_id`, item/reward/branch data), используй `InteractionResultBuilder.with_payload(...)`. `payload` зарезервирован как Dictionary; произвольные совместимые top-level ключи допускаются только для старых локальных данных.
+6. Если объект показывает prompt не из своей позиции, дай стабильный `get_prompt_world_position()` или корректный prompt anchor.
+7. Если дверь требует `required_key_id`, в этой же сцене должен быть источник такого ключа: `SearchSpot.key_id`, `Key.key_id` или `Note.reward_key_id`. Если используешь `SearchKeyManager`, его `search_spots` должен быть непустым и все paths должны резолвиться.
+8. Все exported `NodePath` для критичных детей должны либо быть пустыми и optional, либо резолвиться. Для новых обязательных child/path contracts добавляй проверку в `test_scene_nodepath_contracts.gd`.
 
 ## Свет, Генератор И Враги
 

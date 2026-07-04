@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 104 теста.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 106 тестов.
 
 Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
@@ -67,6 +67,7 @@
 - `objects/interactable/interactive_object.gd` теперь эмитит `interaction_result(result)`, `interaction_succeeded(result)`, `interaction_failed(result)` и `interaction_cancelled(result)`.
 - `complete_interaction()` остаётся совместимым success wrapper и по-прежнему эмитит legacy `interaction_finished`.
 - Failed/cancelled outcomes не выставляют `is_completed` и не удовлетворяют `COMPLETED` dependencies.
+- `InteractionResultBuilder` нормализует `payload` в Dictionary для reward/item/branch data и сохраняет совместимые top-level custom keys.
 - `DependencyCondition.COMPLETED` слушает typed success outcome, а `INTERACTION_REQUESTED` остаётся attempt-level unlock.
 - `level_11_end.gd` выбирает laptop branch по `interaction_succeeded`, с fallback только для старых объектов без typed signal.
 - Контракт покрыт `tests/cases/test_interactive_dependency_conditions.gd` и `tests/cases/test_level11_end_flow_contracts.gd`.
@@ -201,7 +202,7 @@
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (104)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (106)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 

@@ -81,9 +81,13 @@ func _on_minigame_finished(minigame: Node, success: bool) -> void:
 		_layout_state = minigame.get_layout_state()
 
 	if success and has_key:
+		var found_key_id := key_id
 		has_key = false
 		is_searched_empty = true
-		complete_interaction()
+		complete_interaction(InteractionResultBuilder.with_payload({
+			"reward_type": "key",
+			"key_id": found_key_id
+		}))
 		_mark_all_spots_searched_empty()
 
 func _mark_all_spots_searched_empty() -> void:

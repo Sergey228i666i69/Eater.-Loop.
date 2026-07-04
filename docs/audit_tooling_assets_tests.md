@@ -7,7 +7,7 @@
 - Godot: `4.6.1.stable`.
 - `godot --headless --check-only -s res://tests/run_tests.gd` прошёл.
 - Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
-- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 104 теста.
+- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 106 тестов.
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
 - Первичный полный export/build не запускался, чтобы не писать в output paths и импорт-кэш; после ремонта добавлен CI debug export smoke.
 
@@ -43,7 +43,7 @@
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Последующие полные прогоны это не воспроизводят, поэтому пункт остался историческим наблюдением, а не текущим known failure.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (104)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (106)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -78,7 +78,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 104 теста.
+- 106 тестов.
 
 Добавлено:
 
@@ -101,6 +101,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Checkpoint participant stable-path contract для active scenes: custom checkpoint nodes must resolve to non-empty scene-relative paths without generated `@...` segments.
 - Checkpoint scene snapshot contract для dynamic runtime participants и removed participant state.
 - Checkpoint dynamic restore helper contract для enemy-only factory restore allowlist, captured parent/name metadata и restoration target parent.
+- Interaction result builder contract для typed Dictionary payload, metadata/source/player preservation и защиты payload от alias-мутаций.
 - GameDirector death screen reset helper contract для скрытия death UI, очистки fade/focus override и освобождения camera/cursor/pause owners.
 - Music pause reason state contract для нескольких независимых base/chase pause owners.
 - Player stamina state contract для run drain/recovery/unlimited/checkpoint semantics.

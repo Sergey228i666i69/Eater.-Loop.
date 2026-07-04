@@ -28,9 +28,9 @@
 - [`levels/cycles/level_11_stu_1.gd`](../levels/cycles/level_11_stu_1.gd), около строки 39.
 - [`levels/cycles/level_12_stu_2.gd`](../levels/cycles/level_12_stu_2.gd), около строки 56.
 
-Result/outcome слой введён: `interaction_result(result)` несёт outcome, success flag, source, reason/player/payload; отдельные сигналы `interaction_succeeded`, `interaction_failed`, `interaction_cancelled` позволяют не путать успешное завершение с провалом или отменой. Дверь, холодильник и ноутбук явно эмитят failed/cancelled outcomes на известных fail-closed ветках.
+Result/outcome слой введён: `interaction_result(result)` несёт outcome, success flag, source, reason/player и typed `payload`; отдельные сигналы `interaction_succeeded`, `interaction_failed`, `interaction_cancelled` позволяют не путать успешное завершение с провалом или отменой. `InteractionResultBuilder` нормализует `payload` в Dictionary, сохраняет совместимые top-level custom keys и защищает вложенные данные от alias-мутаций. Дверь, холодильник и ноутбук явно эмитят failed/cancelled outcomes на известных fail-closed ветках, а `SearchSpot` при найденном ключе отдаёт typed reward payload (`reward_type=key`, `key_id`).
 
-Оставшийся практический риск: payload-семантика пока минимальная. Если появятся зависимости на конкретный предмет или typed reward, нужно расширять result payload и валидаторы, а не возвращаться к ad-hoc флагам.
+Оставшийся практический риск: если появятся зависимости на конкретный предмет, typed reward или branch outcome, нужно расширять payload-схему и validators, а не возвращаться к ad-hoc флагам.
 
 ## Resolved: Нет Единого Фокуса Интерактива
 

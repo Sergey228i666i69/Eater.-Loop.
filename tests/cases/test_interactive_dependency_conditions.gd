@@ -57,14 +57,22 @@ func _test_interaction_result_signals_separate_success_failure_and_legacy_finish
 	assert_eq(failures.size(), 1, "Failed interaction must emit typed failure signal")
 	assert_eq(int(failures[0].get(InteractiveObject.RESULT_OUTCOME)), InteractiveObject.InteractionOutcome.FAILED, "Failure result must expose failed outcome")
 	assert_eq(str(failures[0].get(InteractiveObject.RESULT_REASON)), "probe_failure", "Failure result must preserve reason")
+	assert_true(failures[0].get(InteractiveObject.RESULT_PAYLOAD) is Dictionary, "Failure result must expose typed payload dictionary")
 	assert_eq(legacy_finish_count[0], 0, "Failed result must not emit legacy interaction_finished")
 
-	object.complete_interaction({"payload": "ok"})
+	object.complete_interaction(InteractionResultBuilder.with_payload({
+		"reward_type": "probe",
+		"item_id": "ok"
+	}, {
+		"legacy_payload": "ok"
+	}))
 	assert_true(object.is_completed, "Successful interaction result must mark object completed")
 	assert_true(bool(dependent.call("_is_dependency_satisfied")), "Successful result must satisfy completed dependency")
 	assert_eq(successes.size(), 1, "Successful interaction must emit typed success signal")
 	assert_eq(int(successes[0].get(InteractiveObject.RESULT_OUTCOME)), InteractiveObject.InteractionOutcome.SUCCEEDED, "Success result must expose succeeded outcome")
-	assert_eq(str(successes[0].get("payload")), "ok", "Success result must preserve payload")
+	assert_eq(str(successes[0].get("legacy_payload")), "ok", "Success result must preserve custom top-level keys")
+	var success_payload: Dictionary = successes[0].get(InteractiveObject.RESULT_PAYLOAD, {})
+	assert_eq(str(success_payload.get("item_id")), "ok", "Success result must preserve typed payload data")
 	assert_eq(legacy_finish_count[0], 1, "Successful completion must keep legacy interaction_finished compatibility")
 	assert_eq(results.size(), 2, "Typed result stream must include failure and success outcomes")
 

@@ -88,6 +88,7 @@
 - Доступные dependency-смыслы: `COMPLETED` для typed success outcome dependency и `INTERACTION_REQUESTED` для unlock-а после попытки взаимодействия.
 - Любой интерактив может эмитить `interaction_result(result)`, `interaction_succeeded(result)`, `interaction_failed(result)` и `interaction_cancelled(result)`.
 - `complete_interaction(...)` является success wrapper и сохраняет legacy `interaction_finished`; failed/cancelled outcomes не должны выставлять `is_completed`.
+- `InteractionResultBuilder` является канонической точкой сборки result Dictionary: `payload` зарезервирован как typed Dictionary для reward/item/branch data, а top-level custom keys остаются только совместимым слоем.
 - Включение/отключение объекта делается через `set_interaction_enabled(...)`, а не прямой раздельной правкой prompt/input флагов.
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
 - Если зависимость не выполнена, базовый `InteractiveObject` обязан показать `locked_message`, если наследник не переопределил это поведение явно.
