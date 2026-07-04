@@ -75,6 +75,7 @@
 - Confirm, зажатый до старта мини-игры, фильтруется через `GamepadConfirmReleaseGate`; `GamepadRuntime` принимает подтверждение только после release/нового press.
 - Схема геймпада задаётся через `set_gamepad_scheme`/`clear_gamepad_scheme`.
 - Timed lab-мини-игры наследуются от `res://levels/minigames/labs/timed_lab_minigame_base.gd`.
+- `TimedLabMinigameBase` показывает success/failure outcome dialogue через стабильный `UIMessage.show_dialogue(...)` facade без stringly method probes.
 - Общий timed-lab helper отвечает за таймер, cleanup, стандартный outcome и post-line для успеха/провала.
 
 ### 2.5 Текстовый UI-контур

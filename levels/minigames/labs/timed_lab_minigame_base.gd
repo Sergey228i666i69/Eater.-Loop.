@@ -72,7 +72,7 @@ func apply_standard_lab_outcome(success: bool) -> void:
 	_show_outcome_dialogue(success)
 
 func _show_outcome_dialogue(success: bool) -> void:
-	if UIMessage == null or not UIMessage.has_method("show_dialogue"):
+	if UIMessage == null:
 		return
 	var text := success_dialogue_text if success else failure_dialogue_text
 	var voice := success_dialogue_voice if success else failure_dialogue_voice

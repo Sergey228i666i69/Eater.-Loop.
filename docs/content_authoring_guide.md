@@ -57,7 +57,7 @@
 
 ## Мини-Игры
 
-1. Для обычной timed lab логики начинай с `timed_lab_minigame_base.gd`.
+1. Для обычной timed lab логики начинай с `timed_lab_minigame_base.gd`; outcome dialogue должен идти через стабильный `UIMessage.show_dialogue(...)` facade, без локальных `has_method` guards.
 2. Для gamepad/Steam Deck поведения следуй [`minigame_gamepad_system.md`](minigame_gamepad_system.md).
 3. Если добавляешь новый input action literal в runtime-код (`is_action_pressed`, `is_action_released`, gamepad nav wrappers), сначала заведи action в `project.godot`; `test_input_actions.gd` ловит строки, которых нет в InputMap.
 4. Lab laptop с `minigame_scene` должен иметь положительный `time_limit`, неотрицательный `penalty_time` и scene, которая инстанцируется как `TimedLabMinigameBase` с `task_completed`, `time_limit`, `penalty_time` и `lab_completion_id`.

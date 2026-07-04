@@ -3,13 +3,28 @@ extends "res://tests/test_case.gd"
 const LEVEL_DIR := "res://levels/cycles"
 const LAPTOP_SCRIPT := "res://objects/interactable/notebook/laptop.gd"
 const FRIDGE_SCRIPT := "res://objects/interactable/fridge/fridge.gd"
+const TIMED_LAB_BASE_SCRIPT := "res://levels/minigames/labs/timed_lab_minigame_base.gd"
+const TIMED_LAB_BASE_STRINGLY_UI_PATTERNS := [
+	"UIMessage.has_method(\"show_dialogue\")",
+	"UIMessage.call(\"show_dialogue\""
+]
 
 func run() -> Array[String]:
+	_test_timed_lab_base_uses_stable_ui_facade()
 	_test_laptop_lab_settings_are_valid()
 	_test_laptop_minigame_scenes_match_lab_contract()
 	_test_multi_lab_scenes_use_unique_ids()
 	_test_required_lab_ids_have_laptop_sources()
 	return get_failures()
+
+func _test_timed_lab_base_uses_stable_ui_facade() -> void:
+	var content := FileAccess.get_file_as_string(TIMED_LAB_BASE_SCRIPT)
+	assert_true(content != "", "Failed to read TimedLabMinigameBase script")
+	for pattern in TIMED_LAB_BASE_STRINGLY_UI_PATTERNS:
+		assert_true(
+			content.find(pattern) == -1,
+			"TimedLabMinigameBase must use UIMessage.show_dialogue directly instead of stringly method probes: %s" % pattern
+		)
 
 func _test_laptop_lab_settings_are_valid() -> void:
 	for path in _list_level_scenes():
