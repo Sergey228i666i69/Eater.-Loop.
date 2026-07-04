@@ -189,7 +189,8 @@
 - `FridgeCodeLockSession` вынес code-lock scene creation и access-code property
   wiring из `Fridge`, сохранив публичный scene/export contract холодильника.
 - `FridgeFeedingSession` вынес feeding minigame config/instantiation/setup contract
-  из `Fridge`; некорректная feeding scene теперь fail-closed до выдачи еды.
+  из `Fridge`; обычная feeding-сцена должна инстанцироваться как `FeedingMinigame`,
+  а некорректная feeding scene теперь fail-closed до выдачи еды.
 - `FridgeCompletionSession` вынес post-feeding world hooks из `Fridge`: cycle
   marks, chase cleanup, teleport и checkpoint/autosave fallback теперь тестируются отдельно.
 - Устранена гонка при sync-громкости в кроссфейде базовой музыки.

@@ -25,15 +25,13 @@ class LegacyCodeLockProbe:
 	var target_code: String = ""
 
 class FeedingGameProbe:
-	extends Node
-
-	signal minigame_finished
+	extends "res://levels/minigames/feeding/feed_minigame.gd"
 
 	var setup_called: bool = false
 	var received_food_count: int = 0
 	var received_food_scenes: Array[PackedScene] = []
 
-	func setup_game(_andrey_face: Texture2D, food_count: int, _bg_music: AudioStream, _win_sound: AudioStream, _eat_sound: AudioStream, _background_texture: Texture2D, food_scenes: Array[PackedScene]) -> void:
+	func setup_game(_andrey_face: Texture2D, food_count: int, _bg_music: AudioStream, _win_sound: AudioStream, _eat_sound: AudioStream = null, _background_texture: Texture2D = null, food_scenes: Array[PackedScene] = []) -> void:
 		setup_called = true
 		received_food_count = food_count
 		received_food_scenes = food_scenes

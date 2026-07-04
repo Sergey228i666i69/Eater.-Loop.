@@ -1,4 +1,5 @@
 extends CanvasLayer
+class_name FeedingMinigame
 
 
 signal minigame_finished

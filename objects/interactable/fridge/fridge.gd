@@ -6,6 +6,7 @@ signal feeding_finished
 const FridgeCodeLockSessionScript := preload("res://objects/interactable/fridge/fridge_code_lock_session.gd")
 const FridgeFeedingSessionScript := preload("res://objects/interactable/fridge/fridge_feeding_session.gd")
 const FridgeCompletionSessionScript := preload("res://objects/interactable/fridge/fridge_completion_session.gd")
+const FeedingMinigameScript := preload("res://levels/minigames/feeding/feed_minigame.gd")
 
 @export_group("Minigame (Feeding)")
 ## Сцена мини-игры (еда).
@@ -223,7 +224,7 @@ func _start_feeding_process() -> void:
 			UIMessage.show_notification("Холодильник пуст.")
 		return
 	
-	var game: Node = FridgeFeedingSessionScript.create_game(selected_scene)
+	var game: FeedingMinigameScript = FridgeFeedingSessionScript.create_game(selected_scene)
 	if not FridgeFeedingSessionScript.has_finish_signal(game):
 		push_warning("Fridge: Некорректная сцена мини-игры еды!")
 		if game != null:
