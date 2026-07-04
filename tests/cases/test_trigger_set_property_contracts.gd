@@ -2,6 +2,9 @@ extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
 const TRIGGER_SCRIPT := "res://objects/interactable/trigger/trigger_set_property.gd"
+const MUSIC_ACTION_NONE := 0
+const MUSIC_ACTION_REPLACE := 1
+const MUSIC_ACTION_EVENT_START := 4
 
 func run() -> Array[String]:
 	_test_configured_trigger_targets_resolve()
@@ -16,6 +19,7 @@ func _test_configured_trigger_targets_resolve() -> void:
 			if _script_path(node) != TRIGGER_SCRIPT:
 				continue
 			_assert_trigger_property_targets(path, root, node)
+			_assert_trigger_has_configured_effect(path, root, node)
 		root.free()
 
 func _assert_trigger_property_targets(scene_path: String, root: Node, trigger: Node) -> void:
@@ -60,6 +64,39 @@ func _assert_change_target(scene_path: String, root: Node, trigger: Node, change
 	assert_true(target != null, "Trigger PropertyChange target must resolve: %s:%s[%d] -> %s" % [scene_path, root.get_path_to(trigger), index, target_path])
 	if target != null:
 		assert_true(_has_property(target, property_name), "Trigger PropertyChange target must expose property '%s': %s:%s[%d] -> %s" % [property_name, scene_path, root.get_path_to(trigger), index, target_path])
+
+func _assert_trigger_has_configured_effect(scene_path: String, root: Node, trigger: Node) -> void:
+	var has_property_effect := _trigger_has_property_effect(trigger)
+	var has_sfx_effect := trigger.get("sfx_stream") is AudioStream
+	var has_music_effect := _trigger_has_music_effect(trigger)
+	assert_true(
+		has_property_effect or has_sfx_effect or has_music_effect,
+		"TriggerSetProperty must configure at least one property, sfx, or music effect: %s:%s" % [scene_path, root.get_path_to(trigger)]
+	)
+	if bool(trigger.get("music_enabled")):
+		_assert_trigger_music_config(scene_path, root, trigger)
+
+func _trigger_has_property_effect(trigger: Node) -> bool:
+	var changes: Array = trigger.get("changes")
+	if not changes.is_empty():
+		return true
+	var property_name := str(trigger.get("property_name")).strip_edges()
+	var target_paths: Array = trigger.get("target_paths")
+	return property_name != "" or not target_paths.is_empty()
+
+func _trigger_has_music_effect(trigger: Node) -> bool:
+	if not bool(trigger.get("music_enabled")):
+		return false
+	return int(trigger.get("music_on_enter")) != MUSIC_ACTION_NONE or int(trigger.get("music_on_exit")) != MUSIC_ACTION_NONE
+
+func _assert_trigger_music_config(scene_path: String, root: Node, trigger: Node) -> void:
+	var enter_action := int(trigger.get("music_on_enter"))
+	var exit_action := int(trigger.get("music_on_exit"))
+	if [MUSIC_ACTION_REPLACE, MUSIC_ACTION_EVENT_START].has(enter_action) or [MUSIC_ACTION_REPLACE, MUSIC_ACTION_EVENT_START].has(exit_action):
+		assert_true(
+			trigger.get("music_stream") is AudioStream,
+			"TriggerSetProperty music_stream must be set for replace/event-start actions: %s:%s" % [scene_path, root.get_path_to(trigger)]
+		)
 
 func _list_level_scenes() -> Array[String]:
 	return utils.list_files(LEVEL_DIR, ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"])

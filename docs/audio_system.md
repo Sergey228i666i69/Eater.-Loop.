@@ -197,6 +197,9 @@ MusicManager.play_ambient_music(stream, fade_time, volume_db)
 - `8` Выключить ambient -> `MusicManager.set_ambient_music_suppressed(self, true, fade)`
 - `9` Включить ambient -> `MusicManager.set_ambient_music_suppressed(self, false, fade)`
 
+`1` и `4` требуют заданный `music_stream`. Любой `TriggerSetProperty` должен иметь
+хотя бы один эффект: property change, `sfx_stream` или music action.
+
 ### Корректные пары "вход -> выход"
 
 - `2 (Заглушить)` -> `3 (Восстановить)`

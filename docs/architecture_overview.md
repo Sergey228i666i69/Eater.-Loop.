@@ -46,7 +46,7 @@
 
 - Любая музыка должна идти через `MusicManager`.
 - Сценовые `LevelMusic`-узлы вызывают только публичные методы `MusicManager`.
-- Trigger-зоны управляют музыкой через `TriggerSetProperty` действиями `music_on_*`.
+- Trigger-зоны управляют музыкой через `TriggerSetProperty` действиями `music_on_*`; replace/event-start actions должны иметь `music_stream`, а trigger должен содержать хотя бы один property/sfx/music effect.
 
 ### 2.3 Pause-Контур
 
@@ -198,7 +198,7 @@
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
-- Добавлены scene-contract validators для critical NodePath/child contracts, utility-level NodePaths, cycle/lab/fridge/search-key-level authoring contracts, configured trigger target/property wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
+- Добавлены scene-contract validators для critical NodePath/child contracts, utility-level NodePaths, cycle/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
 - `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.

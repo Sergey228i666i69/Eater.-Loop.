@@ -96,7 +96,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Fridge authoring contract для feeding/code-lock/final fridge configs, minigame signals/setup methods, food scenes, face/background и code-lock scene.
 - Generic active content scene contract для exported non-empty `NodePath`/`Array[NodePath]` values.
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
-- Trigger target/property contract для configured `TriggerSetProperty` и `PropertyChange`.
+- Trigger target/property/effect/music-stream contract для configured `TriggerSetProperty` и `PropertyChange`.
 - Key-door/search-key contract для required key sources, resolving `SearchKeyManager.search_spots` и managed `SearchSpot` minigame/key/trash configs.
 - Scene typed override hygiene contract для явных door/interactable defaults вместо inherited `null`.
 - Checkpoint participant stable-path contract для active scenes: custom checkpoint nodes must resolve to non-empty scene-relative paths without generated `@...` segments.
