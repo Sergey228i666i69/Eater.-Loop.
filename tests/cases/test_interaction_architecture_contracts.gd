@@ -37,6 +37,7 @@ const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
+const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
@@ -184,6 +185,11 @@ func run() -> Array[String]:
 	assert_true(fridge_content.find("FridgeCompletionSessionScript.save_after_feeding") != -1, "Fridge must delegate post-feeding save policy")
 	var fridge_completion_content := FileAccess.get_file_as_string(FRIDGE_COMPLETION_SESSION_PATH)
 	assert_true(fridge_completion_content.find("autosave_run") != -1, "Fridge completion session must keep autosave fallback after successful interaction")
+
+	var bed_content := FileAccess.get_file_as_string(BED_PATH)
+	assert_true(bed_content.find("change_scene_with_fade_delay") != -1, "Bed sleep transition must use the shared UIMessage scene transition API")
+	assert_true(bed_content.find("UIMessage.fade_out") == -1, "Bed sleep transition must not add a manual fade_out before shared scene transition")
+	assert_true(bed_content.find("UIMessage.fade_in") == -1, "Bed sleep transition must not manually restore fade after load validation")
 
 	return get_failures()
 

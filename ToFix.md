@@ -79,6 +79,7 @@
 - `levels/menu/pause_manager.gd` теперь владеет pause tokens через `request_pause(...)`, `release_pause(...)`, `release_all_pauses_for(...)` и `clear_all_pause_requests()`.
 - Pause menu, `UIMessage` notes/hints, `MinigameController` и death screen в `GameDirector` запрашивают/освобождают свои owner tokens.
 - `UIMessage.change_scene_with_fade(..., unpause_after=true)` очищает все pause requests для выхода в меню/ending transitions.
+- `Bed._try_sleep` больше не делает ручной fade перед `UIMessage.change_scene_with_fade_delay(...)`: next scene валидируется до затемнения, а transition идёт одним общим UIMessage path.
 - Regression покрыт `tests/cases/test_pause_manager_tokens.gd`: два владельца, hint поверх другого owner-а, minigame finish при активном внешнем owner-е.
 
 ### 10. `GameDirector`, `UIMessage`, `MinigameController`, `MusicManager`, `Player` остаются слишком крупными

@@ -51,13 +51,10 @@ func _try_sleep() -> void:
 		_is_sleeping = false
 		return
 
-	await UIMessage.fade_out(0.4)
-	
 	var next_level_scene := load(next_level_path) as PackedScene
 	if next_level_scene == null:
 		push_warning("Bed: не удалось загрузить следующую сцену: %s" % next_level_path)
 		_is_sleeping = false
-		await UIMessage.fade_in(0.4)
 		return
 	
 	if CycleState != null:

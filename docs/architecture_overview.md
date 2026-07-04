@@ -33,6 +33,7 @@
 ### 2.1 Переходы сцен
 
 - Меню/интеракции переключают сцену через `UIMessage.change_scene_with_fade*`.
+- Sleep transition у `Bed` тоже идёт через единый `UIMessage.change_scene_with_fade_delay(...)`: next scene загружается до затемнения, поэтому misconfigured bed не оставляет экран чёрным.
 - При переходе в игровую сцену `GameDirector` перенастраивает фазу/таймер.
 - `GameState` обновляет путь текущей сцены для продолжения забега.
 - Тип сцены определяется через `SceneContext`: gameplay, menu и ending имеют отдельные группы/path-классификацию; gameplay path fallback разрешает только playable `res://levels/cycles/level_*.tscn`, а utility-сцены в cycles должны полагаться на группы/API, если им нужна специальная классификация.
