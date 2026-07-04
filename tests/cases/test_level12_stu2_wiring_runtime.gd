@@ -22,7 +22,7 @@ func run() -> Array[String]:
 	await tree.process_frame
 
 	var generator := level.get_node_or_null("Generator")
-	var fridge := level.get_node_or_null("6thLevel/604/InteractableObjects/Fridge")
+	var fridge := level.get_node_or_null("6thLevel/604/InteractableObjects/Fridge") as Fridge
 	assert_true(generator != null, "Generator node is missing in level_12_STU_2")
 	assert_true(fridge != null, "Fridge node is missing in level_12_STU_2")
 

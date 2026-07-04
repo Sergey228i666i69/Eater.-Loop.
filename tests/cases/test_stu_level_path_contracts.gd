@@ -18,7 +18,7 @@ func _test_level11_exported_paths_and_dynamic_targets_resolve() -> void:
 	_assert_root_path(level, LEVEL11_SCENE, "door_in604_path")
 	var door_to701 := _assert_root_path(level, LEVEL11_SCENE, "door_to701_path")
 	_assert_root_path(level, LEVEL11_SCENE, "note_story_path")
-	assert_true(fridge is InteractiveObject, "Level 11 fridge_path must resolve to InteractiveObject")
+	assert_true(fridge is Fridge, "Level 11 fridge_path must resolve to Fridge")
 	assert_true(door_to701 is Door, "Level 11 door_to701_path must resolve to Door")
 	if door_to701 != null:
 		_assert_relative_path(door_to701, LEVEL11_SCENE, "door_to701_target_before_fridge", level.get("door_to701_target_before_fridge"))
@@ -54,8 +54,8 @@ func _test_level13_exported_paths_and_dynamic_targets_resolve() -> void:
 	var primary_fridge := _assert_optional_root_path(level, LEVEL13_SCENE, "primary_fridge_path")
 	var secondary_fridge := _assert_root_path(level, LEVEL13_SCENE, "secondary_fridge_path")
 	if primary_fridge != null:
-		assert_true(primary_fridge is InteractiveObject, "Level 13 primary_fridge_path must resolve to InteractiveObject when configured")
-	assert_true(secondary_fridge is InteractiveObject, "Level 13 secondary_fridge_path must resolve to InteractiveObject")
+		assert_true(primary_fridge is Fridge, "Level 13 primary_fridge_path must resolve to Fridge when configured")
+	assert_true(secondary_fridge is Fridge, "Level 13 secondary_fridge_path must resolve to Fridge")
 	if door_to_bathroom != null:
 		assert_true(door_to_bathroom is Door, "Level 13 door_to_bathroom_path must resolve to Door")
 		_assert_relative_path(door_to_bathroom, LEVEL13_SCENE, "door_to_bathroom_default_target", level.get("door_to_bathroom_default_target"))

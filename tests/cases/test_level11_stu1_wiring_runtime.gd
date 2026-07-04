@@ -21,7 +21,7 @@ func run() -> Array[String]:
 	await tree.process_frame
 	await tree.process_frame
 
-	var fridge := level.get_node_or_null("6thLevel/604/InteractableObjects/Fridge") as InteractiveObject
+	var fridge := level.get_node_or_null("6thLevel/604/InteractableObjects/Fridge") as Fridge
 	var note_story := level.get_node_or_null("NoteStory") as InteractiveObject
 	assert_true(fridge != null, "Level 11 fridge node is missing")
 	assert_true(note_story != null, "Level 11 NoteStory node is missing")

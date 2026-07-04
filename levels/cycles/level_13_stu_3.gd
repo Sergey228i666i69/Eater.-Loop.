@@ -7,7 +7,7 @@ extends "res://levels/cycles/level.gd"
 @export var secondary_fridge_path: NodePath = NodePath("Stolovaya/InteractableObjects/Fridge")
 
 var _door_to_bathroom: Door = null
-var _fridges: Array[InteractiveObject] = []
+var _fridges: Array[Fridge] = []
 
 func _ready() -> void:
 	super._ready()
@@ -33,7 +33,7 @@ func _wire_bathroom_redirect() -> void:
 	_update_bathroom_door_target()
 
 func _register_fridge(path: NodePath) -> void:
-	var fridge := get_node_or_null(path) as InteractiveObject
+	var fridge := get_node_or_null(path) as Fridge
 	if fridge == null:
 		return
 	_fridges.append(fridge)

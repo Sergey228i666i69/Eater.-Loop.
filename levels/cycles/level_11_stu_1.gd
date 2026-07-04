@@ -7,7 +7,7 @@ extends "res://levels/cycles/level.gd"
 @export var door_to701_target_after_fridge: NodePath = NodePath("../../../../Bedroom/InteractableObjects/Door(InBedroom)")
 @export var note_story_path: NodePath = NodePath("NoteStory")
 
-var _fridge: InteractiveObject = null
+var _fridge: Fridge = null
 var _door_in604: Door = null
 var _door_to701: Door = null
 var _note_story: InteractiveObject = null
@@ -17,7 +17,7 @@ func _ready() -> void:
 	call_deferred("_wire_level11_fridge_state")
 
 func _wire_level11_fridge_state() -> void:
-	_fridge = get_node_or_null(fridge_path) as InteractiveObject
+	_fridge = get_node_or_null(fridge_path) as Fridge
 	_door_in604 = get_node_or_null(door_in604_path) as Door
 	_door_to701 = get_node_or_null(door_to701_path) as Door
 	_note_story = get_node_or_null(note_story_path) as InteractiveObject

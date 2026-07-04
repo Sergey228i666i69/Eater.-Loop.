@@ -89,6 +89,7 @@ func _test_cycle_level_exported_paths_are_valid() -> void:
 			root.free()
 			continue
 		_assert_optional_nodepath_resolves(path, root, root, "fridge_interacted_spawn_marker_path", "Node2D")
+		_assert_required_fridge_path_resolves(path, root)
 		_assert_enabled_text_is_non_empty(path, root, "show_start_hint", "start_hint_text")
 		_assert_enabled_text_is_non_empty(path, root, "show_start_subtitle", "start_subtitle_text")
 		root.free()
@@ -129,6 +130,16 @@ func _assert_optional_nodepath_resolves(path: String, root: Node, node: Node, pr
 	assert_true(target != null, "%s must resolve: %s:%s -> %s" % [property_name, path, root.get_path_to(node), node_path])
 	if target != null and expected_type != "":
 		assert_true(target.is_class(expected_type), "%s must resolve to %s: %s:%s -> %s" % [property_name, expected_type, path, root.get_path_to(node), node_path])
+
+func _assert_required_fridge_path_resolves(path: String, root: Node) -> void:
+	if not _has_property(root, "fridge_path"):
+		return
+	var fridge_path: NodePath = root.get("fridge_path")
+	assert_true(not fridge_path.is_empty(), "fridge_path must be set when exported: %s" % path)
+	if fridge_path.is_empty():
+		return
+	var fridge := root.get_node_or_null(fridge_path)
+	assert_true(fridge is Fridge, "fridge_path must resolve to Fridge: %s -> %s" % [path, fridge_path])
 
 func _assert_enabled_text_is_non_empty(path: String, node: Node, enabled_property: String, text_property: String) -> void:
 	if not _has_property(node, enabled_property) or not _has_property(node, text_property):

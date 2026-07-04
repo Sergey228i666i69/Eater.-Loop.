@@ -18,7 +18,7 @@ func run() -> Array[String]:
 		return get_failures()
 
 	var level := level_scene.instantiate()
-	var fridge := level.get_node_or_null("Stolovaya/InteractableObjects/Fridge")
+	var fridge := level.get_node_or_null("Stolovaya/InteractableObjects/Fridge") as Fridge
 	assert_true(fridge != null, "Level 13 fridge node is missing")
 	if fridge == null:
 		level.free()
