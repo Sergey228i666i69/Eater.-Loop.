@@ -104,7 +104,7 @@ Credits возвращают в меню и ставят только meta-фл�
 
 ## Риски Производительности
 
-- `enemy_flashlight_base` каждый physics frame сканирует `reactive_light_source` и probe-точки.
+- `enemy_flashlight_base` каждый physics frame сканирует sources через `ReactiveLightContracts.get_reactive_light_sources(...)` и probe-точки.
 - Stalker регулярно строит door route через двери и raycasts.
 - Некоторые враги грузят animation frames в `_ready()` через файловую систему.
 

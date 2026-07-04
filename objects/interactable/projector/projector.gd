@@ -38,10 +38,9 @@ func _ready() -> void:
 	_light = get_node_or_null(light_node) as PointLight2D
 	if _light != null:
 		_apply_light_settings()
-	if not is_in_group("reactive_light_source"):
-		add_to_group("reactive_light_source")
-	if requires_generator and not is_in_group("generator_required_light"):
-		add_to_group("generator_required_light")
+	ReactiveLightContracts.register_reactive_light_source(self)
+	if requires_generator:
+		ReactiveLightContracts.register_generator_required_light(self)
 
 	_sprite = get_node_or_null(sprite_node) as Sprite2D
 	if _sprite != null and off_texture == null:

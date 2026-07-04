@@ -91,7 +91,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 ## P2: Свет, Генератор И Враги Завязаны На Строковые Группы
 
-Лампа, фонарик и canonical projector сами добавляют себя в `reactive_light_source`. Генератор ищет `generator_required_light`/`lamp` и вызывает `turn_on`.
+Лампа, фонарик и canonical projector регистрируются через `ReactiveLightContracts.register_reactive_light_source(...)`. Генератор получает required-lights через `ReactiveLightContracts.get_generator_required_lights(...)` и вызывает `turn_on`.
 
 Файлы:
 
@@ -101,7 +101,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 Практический риск: строка группы или имя метода меняется - контракт ломается без явной ошибки.
 
-Статус: частично закрыто validators. `test_scene_nodepath_contracts.gd` проверяет exported `light_node` у лампы, прожектора и pickup flashlight, а `test_scene_dependency_contracts.gd` запрещает runtime-скрипты, которые добавляют себя в `reactive_light_source` без `is_point_lit()` или в generator-required light-группы без `turn_on()`. Строковые группы всё ещё не так хороши, как typed light-source component, но новые световые объекты теперь не могут молча выпасть из договора.
+Статус: закрыто практическим helper-слоем. `ReactiveLightContracts` держит canonical group names, registration helpers, getter-ы для reactive sources и dedupe generator-required light groups. `test_scene_nodepath_contracts.gd` проверяет exported `light_node` у лампы, прожектора и pickup flashlight, а `test_scene_dependency_contracts.gd` запрещает runtime-скрипты, которые регистрируются в reactive/generator light contracts без `is_point_lit()` или `turn_on()`.
 
 ## Resolved: `TargetMonsterSpawner` Конфигурируется Слишком Неявно
 

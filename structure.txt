@@ -294,6 +294,8 @@
 │   ├── itchio.jpg
 │   ├── itchio.jpg.import
 │   ├── macos_icon.icns
+│   ├── reactive_light_contracts.gd
+│   ├── reactive_light_contracts.gd.uid
 │   ├── reactive_light_utils.gd
 │   ├── reactive_light_utils.gd.uid
 │   ├── scene_context.gd

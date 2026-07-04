@@ -23,6 +23,9 @@
 - `InputDeviceUtils` (`res://global/input_device_utils.gd`)
   Общий helper определения keyboard/mouse/gamepad/Sony input-событий для UI prompt-ов,
   меню и директорского input-mode state.
+- `ReactiveLightContracts` (`res://global/reactive_light_contracts.gd`)
+  Canonical groups, registration helpers and getters для reactive light sources
+  и generator-required light contracts.
 - Внутренние helper-и крупных фасадов и state services:
   `CheckpointDynamicRestore`, `GameDirectorCyclePhaseBridge`, `GameDirectorCycleTimerState`, `GameDirectorDeathCameraCoordinator`, `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathRetryCoordinator`, `GameDirectorDeathScreenReset`, `GameDirectorDeathTitlePresenter`, `GameDirectorDistortionGate`, `GameDirectorDistortionOverlayCoordinator`, `GameDirectorDistortionPhaseState`, `GameDirectorDistortionProgress`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `GameDirectorTimerNodeCoordinator`, `GamepadCallbackRouter`, `GamepadConfirmReleaseGate`, `GamepadHintBuilder`, `GamepadNavigationRepeat`, `GamepadNodeResolver`, `GamepadSchemeRegistry`, `MinigameBackdropPresenter`, `MinigameModalOwnership`, `MinigameMusicSession`, `MinigamePromptVisibilityCoordinator`, `MinigameTimerState`, `MusicPauseReasonState`, `UIFadeController`.
   Они не являются публичными autoload API и используются для снижения размера

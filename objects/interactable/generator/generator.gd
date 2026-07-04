@@ -73,17 +73,9 @@ func _activate_required_lamps_in_scene() -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
-	var activated: Dictionary = {}
-	for group_name in [&"generator_required_light", &"generator_required_lamp"]:
-		for light_node in tree.get_nodes_in_group(group_name):
-			if light_node == null:
-				continue
-			var node_id := light_node.get_instance_id()
-			if activated.has(node_id):
-				continue
-			activated[node_id] = true
-			if light_node.has_method("turn_on"):
-				light_node.call("turn_on")
+	for light_node in ReactiveLightContracts.get_generator_required_lights(tree):
+		if light_node.has_method(ReactiveLightContracts.METHOD_TURN_ON):
+			light_node.call(ReactiveLightContracts.METHOD_TURN_ON)
 
 func capture_checkpoint_state() -> Dictionary:
 	return super.capture_checkpoint_state()

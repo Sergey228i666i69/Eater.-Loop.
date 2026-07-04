@@ -61,8 +61,7 @@ func _ready() -> void:
 		_apply_light_settings()
 		if not _light.is_in_group("lamp_light"):
 			_light.add_to_group("lamp_light")
-	if not is_in_group("reactive_light_source"):
-		add_to_group("reactive_light_source")
+	ReactiveLightContracts.register_reactive_light_source(self)
 
 	_sprite = get_node_or_null(sprite_node) as Sprite2D
 	if _sprite and off_texture == null:
@@ -77,10 +76,9 @@ func _ready() -> void:
 		add_to_group("bedroom_lamp")
 	if not is_in_group("lamp"):
 		add_to_group("lamp")
-	if requires_generator and not is_in_group("generator_required_lamp"):
-		add_to_group("generator_required_lamp")
-	if requires_generator and not is_in_group("generator_required_light"):
-		add_to_group("generator_required_light")
+	if requires_generator:
+		ReactiveLightContracts.register_generator_required_lamp(self)
+		ReactiveLightContracts.register_generator_required_light(self)
 	
 	# По умолчанию лампа работает без генератора.
 	# Для ламп с requires_generator питание появится после запуска генератора.

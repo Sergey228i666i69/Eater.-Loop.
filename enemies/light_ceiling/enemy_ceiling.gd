@@ -107,12 +107,12 @@ func _is_lamp_light_hitting() -> bool:
 	var tree := get_tree()
 	if tree == null:
 		return false
-	for light_source in tree.get_nodes_in_group("reactive_light_source"):
+	for light_source in ReactiveLightContracts.get_reactive_light_sources(tree):
 		if light_source == null or not is_instance_valid(light_source):
 			continue
-		if not light_source.has_method("is_point_lit"):
+		if not light_source.has_method(ReactiveLightContracts.METHOD_IS_POINT_LIT):
 			continue
-		if bool(light_source.call("is_point_lit", global_position)):
+		if bool(light_source.call(ReactiveLightContracts.METHOD_IS_POINT_LIT, global_position)):
 			return true
 	return false
 

@@ -65,7 +65,7 @@ Definition of done: overlapping Area2D больше не вызывает нес
 Цель: ловить сломанные NodePath/group/method contracts до runtime.
 
 1. ~~Добавить validators для required child nodes.~~ Закрыто для critical interactables через `test_scene_nodepath_contracts.gd`.
-2. ~~Проверять groups/methods вроде `reactive_light_source`, `turn_on`, `is_point_lit`.~~ Runtime scripts, которые добавляют себя в эти группы, теперь обязаны объявлять нужные методы.
+2. ~~Проверять groups/methods вроде `reactive_light_source`, `turn_on`, `is_point_lit`.~~ Runtime scripts регистрируются через `ReactiveLightContracts`, а validators требуют нужные методы для reactive/generator light contracts.
 3. ~~Проверять missing/broken NodePath.~~ Закрыто для active level/interactable scenes, utility-level paths and STU hardcoded paths.
 4. ~~Проверять checkpoint participants: capture/apply, stable id, dynamic restore.~~ Базовый и dynamic restore покрыты; content scripts с custom checkpoint API обязаны объявлять capture/apply парой, active scene checkpoint participants обязаны иметь стабильный scene-relative path без generated `@...` segments, scene snapshot/restore вынесен в `checkpoint_scene_snapshot.gd`, а dynamic runtime restore policy вынесена в `checkpoint_dynamic_restore.gd` с focused unit-тестом.
 5. ~~Проверять базовый localization CSV/mojibake contract.~~ `test_localization_contracts.gd` проверяет колонки `keys`/`ru`/`en`, пустые значения и mojibake в runtime text sources.

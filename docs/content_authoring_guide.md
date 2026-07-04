@@ -41,10 +41,10 @@
 
 ## Свет, Генератор И Враги
 
-1. Скрипт, который добавляет себя в `reactive_light_source`, обязан объявлять `is_point_lit(point: Vector2)`.
-2. Скрипт, который добавляет себя в `generator_required_light` или `generator_required_lamp`, обязан объявлять `turn_on()`.
+1. Скрипт, который добавляет себя в reactive light contract, должен делать это через `ReactiveLightContracts.register_reactive_light_source(self)` и объявлять `is_point_lit(point: Vector2)`.
+2. Скрипт, который должен включаться генератором, должен регистрироваться через `ReactiveLightContracts.register_generator_required_light(self)` / `register_generator_required_lamp(self)` и объявлять `turn_on()`.
 3. Лампы, прожекторы и pickup flashlight должны иметь resolving `light_node` на `PointLight2D`.
-4. Врагам нельзя полагаться на скрытое знание конкретной лампы. Они должны потреблять light contracts через группу/метод или через новый typed component, если появится более строгая абстракция.
+4. Врагам нельзя полагаться на скрытое знание конкретной лампы. Они должны потреблять light contracts через `ReactiveLightContracts.get_reactive_light_sources(...)` и метод `is_point_lit(...)`.
 5. `TargetMonsterSpawner` с `enemy_scene` должен явно задавать condition; node-signal/trigger-enter variants должны иметь resolving source paths, реальные signals/properties и optional spawn parent только если он действительно существует.
 
 ## Мини-Игры

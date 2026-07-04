@@ -14,9 +14,21 @@ const SCRIPT_DIRS := [
 	"res://enemies"
 ]
 const GROUP_METHOD_CONTRACTS := [
-	{"group": "reactive_light_source", "methods": ["is_point_lit"]},
-	{"group": "generator_required_light", "methods": ["turn_on"]},
-	{"group": "generator_required_lamp", "methods": ["turn_on"]}
+	{
+		"group": ReactiveLightContracts.REACTIVE_LIGHT_SOURCE_GROUP,
+		"methods": [ReactiveLightContracts.METHOD_IS_POINT_LIT],
+		"helper": "ReactiveLightContracts.register_reactive_light_source"
+	},
+	{
+		"group": ReactiveLightContracts.GENERATOR_REQUIRED_LIGHT_GROUP,
+		"methods": [ReactiveLightContracts.METHOD_TURN_ON],
+		"helper": "ReactiveLightContracts.register_generator_required_light"
+	},
+	{
+		"group": ReactiveLightContracts.GENERATOR_REQUIRED_LAMP_GROUP,
+		"methods": [ReactiveLightContracts.METHOD_TURN_ON],
+		"helper": "ReactiveLightContracts.register_generator_required_lamp"
+	}
 ]
 const FORBIDDEN_NULL_SCENE_OVERRIDES := [
 	"is_locked",
@@ -38,6 +50,7 @@ func run() -> Array[String]:
 	_test_level_scripts_set_dependency_condition_with_dependency_object()
 	_test_target_monster_spawners_declare_spawn_condition()
 	_test_reversible_triggers_are_not_one_shot()
+	_test_reactive_light_contracts_register_and_deduplicate_groups()
 	_test_scripts_that_join_runtime_groups_expose_required_methods()
 	_test_checkpoint_custom_methods_are_declared_in_pairs()
 	_test_checkpoint_participants_have_stable_scene_paths()
@@ -197,13 +210,40 @@ func _test_scripts_that_join_runtime_groups_expose_required_methods() -> void:
 			continue
 		for contract in GROUP_METHOD_CONTRACTS:
 			var group_name := str(contract.get("group", ""))
-			if not _script_adds_group(content, group_name):
+			var helper_name := str(contract.get("helper", ""))
+			if not _script_adds_group(content, group_name, helper_name):
 				continue
 			for method_name in contract.get("methods", []):
 				assert_true(
 					_script_declares_method(content, str(method_name)),
 					"Script adding %s group must define %s(): %s" % [group_name, method_name, path]
 				)
+
+func _test_reactive_light_contracts_register_and_deduplicate_groups() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	if tree == null:
+		return
+
+	var root := Node.new()
+	var light := Node.new()
+	tree.root.add_child(root)
+	root.add_child(light)
+
+	ReactiveLightContracts.register_reactive_light_source(light)
+	ReactiveLightContracts.register_generator_required_light(light)
+	ReactiveLightContracts.register_generator_required_lamp(light)
+
+	assert_true(light.is_in_group(ReactiveLightContracts.REACTIVE_LIGHT_SOURCE_GROUP), "Reactive light helper must register canonical source group")
+	assert_true(ReactiveLightContracts.get_reactive_light_sources(tree).has(light), "Reactive light helper must return registered sources")
+
+	var required_count := 0
+	for node in ReactiveLightContracts.get_generator_required_lights(tree):
+		if node == light:
+			required_count += 1
+	assert_eq(required_count, 1, "Generator-required helper must deduplicate nodes registered in both required-light groups")
+
+	root.free()
 
 func _test_checkpoint_custom_methods_are_declared_in_pairs() -> void:
 	for path in _list_active_scripts():
@@ -293,8 +333,10 @@ func _has_nearby_dependency_condition(lines: PackedStringArray, index: int) -> b
 			return true
 	return false
 
-func _script_adds_group(content: String, group_name: String) -> bool:
-	return content.find("add_to_group(\"%s\"" % group_name) != -1 or content.find("add_to_group(&\"%s\"" % group_name) != -1
+func _script_adds_group(content: String, group_name: String, helper_name: String = "") -> bool:
+	if content.find("add_to_group(\"%s\"" % group_name) != -1 or content.find("add_to_group(&\"%s\"" % group_name) != -1:
+		return true
+	return helper_name != "" and content.find(helper_name + "(") != -1
 
 func _script_declares_method(content: String, method_name: String) -> bool:
 	return content.find("func %s(" % method_name) != -1 or content.find("func %s (" % method_name) != -1

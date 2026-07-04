@@ -32,8 +32,8 @@ func run() -> Array[String]:
 	await tree.process_frame
 
 	projector.call("turn_on")
-	assert_true(projector.is_in_group("reactive_light_source"), "Projector must register as reactive_light_source")
-	assert_true(pickup_flashlight.is_in_group("reactive_light_source"), "Pickup flashlight must register as reactive_light_source")
+	assert_true(projector.is_in_group(ReactiveLightContracts.REACTIVE_LIGHT_SOURCE_GROUP), "Projector must register as reactive_light_source")
+	assert_true(pickup_flashlight.is_in_group(ReactiveLightContracts.REACTIVE_LIGHT_SOURCE_GROUP), "Pickup flashlight must register as reactive_light_source")
 
 	assert_true(bool(projector.call("is_point_lit", projector.global_position + Vector2.RIGHT * 320.0)), "Projector must light targets in front of it")
 	assert_true(not bool(projector.call("is_point_lit", projector.global_position + Vector2.LEFT * 320.0)), "Projector must not light targets behind it")
