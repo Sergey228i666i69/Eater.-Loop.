@@ -169,6 +169,10 @@ MusicManager.play_ambient_music(stream, fade_time, volume_db)
 - `play_on_ready` — запускать ли музыку при старте сцены.
 - `continue_on_level_change` — останавливать ли ambient при выходе из уровня.
 
+Если `play_on_ready=true` или `continue_on_level_change=false`, у узла должен быть
+задан `stream`; `fade_time` должен быть неотрицательным. Это проверяется
+`test_level_authoring_contracts.gd`, чтобы новая сцена не получала тихий no-op.
+
 ## TriggerSetProperty: управление музыкой
 
 Сцена/скрипт:

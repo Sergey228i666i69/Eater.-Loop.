@@ -2,6 +2,7 @@ extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
 const BED_SCRIPT := "res://objects/interactable/bed/bed.gd"
+const LEVEL_MUSIC_SCRIPT := "res://levels/cycles/level_music.gd"
 const PLAYER_SCRIPT := "res://player/player.gd"
 const SceneContextScript = preload("res://global/scene_context.gd")
 const NON_LEVEL_SCENE_ALLOWLIST := {
@@ -18,6 +19,7 @@ func run() -> Array[String]:
 	_test_cycle_levels_have_single_player()
 	_test_cycle_level_bed_transitions_are_loadable()
 	_test_cycle_level_exported_paths_are_valid()
+	_test_level_music_nodes_have_streams_when_active()
 	return get_failures()
 
 func _test_cycle_scene_directory_has_explicit_level_contracts() -> void:
@@ -95,6 +97,18 @@ func _test_cycle_level_exported_paths_are_valid() -> void:
 		_assert_root_exported_nodepaths_resolve(path, root)
 		_assert_enabled_text_is_non_empty(path, root, "show_start_hint", "start_hint_text")
 		_assert_enabled_text_is_non_empty(path, root, "show_start_subtitle", "start_subtitle_text")
+		root.free()
+
+func _test_level_music_nodes_have_streams_when_active() -> void:
+	for path in _list_level_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		if not _is_cycle_level(root):
+			root.free()
+			continue
+		for node in _find_nodes_with_script(root, LEVEL_MUSIC_SCRIPT):
+			_assert_level_music_config(path, root, node)
 		root.free()
 
 func _assert_bed_next_level_path(path: String, root: Node, bed: Node, current_scene: PackedScene) -> void:
@@ -212,6 +226,18 @@ func _assert_player_authoring_config(path: String, root: Node, player: Node) -> 
 	_assert_sorted_non_negative_float_array(path, root, player, "skeleton_light_walk_step_times")
 	_assert_sorted_non_negative_float_array(path, root, player, "skeleton_run_step_times")
 	_assert_sorted_non_negative_float_array(path, root, player, "skeleton_light_run_step_times")
+
+func _assert_level_music_config(path: String, root: Node, level_music: Node) -> void:
+	var play_on_ready := bool(level_music.get("play_on_ready")) if _has_property(level_music, "play_on_ready") else true
+	var continue_on_level_change := bool(level_music.get("continue_on_level_change")) if _has_property(level_music, "continue_on_level_change") else true
+	if play_on_ready or not continue_on_level_change:
+		assert_true(
+			level_music.get("stream") is AudioStream,
+			"LevelMusic stream must be set when play_on_ready is enabled or stop-on-exit is configured: %s:%s" % [path, root.get_path_to(level_music)]
+		)
+	if _has_property(level_music, "fade_time"):
+		var fade_time := float(level_music.get("fade_time"))
+		assert_true(fade_time >= 0.0, "LevelMusic fade_time must be non-negative: %s:%s" % [path, root.get_path_to(level_music)])
 
 func _get_int_property_or_method(node: Node, property_name: String, method_name: String) -> int:
 	if node.has_method(method_name):

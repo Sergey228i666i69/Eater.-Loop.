@@ -45,7 +45,7 @@
 ### 2.2 Музыкальный контур
 
 - Любая музыка должна идти через `MusicManager`.
-- Сценовые `LevelMusic`-узлы вызывают только публичные методы `MusicManager`.
+- Сценовые `LevelMusic`-узлы вызывают только публичные методы `MusicManager`; active/start-on-ready music config должен иметь `AudioStream`.
 - Trigger-зоны управляют музыкой через `TriggerSetProperty` действиями `music_on_*`; replace/event-start actions должны иметь `music_stream`, а trigger должен содержать хотя бы один property/sfx/music effect.
 
 ### 2.3 Pause-Контур
@@ -132,7 +132,7 @@
 - Все игровые уровни продолжают ссылаться на `res://player/player.tscn`, поэтому получают новый skeleton-only вариант без точечной замены instances.
 - Playable scenes в `res://levels/cycles/` должны называться `level_*.tscn` и иметь root API `get_cycle_number()` / `get_timer_duration()`; non-level utility-сцены в этой папке требуют явного allowlist в `test_level_authoring_contracts.gd`.
 - Cycle-level authoring contract требует ровно один Player instance в игровой сцене: respawn, enemies, UI bars и checkpoint flow используют единственный runtime `player`.
-- Тот же authoring contract валидирует диапазоны scene-level Player exports для движения, выносливости, фонарика и step timing, чтобы новые уровни не могли тихо задать отрицательные тайминги, нулевую скорость или неупорядоченные skeleton step times.
+- Тот же authoring contract валидирует диапазоны scene-level Player exports для движения, выносливости, фонарика и step timing, а также `LevelMusic` stream/fade config, чтобы новые уровни не могли тихо задать отрицательные тайминги, нулевую скорость, неупорядоченные skeleton step times или активную музыку без stream.
 
 ## 3. Границы API (важно)
 
@@ -198,7 +198,7 @@
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
-- Добавлены scene-contract validators для critical NodePath/child contracts, utility-level NodePaths, cycle/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
+- Добавлены scene-contract validators для critical NodePath/child contracts, utility-level NodePaths, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
 - `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
