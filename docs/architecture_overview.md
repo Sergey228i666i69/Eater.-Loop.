@@ -35,7 +35,7 @@
 - Меню/интеракции переключают сцену через `UIMessage.change_scene_with_fade*`.
 - При переходе в игровую сцену `GameDirector` перенастраивает фазу/таймер.
 - `GameState` обновляет путь текущей сцены для продолжения забега.
-- Тип сцены определяется через `SceneContext`: gameplay, menu и ending имеют отдельные группы/path-классификацию.
+- Тип сцены определяется через `SceneContext`: gameplay, menu и ending имеют отдельные группы/path-классификацию; gameplay path fallback разрешает только playable `res://levels/cycles/level_*.tscn`, а utility-сцены в cycles должны полагаться на группы/API, если им нужна специальная классификация.
 - `PauseManager` не открывает pause menu поверх menu/ending scenes.
 
 ### 2.2 Музыкальный контур

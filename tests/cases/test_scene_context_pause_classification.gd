@@ -1,8 +1,19 @@
 extends "res://tests/test_case.gd"
 
 func run() -> Array[String]:
+	_test_gameplay_path_classification_follows_playable_level_contract()
 	await _test_endings_are_pause_blocked_scene_type()
 	return get_failures()
+
+func _test_gameplay_path_classification_follows_playable_level_contract() -> void:
+	assert_true(SceneContext != null, "SceneContext autoload is missing")
+	if SceneContext == null:
+		return
+
+	assert_true(SceneContext.is_gameplay_scene_path("res://levels/cycles/level_01_start.tscn"), "Playable level_*.tscn paths must be gameplay scene paths")
+	assert_true(SceneContext.is_gameplay_scene_path("res://levels/cycles/level_14_end.tscn"), "Ending-cycle level_*.tscn paths must still count as gameplay paths for save tracking")
+	assert_true(not SceneContext.is_gameplay_scene_path("res://levels/cycles/TextureDistortionManager.tscn"), "Utility scenes in levels/cycles must not be classified as gameplay by path")
+	assert_true(not SceneContext.is_gameplay_scene_path("res://levels/cycles/checkpoint_scene_snapshot.gd"), "Helper scripts in levels/cycles must not be classified as gameplay by path")
 
 func _test_endings_are_pause_blocked_scene_type() -> void:
 	var tree := Engine.get_main_loop() as SceneTree

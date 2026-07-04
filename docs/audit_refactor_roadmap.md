@@ -128,7 +128,7 @@ Definition of done: новые уровни не требуют править �
 
 ## Resolved: Scene Context
 
-Path-based checks вида `path.find("/levels/cycles/")` вынесены в `SceneContext`. Уровни и меню маркируются группами, а fallback по пути остался только централизованным.
+Path-based checks вида `path.find("/levels/cycles/")` вынесены в `SceneContext`. Уровни и меню маркируются группами, а fallback по пути остался только централизованным и для gameplay разрешает только `res://levels/cycles/level_*.tscn`, чтобы utility-сцены в cycles не маскировались под playable levels.
 
 ## Фаза 6: Repo Hygiene
 

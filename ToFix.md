@@ -39,7 +39,7 @@
 - Event/distortion music больше не push-ит дубликаты в stack при повторном старте того же source; source registry вынесен в `MusicScopedSourceRegistry` и автоматически освобождает scoped source при `Node.tree_exited`.
 - `InteractiveObject` явно unregister-ится из `InteractionManager` при `_exit_tree`.
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
-- Ending-сцены классифицируются через `SceneContext`, и pause menu не открывается поверх концовок.
+- Ending-сцены классифицируются через `SceneContext`, gameplay path fallback ограничен `level_*.tscn`, и pause menu не открывается поверх концовок.
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
 - Stale current-state docs обновлены под `level_14_end.*` и текущий suite.
 - Obstacle special-case покрыт контрактным тестом.
