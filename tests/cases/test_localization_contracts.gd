@@ -178,15 +178,16 @@ func _assert_property_line_has_key(path: String, line_number: int, line: String,
         _assert_localization_key_exists(path, line_number, value, keys, require_non_cyrillic_key)
 
 func _assert_call_line_has_key(path: String, line_number: int, line: String, keys: Dictionary) -> void:
-    var has_player_facing_call := false
     for marker in PLAYER_FACING_CALL_MARKERS:
-        if line.find(marker) != -1:
-            has_player_facing_call = true
-            break
-    if not has_player_facing_call:
-        return
-    for value in _extract_quoted_strings(line):
-        _assert_localization_key_exists(path, line_number, value, keys)
+        var from := 0
+        while true:
+            var marker_index := line.find(marker, from)
+            if marker_index == -1:
+                break
+            var call_literal := _extract_first_call_literal(line, marker, marker_index)
+            if call_literal != "":
+                _assert_localization_key_exists(path, line_number, call_literal, keys, true)
+            from = marker_index + marker.length()
 
 func _assert_gamepad_hint_line_has_key(path: String, line_number: int, line: String, keys: Dictionary) -> void:
     var colon_index := line.find(":")
@@ -264,6 +265,28 @@ func _extract_quoted_strings(value: String) -> Array[String]:
         if not closed:
             break
     return results
+
+func _extract_first_call_literal(line: String, marker: String, marker_index: int) -> String:
+    var start := line.find("\"", marker_index + marker.length())
+    if start == -1:
+        return ""
+    var prefix := line.substr(marker_index + marker.length(), start - marker_index - marker.length()).strip_edges()
+    if prefix != "":
+        return ""
+    var current := ""
+    var escaped := false
+    for index in range(start + 1, line.length()):
+        var character := line.substr(index, 1)
+        if escaped:
+            current += _unescape_character(character)
+            escaped = false
+        elif character == "\\":
+            escaped = true
+        elif character == "\"":
+            return current
+        else:
+            current += character
+    return ""
 
 func _update_gamepad_hints_depth(stripped_line: String, current_depth: int) -> int:
     var next_depth := current_depth

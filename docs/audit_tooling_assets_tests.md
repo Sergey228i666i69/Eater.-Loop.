@@ -87,7 +87,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Рекурсивный test discovery под `tests/cases/**`, чтобы новые проверки можно было раскладывать по подпапкам.
 - Project-config contract для main scene, включённых editor plugins и configured translations.
 - Resource UID contract для tracked `.gd`/`.gdshader` sidecars и уникальности `uid://` значений.
-- Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources, запрета новых ASCII phrase translit keys для русских строк, CSV-key/technical-exception проверки статических non-Cyrillic `.tscn` player-facing строк и RU player-facing key coverage, включая custom/default gamepad hints.
+- Localization contract для CSV-колонок `keys`/`ru`/`en`, пустых значений, mojibake в runtime text sources, запрета новых ASCII phrase translit keys для русских строк, CSV-key/technical-exception проверки статических non-Cyrillic `.tscn` player-facing строк, прямых non-Cyrillic GDScript call-literals в `UIMessage.show_*("...")` / `tr("...")` и RU player-facing key coverage, включая custom/default gamepad hints.
 - Gamepad binding contract теперь сам находит scripts with `MinigameController.set_gamepad_scheme(self, ...)` и требует cleanup, чтобы новые мини-игры не выпадали из проверки.
 - Gamepad callback router regression для lookup/invoke/consumed semantics пользовательских схем мини-игр.
 - Gamepad confirm-release gate regression для защиты мини-игр от подтверждения, зажатого до старта runtime.
@@ -113,4 +113,4 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - shell helper вычисляет project root относительно себя и запускает Godot с `--path`, поэтому может запускаться не из корня.
 
-Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и localization hygiene/key coverage для русскоязычных player-facing строк, включая custom/default gamepad hints, запрет новых ASCII phrase translit keys и static `.tscn` non-Cyrillic text contract; отдельный CI job запускает MacOS debug export smoke с установленными templates. Signed/notarized release artifact можно добавить позже как release-hardening, но presets и базовая собираемость больше не остаются локальной догадкой.
+Статус после P3 hygiene pass: CI через runtime suite проверяет export presets static contract, project config и localization hygiene/key coverage для русскоязычных player-facing строк, включая custom/default gamepad hints, запрет новых ASCII phrase translit keys, static `.tscn` non-Cyrillic text contract и прямые GDScript UI call-literals; отдельный CI job запускает MacOS debug export smoke с установленными templates. Signed/notarized release artifact можно добавить позже как release-hardening, но presets и базовая собираемость больше не остаются локальной догадкой.
