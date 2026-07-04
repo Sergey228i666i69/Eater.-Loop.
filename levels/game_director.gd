@@ -6,6 +6,7 @@ const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
 const DeathScreenReset = preload("res://levels/game_director_death_screen_reset.gd")
+const DeathSequenceState = preload("res://levels/game_director_death_sequence_state.gd")
 const DeathTitlePresenter = preload("res://levels/game_director_death_title_presenter.gd")
 const CyclePhaseBridge = preload("res://levels/game_director_cycle_phase_bridge.gd")
 const CycleTimerState = preload("res://levels/game_director_cycle_timer_state.gd")
@@ -101,13 +102,12 @@ var _death_root: Control
 var _death_glitch_background: Control
 var _death_title_label: Label
 var _death_retry_button: Button
-var _death_sequence_active: bool = false
-var _death_pause_requested: bool = false
 var _input_kind: int = 0
 var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
 var _death_retry_coordinator: RefCounted
 var _death_screen_reset: RefCounted
+var _death_sequence_state: RefCounted
 var _death_title_presenter: RefCounted
 var _cycle_phase_bridge: RefCounted
 var _cycle_timer_state: RefCounted
@@ -137,6 +137,7 @@ func _ready() -> void:
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
 	_death_retry_coordinator = DeathRetryCoordinator.new()
 	_death_screen_reset = DeathScreenReset.new()
+	_death_sequence_state = DeathSequenceState.new()
 	_cycle_timer_state = CycleTimerState.new()
 	_distortion_gate = DistortionGate.new()
 	_distortion_phase_state = DistortionPhaseState.new()
@@ -155,12 +156,12 @@ func _input(event: InputEvent) -> void:
 	if next_input_kind == _input_kind:
 		return
 	_input_kind = next_input_kind
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		_apply_death_input_mode()
 
 func _process(delta: float) -> void:
 	_update_overlay_layer()
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		return
 	if not _get_distortion_overlay_coordinator().has_distortion_overlay():
 		return
@@ -212,7 +213,7 @@ func reduce_time(amount: float, damage_flash: bool = false) -> void:
 		_flash_red()
 
 func trigger_damage_flash() -> void:
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		return
 	_flash_damage()
 
@@ -241,10 +242,10 @@ func _activate_distortion_phase() -> void:
 	distortion_started.emit()
 
 func _should_defer_distortion_activation() -> bool:
-	return _get_distortion_gate().should_defer_activation(_death_sequence_active)
+	return _get_distortion_gate().should_defer_activation(_is_death_sequence_active())
 
 func trigger_distortion_now() -> void:
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		return
 	if not _in_game_scene:
 		return
@@ -263,7 +264,7 @@ func ensure_timer_running(fallback_time: float) -> void:
 	_get_cycle_timer_state().ensure_timer_running(_timer, _can_run_cycle_timer(), fallback_time)
 
 func set_time_left(new_time: float) -> void:
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		return
 	if _get_cycle_timer_state().set_time_left(_timer, _can_run_cycle_timer(), new_time):
 		_on_distortion_timeout()
@@ -334,7 +335,7 @@ func _flash_red() -> void:
 func _flash_damage() -> void:
 	if not _get_distortion_overlay_coordinator().has_damage_overlay():
 		return
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		return
 	if _get_distortion_phase_state().is_damage_flash_active():
 		return
@@ -451,11 +452,12 @@ func _create_death_overlay() -> void:
 	content.add_child(_death_retry_button)
 
 func trigger_death_screen() -> void:
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		return
 	if _handle_custom_scene_death():
 		return
-	_death_sequence_active = true
+	if not _get_death_sequence_state().try_begin():
+		return
 	_release_death_cursor_request()
 	_stop_cycle_timer()
 	_get_distortion_phase_state().reset_for_normal_phase()
@@ -492,7 +494,7 @@ func _handle_custom_scene_death() -> bool:
 	return bool((scene as CycleLevelBase).handle_custom_death_screen())
 
 func _on_death_fade_completed() -> void:
-	if not _death_sequence_active:
+	if not _is_death_sequence_active():
 		return
 	if _death_root:
 		_death_root.visible = true
@@ -500,7 +502,7 @@ func _on_death_fade_completed() -> void:
 	_request_death_pause()
 
 func _on_death_retry_pressed() -> void:
-	if not _death_sequence_active:
+	if not _is_death_sequence_active():
 		return
 	await _get_death_retry_coordinator().prepare_retry(GameState, CycleState, UIMessage)
 	_get_death_retry_coordinator().finish_retry_transition(
@@ -512,7 +514,7 @@ func _on_death_retry_pressed() -> void:
 	)
 
 func _reset_death_screen_state() -> void:
-	_death_sequence_active = false
+	_get_death_sequence_state().reset_sequence()
 	_get_death_screen_reset().reset(
 		_death_root,
 		_death_glitch_background,
@@ -538,19 +540,25 @@ func _get_death_screen_reset() -> RefCounted:
 		_death_screen_reset = DeathScreenReset.new()
 	return _death_screen_reset
 
+func _get_death_sequence_state() -> RefCounted:
+	if _death_sequence_state == null:
+		_death_sequence_state = DeathSequenceState.new()
+	return _death_sequence_state
+
+func _is_death_sequence_active() -> bool:
+	return _get_death_sequence_state().is_active()
+
 func _request_death_pause() -> void:
-	if _death_pause_requested:
+	if not _get_death_sequence_state().mark_pause_requested():
 		return
-	_death_pause_requested = true
 	if PauseManager != null and PauseManager.has_method("request_pause"):
 		PauseManager.request_pause(self, "death_screen")
 	elif get_tree():
 		get_tree().paused = true
 
 func _release_death_pause() -> void:
-	if not _death_pause_requested:
+	if not _get_death_sequence_state().mark_pause_released():
 		return
-	_death_pause_requested = false
 	if PauseManager != null and PauseManager.has_method("release_pause"):
 		PauseManager.release_pause(self, "death_screen")
 	elif get_tree():
@@ -564,7 +572,7 @@ func trigger_light_only_jump_effect(peak_intensity: float = -1.0) -> void:
 		return
 	if not _get_distortion_overlay_coordinator().has_light_only_jump_overlay():
 		return
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		return
 	_configure_light_only_jump_material()
 	var target_peak := light_only_jump_peak_intensity if peak_intensity < 0.0 else peak_intensity
@@ -838,7 +846,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	_get_distortion_phase_state().apply_checkpoint_state(state)
 	_stop_light_only_jump_effect()
 	_get_distortion_overlay_coordinator().reset_damage_overlay()
-	if _death_sequence_active:
+	if _is_death_sequence_active():
 		_reset_death_screen_state()
 	_get_cycle_timer_state().apply_checkpoint_state(_timer, _has_normal_cycle_state(), state)
 	if _stalker_spawned:

@@ -10,7 +10,7 @@
 
 Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
-- pause ownership, typed interaction outcomes, fade controller, minigame backdrop/prompt/timer/modal/music/gamepad-hint/gamepad-repeat/gamepad-node-resolving/gamepad-callback/gamepad-confirm-release lifecycle helpers, scene checkpoint snapshot/restore/dynamic-restore helpers, player run/stamina helper, player key inventory helper, player skeleton step timing helper, player flashlight charge/recharge helper, death-title presentation и death screen reset/cleanup уже вынесены из самых хрупких мест;
+- pause ownership, typed interaction outcomes, fade controller, minigame backdrop/prompt/timer/modal/music/gamepad-hint/gamepad-repeat/gamepad-node-resolving/gamepad-callback/gamepad-confirm-release lifecycle helpers, scene checkpoint snapshot/restore/dynamic-restore helpers, player run/stamina helper, player key inventory helper, player skeleton step timing helper, player flashlight charge/recharge helper, death-title presentation, death screen reset/cleanup и death sequence state уже вынесены из самых хрупких мест;
 - STU/scene/utility/level/lab/fridge-authoring contracts теперь покрыты валидаторами, но крупные сцены всё ещё дороги для ручного ревью;
 - naming debt из этого списка закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references, включая старый runtime-prefix `Frizzer`;
 - `MusicManager`, `GameDirector`, оставшиеся visual/facing/checkpoint glue части `Player` и STU-сцены всё ещё крупные, но оставшиеся распилы теперь являются отдельными future refactor задачами, а не открытыми runtime-долгами этого файла.
