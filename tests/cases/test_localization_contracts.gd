@@ -58,6 +58,7 @@ const PLAYER_FACING_LITERAL_FILES: Array[String] = [
 
 func run() -> Array[String]:
     _test_localization_csv_is_complete()
+    _test_localization_keys_do_not_use_translit_phrase_keys()
     _test_runtime_text_sources_have_no_mojibake()
     _test_player_facing_text_has_localization_keys()
     return get_failures()
@@ -100,6 +101,23 @@ func _test_localization_csv_is_complete() -> void:
         _assert_no_mojibake(key, "Localization key on row %d" % row_index)
         _assert_no_mojibake(ru, "Localization ru value on row %d" % row_index)
         _assert_no_mojibake(en, "Localization en value on row %d" % row_index)
+
+func _test_localization_keys_do_not_use_translit_phrase_keys() -> void:
+    var file := FileAccess.open(LOCALIZATION_CSV, FileAccess.READ)
+    if file == null:
+        fail("Failed to open localization CSV: %s" % LOCALIZATION_CSV)
+        return
+    file.get_csv_line()
+    var row_index := 1
+    while not file.eof_reached():
+        row_index += 1
+        var row := file.get_csv_line()
+        if _is_blank_row(row) or row.size() < 3:
+            continue
+        var key := row[0].strip_edges()
+        var ru := row[1].strip_edges()
+        if _looks_like_translit_phrase_key(key, ru):
+            fail("Localization key looks like a transliterated phrase; use Russian source text or a semantic id: row %d -> %s" % [row_index, key])
 
 func _test_runtime_text_sources_have_no_mojibake() -> void:
     for root in SOURCE_DIRS:
@@ -266,6 +284,22 @@ func _has_cyrillic(value: String) -> bool:
     for index in range(value.length()):
         var codepoint := value.unicode_at(index)
         if codepoint >= 0x0400 and codepoint <= 0x04FF:
+            return true
+    return false
+
+func _looks_like_translit_phrase_key(key: String, ru: String) -> bool:
+    if key == "" or not _has_cyrillic(ru):
+        return false
+    if _has_cyrillic(key):
+        return false
+    if key.find(" ") == -1:
+        return false
+    return _has_ascii_letter(key)
+
+func _has_ascii_letter(value: String) -> bool:
+    for index in range(value.length()):
+        var codepoint := value.unicode_at(index)
+        if (codepoint >= 65 and codepoint <= 90) or (codepoint >= 97 and codepoint <= 122):
             return true
     return false
 

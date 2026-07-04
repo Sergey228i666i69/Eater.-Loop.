@@ -20,7 +20,7 @@ target_marker = NodePath("PassMarker")
 door_texture = ExtResource("2_texture")
 sfx_locked = ExtResource("3_locked")
 sfx_open = ExtResource("4_open")
-prompt_text = "Proyti cherez blokpost"
+prompt_text = "Пройти через блокпост"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1829100643]
 shape = SubResource("RectangleShape2D_blockpost")

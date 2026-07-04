@@ -115,7 +115,7 @@
 - `tests/cases/test_lab_authoring_contracts.gd` валидирует lab laptop `time_limit`/`penalty_time`, timed-lab minigame scene contract, уникальные `lab_completion_id` там, где сцена требует явные lab IDs, и соответствие `Fridge.required_lab_completion_ids` реальным ноутбукам в той же сцене.
 - `tests/cases/test_fridge_authoring_contracts.gd` валидирует active level feeding/code-lock/final fridge configs, включая minigame signals/setup methods, food scenes, face/background и code-lock scene.
 - `tests/cases/test_stu_level_path_contracts.gd` валидирует STU exported/hardcoded paths and dynamic door target constants.
-- `tests/cases/test_localization_contracts.gd` теперь покрывает больше player-facing export-полей и script literals: death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names, money reward reasons, gamepad hints и default gamepad hints.
+- `tests/cases/test_localization_contracts.gd` теперь покрывает больше player-facing export-полей и script literals: death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names, money reward reasons, gamepad hints, default gamepad hints и запрет новых ASCII phrase translit keys для русских строк.
 - STU doors with intentionally empty targets are now explicitly locked.
 - Null override cleanup частично закрыт без bulk Godot reserialization: inherited door/interactable defaults вроде `is_locked`, `required_key_id`, `interact_area_node`, `target_marker` и `one_shot` теперь явно сериализованы как `false`, `""` или `NodePath("")`, а тест запрещает возвращать эти typed config-поля к `null`. Optional resource-null overrides вроде `door_texture = null` оставлены как явное отсутствие ассета.
 

@@ -3803,7 +3803,7 @@ food_count = 6
 bg_music = ExtResource("89_rhkyr")
 eat_sound = ExtResource("90_68led")
 background_texture = ExtResource("91_0ckeq")
-locked_message = "Snachala zapusti generator."
+locked_message = "Сначала запусти генератор."
 
 [node name="603" type="Node2D" parent="6thLevel" unique_id=1673846713]
 position = Vector2(38317, 0)
