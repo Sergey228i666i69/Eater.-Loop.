@@ -7,6 +7,10 @@ const SceneContextScript = preload("res://global/scene_context.gd")
 const NON_LEVEL_SCENE_ALLOWLIST := {
 	"TextureDistortionManager.tscn": true,
 }
+const OPTIONAL_ROOT_NODEPATH_PROPERTIES := {
+	"fridge_interacted_spawn_marker_path": true,
+	"primary_fridge_path": true,
+}
 
 func run() -> Array[String]:
 	_test_cycle_scene_directory_has_explicit_level_contracts()
@@ -88,8 +92,7 @@ func _test_cycle_level_exported_paths_are_valid() -> void:
 		if not _is_cycle_level(root):
 			root.free()
 			continue
-		_assert_optional_nodepath_resolves(path, root, root, "fridge_interacted_spawn_marker_path", "Node2D")
-		_assert_required_fridge_path_resolves(path, root)
+		_assert_root_exported_nodepaths_resolve(path, root)
 		_assert_enabled_text_is_non_empty(path, root, "show_start_hint", "start_hint_text")
 		_assert_enabled_text_is_non_empty(path, root, "show_start_subtitle", "start_subtitle_text")
 		root.free()
@@ -131,15 +134,47 @@ func _assert_optional_nodepath_resolves(path: String, root: Node, node: Node, pr
 	if target != null and expected_type != "":
 		assert_true(target.is_class(expected_type), "%s must resolve to %s: %s:%s -> %s" % [property_name, expected_type, path, root.get_path_to(node), node_path])
 
-func _assert_required_fridge_path_resolves(path: String, root: Node) -> void:
-	if not _has_property(root, "fridge_path"):
-		return
-	var fridge_path: NodePath = root.get("fridge_path")
-	assert_true(not fridge_path.is_empty(), "fridge_path must be set when exported: %s" % path)
-	if fridge_path.is_empty():
-		return
-	var fridge := root.get_node_or_null(fridge_path)
-	assert_true(fridge is Fridge, "fridge_path must resolve to Fridge: %s -> %s" % [path, fridge_path])
+func _assert_root_exported_nodepaths_resolve(path: String, root: Node) -> void:
+	for property_info in root.get_property_list():
+		if int(property_info.get("type", TYPE_NIL)) != TYPE_NODE_PATH:
+			continue
+		var property_name := String(property_info.get("name", ""))
+		if not property_name.ends_with("_path"):
+			continue
+		var node_path: NodePath = root.get(property_name)
+		if node_path.is_empty():
+			assert_true(_is_optional_root_nodepath(property_name), "%s must be set when exported: %s" % [property_name, path])
+			continue
+		var target := root.get_node_or_null(node_path)
+		assert_true(target != null, "%s must resolve from root: %s -> %s" % [property_name, path, node_path])
+		if target != null:
+			_assert_root_exported_nodepath_type(path, root, property_name, node_path, target)
+
+func _is_optional_root_nodepath(property_name: String) -> bool:
+	return OPTIONAL_ROOT_NODEPATH_PROPERTIES.has(property_name)
+
+func _assert_root_exported_nodepath_type(path: String, root: Node, property_name: String, node_path: NodePath, target: Node) -> void:
+	var lower_name := property_name.to_lower()
+	if property_name == "fridge_interacted_spawn_marker_path":
+		assert_true(target is Node2D, "%s must resolve to Node2D: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("fridge") != -1:
+		assert_true(target is Fridge, "%s must resolve to Fridge: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("door") != -1:
+		assert_true(target is Door, "%s must resolve to Door: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("laptop") != -1:
+		assert_true(target is Laptop, "%s must resolve to Laptop: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("bed") != -1:
+		assert_true(_script_path(target) == BED_SCRIPT, "%s must resolve to Bed: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("player") != -1:
+		assert_true(_script_path(target) == PLAYER_SCRIPT, "%s must resolve to Player: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("generator") != -1:
+		assert_true(target is InteractiveObject, "%s must resolve to InteractiveObject: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("darkness") != -1:
+		assert_true(target is CanvasModulate, "%s must resolve to CanvasModulate: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("basement") != -1:
+		assert_true(target is Node2D, "%s must resolve to Node2D: %s -> %s" % [property_name, path, node_path])
+	elif lower_name.find("note") != -1:
+		assert_true(target is InteractiveObject, "%s must resolve to InteractiveObject: %s -> %s" % [property_name, path, node_path])
 
 func _assert_enabled_text_is_non_empty(path: String, node: Node, enabled_property: String, text_property: String) -> void:
 	if not _has_property(node, enabled_property) or not _has_property(node, text_property):
