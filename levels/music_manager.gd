@@ -1,6 +1,7 @@
 extends Node
 
 const MusicPauseReasonStateScript = preload("res://levels/music_pause_reason_state.gd")
+const MusicAmbientSuppressionStateScript = preload("res://levels/music_ambient_suppression_state.gd")
 const MusicScopedSourceRegistryScript = preload("res://levels/music_scoped_source_registry.gd")
 
 ## MusicManager — единый слой управления музыкой.
@@ -112,6 +113,7 @@ var _base_pause_stream: AudioStream
 var _base_pause_position: float = 0.0
 var _base_pause_was_playing: bool = false
 var _ambient_suppression_sources: Dictionary = {}
+var _ambient_suppression_state = MusicAmbientSuppressionStateScript.new(_ambient_suppression_sources)
 var _pending_ambient_stream: AudioStream
 var _pending_ambient_volume_db: float = 999.0
 var _pending_ambient_fade_time: float = -1.0
@@ -464,22 +466,15 @@ func resume_all_music(fade_time: float = -1.0) -> void:
 func set_ambient_music_suppressed(source: Object, suppressed: bool, fade_time: float = -1.0) -> void:
 	if source == null:
 		return
-	_cleanup_ambient_suppression_sources()
-	var source_id := source.get_instance_id()
-	var was_suppressed := is_ambient_music_suppressed()
-	if suppressed:
-		_ambient_suppression_sources[source_id] = weakref(source)
-		if source is Node:
-			var source_node := source as Node
-			var on_exited := Callable(self, "_on_ambient_suppression_source_exited").bind(source_id)
-			if not source_node.tree_exited.is_connected(on_exited):
-				source_node.tree_exited.connect(on_exited, Object.CONNECT_ONE_SHOT)
-	else:
-		_ambient_suppression_sources.erase(source_id)
-	var is_suppressed := is_ambient_music_suppressed()
-	if was_suppressed == is_suppressed:
+	var changed := _ambient_suppression_state.set_suppressed(
+		source,
+		suppressed,
+		self,
+		&"_on_ambient_suppression_source_exited"
+	)
+	if not changed:
 		return
-	if is_suppressed:
+	if _ambient_suppression_state.is_active():
 		var stopped_ambient := _capture_active_ambient_as_pending(fade_time)
 		if _base_pause_active:
 			_base_pause_restore_db = _get_base_target_volume_db(_current_source_kind)
@@ -497,13 +492,11 @@ func set_ambient_music_suppressed(source: Object, suppressed: bool, fade_time: f
 	_sync_base_music_output(fade_time)
 
 func is_ambient_music_suppressed() -> bool:
-	_cleanup_ambient_suppression_sources()
-	return not _ambient_suppression_sources.is_empty()
+	return _ambient_suppression_state.is_active()
 
 func _on_ambient_suppression_source_exited(source_id: int) -> void:
-	if not _ambient_suppression_sources.has(source_id):
+	if not _ambient_suppression_state.unregister_id(source_id):
 		return
-	_ambient_suppression_sources.erase(source_id)
 	var played_pending := _play_pending_ambient_if_possible(0.0)
 	if _base_pause_active:
 		_base_pause_restore_db = _get_base_target_volume_db(_current_source_kind)
@@ -540,19 +533,6 @@ func _release_scoped_music_source(source_id: int, fade_time: float) -> void:
 		pop_music(fade_time)
 		return
 	remove_music_from_stack_by_source_id(source_id)
-
-func _cleanup_ambient_suppression_sources() -> void:
-	if _ambient_suppression_sources.is_empty():
-		return
-	var stale_ids: Array[int] = []
-	for id in _ambient_suppression_sources.keys():
-		var ref_value: Variant = _ambient_suppression_sources[id]
-		if ref_value is WeakRef:
-			var wref := ref_value as WeakRef
-			if wref.get_ref() == null:
-				stale_ids.append(id)
-	for id in stale_ids:
-		_ambient_suppression_sources.erase(id)
 
 func _set_pending_ambient_request(stream: AudioStream, mixed_volume_db: float, fade_time: float) -> void:
 	_pending_ambient_stream = stream

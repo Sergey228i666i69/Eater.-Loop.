@@ -112,6 +112,11 @@ Event/distortion music является scoped к переданному `source
 `MusicScopedSourceRegistry`; `MusicManager` остаётся публичным фасадом, который
 решает, когда делать `push_music(...)` и `pop_music(...)`.
 
+Ambient suppression (`set_ambient_music_suppressed`) остаётся публичным API
+`MusicManager`, но source tracking живёт в `MusicAmbientSuppressionState`: несколько
+silent-зон удерживают suppression до выхода последней, stale `WeakRef` источники
+чистятся, а `Node`-источники подключаются к `tree_exited`.
+
 ### 4) Пауза и возобновление всей музыки
 
 ```gdscript

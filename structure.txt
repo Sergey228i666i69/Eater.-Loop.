@@ -702,6 +702,8 @@
 │   ├── game_director_timer_node_coordinator.gd
 │   ├── interaction_prompts.gd
 │   ├── interaction_prompts.gd.uid
+│   ├── music_ambient_suppression_state.gd
+│   ├── music_ambient_suppression_state.gd.uid
 │   ├── music_manager.gd
 │   ├── music_manager.gd.uid
 │   ├── music_mix_settings.gd
@@ -1581,6 +1583,8 @@
 │   │   ├── test_minigame_backdrop_transition_visibility.gd.uid
 │   │   ├── test_minigame_gamepad_bindings.gd
 │   │   ├── test_minigame_gamepad_bindings.gd.uid
+│   │   ├── test_music_ambient_suppression_state.gd
+│   │   ├── test_music_ambient_suppression_state.gd.uid
 │   │   ├── test_music_crossfade_suppression_runtime.gd
 │   │   ├── test_music_crossfade_suppression_runtime.gd.uid
 │   │   ├── test_music_scoped_source_registry.gd

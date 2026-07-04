@@ -139,6 +139,8 @@
   только делегирует туда расчёт и сохраняет совместимый фасад.
 - Base/chase pause reason bookkeeping живёт в `MusicPauseReasonState`; `MusicManager`
   синхронизирует старые private mirror-поля только для внутренней совместимости и тестов.
+- Ambient suppression source tracking живёт в `MusicAmbientSuppressionState`; это
+  держит bedroom/silent-zone контракты вне основного audio facade.
 - Event/distortion source-id metadata и `tree_exited` callback wiring живут в
   `MusicScopedSourceRegistry`; `MusicManager` сохраняет публичный фасад и стековую
   семантику.
