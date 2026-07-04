@@ -64,6 +64,7 @@
 5. Если в одной сцене несколько разных лабораторных или холодильник задаёт `required_lab_completion_ids`, передавай стабильные и уникальные `lab_completion_id`. Required IDs холодильника должны ссылаться на ноутбуки в той же сцене; это проверяет `test_lab_authoring_contracts.gd`.
 6. Feeding-холодильник с `minigame_scene` или `food_scenes` должен иметь полный config: loadable feeding scene с `minigame_finished` и `setup_game`, непустые `food_scenes`, положительный `food_count`, `andrey_face` и `background_texture`. Code-lock холодильник должен иметь непустой `access_code` и `code_lock_scene` с сигналом `unlocked`; final fridge должен иметь `final_minigame_scene` с финальным setup contract. Это проверяет `test_fridge_authoring_contracts.gd`.
 7. Timeout, cancel и fail-forward должны быть одноразовыми. Повторное закрытие мини-игры не должно выдавать деньги, еду или completion второй раз.
+8. Start/finish fade переходы мини-игр принадлежат `MinigameController` и идут через стабильный `UIMessage.play_fade_sequence(...)` facade; новые мини-игры не должны добавлять локальные method-probe fallback-и вокруг этого transition path.
 
 ## Локализация И Текст
 

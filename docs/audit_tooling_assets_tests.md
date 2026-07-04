@@ -92,6 +92,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Gamepad binding contract теперь сам находит scripts with `MinigameController.set_gamepad_scheme(self, ...)` и требует cleanup, чтобы новые мини-игры не выпадали из проверки.
 - Gamepad callback router regression для lookup/invoke/consumed semantics пользовательских схем мини-игр.
 - Gamepad confirm-release gate regression для защиты мини-игр от подтверждения, зажатого до старта runtime.
+- MinigameController UI transition facade contract запрещает возвращать start/finish fade к stringly `UIMessage.has_method/call` probes.
 - Typed interaction signal subscription contract запрещает runtime/scene authoring подписываться на legacy `interaction_finished`; новые level redirects и signal-driven spawner defaults используют `interaction_succeeded`.
 - CycleLevel UI facade contract запрещает возвращать стартовые subtitle/respawn blackout к stringly `UIMessage.has_method/call` probes.
 - SceneContext classification contract для gameplay path fallback, cycle/timer root contract, `gameplay_scene` group и ending pause-blocking.

@@ -57,6 +57,7 @@
 - Content-object scripts больше не должны использовать stringly probes для стабильных collaborators: лебёдка типизирует `Fridge`, reward/utility objects вызывают `UIMessage.fade_*` через autoload facade, а `test_interaction_architecture_contracts.gd` запрещает возврат к `UIMessage.has_method(...)` и `call("apply_winch_release_state")`.
 - Базовый `CycleLevel` больше не проверяет `UIMessage.is_screen_dark`/`fade_*` строками перед стартовыми субтитрами и respawn blackout; архитектурный тест фиксирует прямой facade contract для новых уровней.
 - `TimedLabMinigameBase` больше не проверяет `UIMessage.show_dialogue` строкой перед outcome dialogue; lab-authoring тест фиксирует прямой facade contract для новых timed-lab мини-игр.
+- `MinigameController` больше не проверяет `UIMessage.play_fade_sequence` строкой перед start/finish transition; архитектурный тест фиксирует прямой transition facade для всех новых мини-игр.
 - Убраны две key-door ловушки: `level_09_crazy` больше не требует несуществующий `lebedka_key` и не держит пустой `SearchKeyManager`, а `level_12_STU_2` больше не запирает игрока в 604 через `key_6level` без источника ключа.
 - Пустые target marker STU-двери, которые должны быть недоступны, явно locked; `level_13_stu_3.gd` сделал отсутствующий primary fridge path явным optional default.
 - `level_13_STU_3` cafeteria fridge больше не остаётся частично настроенным: после lab-gate у него есть feeding minigame scene, face/background/music/sfx и food config.

@@ -387,11 +387,11 @@ func _play_next_transition() -> void:
 		_transition_active = false
 		_play_next_transition()
 		return
-	if UIMessage and UIMessage.has_method("play_fade_sequence"):
-		UIMessage.play_fade_sequence(duration, duration, on_black, Callable(self, "_on_transition_fade_finished").bind(on_finished))
-	else:
+	if UIMessage == null:
 		_transition_active = false
 		_play_next_transition()
+		return
+	UIMessage.play_fade_sequence(duration, duration, on_black, Callable(self, "_on_transition_fade_finished").bind(on_finished))
 
 func _set_minigame_visible(minigame: Node, visible: bool) -> void:
 	if minigame == null or not is_instance_valid(minigame):
@@ -407,9 +407,7 @@ func _can_run_transition(duration: float) -> bool:
 		return false
 	if duration <= 0.0:
 		return false
-	if UIMessage == null:
-		return false
-	return UIMessage.has_method("play_fade_sequence")
+	return UIMessage != null
 
 func _finalize_minigame_finish(minigame: Node, success: bool) -> void:
 	if minigame == null:

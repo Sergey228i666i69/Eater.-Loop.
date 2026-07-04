@@ -60,6 +60,7 @@
 ### 2.4 Контур мини-игр
 
 - Мини-игра регистрируется в `MinigameController.start_minigame(...)`.
+- Start/finish fade transitions мини-игр идут через стабильный `UIMessage.play_fade_sequence(...)` facade; `MinigameController` проверяет только наличие autoload-а, а не метод строкой.
 - Игра/пауза/cursor/music синхронизируются централизованно в контроллере.
 - Backdrop registry/fullscreen backdrop detection вынесены в `MinigameBackdropPresenter`.
 - Suspend/restore lifecycle для `InteractionPrompts` вынесен в `MinigamePromptVisibilityCoordinator`.

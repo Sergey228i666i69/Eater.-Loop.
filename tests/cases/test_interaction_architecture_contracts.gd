@@ -60,6 +60,7 @@ const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridg
 const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
+const MINIGAME_CONTROLLER_PATH := "res://levels/minigames/minigame_controller.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
@@ -153,6 +154,10 @@ const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
 	"UIMessage.call(\"is_screen_dark\"",
 	"UIMessage.has_method(\"fade_out\")",
 	"UIMessage.has_method(\"fade_in\")"
+]
+const FORBIDDEN_MINIGAME_CONTROLLER_UI_MESSAGE_PATTERNS := [
+	"UIMessage.has_method(\"play_fade_sequence\")",
+	"UIMessage.call(\"play_fade_sequence\""
 ]
 
 func run() -> Array[String]:
@@ -255,6 +260,14 @@ func run() -> Array[String]:
 		assert_true(
 			cycle_level_content.find(pattern) == -1,
 			"CycleLevel must use the stable UIMessage facade directly instead of stringly method probes: %s" % pattern
+		)
+
+	var minigame_controller_content := FileAccess.get_file_as_string(MINIGAME_CONTROLLER_PATH)
+	assert_true(minigame_controller_content != "", "Failed to read script: %s" % MINIGAME_CONTROLLER_PATH)
+	for pattern in FORBIDDEN_MINIGAME_CONTROLLER_UI_MESSAGE_PATTERNS:
+		assert_true(
+			minigame_controller_content.find(pattern) == -1,
+			"MinigameController must use the stable UIMessage transition facade directly instead of stringly method probes: %s" % pattern
 		)
 
 	return get_failures()
