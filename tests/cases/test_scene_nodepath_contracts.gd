@@ -9,6 +9,7 @@ const ENEMY_DIR := "res://enemies"
 const PLAYER_SCENES := [
 	"res://player/player.tscn",
 ]
+const LEVEL_MUSIC_SCRIPT := "res://levels/cycles/level_music.gd"
 const DOOR_SCRIPT := "res://objects/interactable/door/door.gd"
 const BLOCKPOST_SCRIPT := "res://objects/interactable/level12/blockpost/blockpost.gd"
 const STUDENT_MONEY_SCRIPT := "res://objects/interactable/level12/student/student_money_npc.gd"
@@ -22,6 +23,10 @@ const CORRIDOR_DISTORTION_SCRIPT := "res://levels/cycles/corridor_distortion.gd"
 const TARGET_MONSTER_SPAWNER_SCRIPT := "res://objects/environment/smart/target/target.gd"
 const SPAWNER_CONDITION_NODE_SIGNAL := 1
 const SPAWNER_CONDITION_TRIGGER_ENTER := 2
+const SCENE_AUDIO_BUSES := {
+	"Music": true,
+	"Sounds": true,
+}
 
 func run() -> Array[String]:
 	_test_unlocked_level_doors_have_resolving_targets()
@@ -29,6 +34,7 @@ func run() -> Array[String]:
 	_test_level_money_interactables_resolve_money_systems()
 	_test_content_scene_exported_nodepaths_resolve()
 	_test_interactable_exported_nodepaths_resolve()
+	_test_scene_audio_players_use_explicit_buses()
 	_test_level_utility_nodepaths_resolve()
 	return get_failures()
 
@@ -109,6 +115,17 @@ func _test_interactable_exported_nodepaths_resolve() -> void:
 				_assert_optional_nodepath_resolves(path, root, node, "noise_player_node", "AudioStreamPlayer2D")
 				if _has_property(node, "enable_teleport") and bool(node.get("enable_teleport")):
 					_assert_required_nodepath_resolves(path, root, node, "teleport_target")
+		root.free()
+
+func _test_scene_audio_players_use_explicit_buses() -> void:
+	for path in _list_content_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		for node in _nodes_including_root(root):
+			if not _is_scene_audio_player(node):
+				continue
+			_assert_scene_audio_player_bus(path, root, node)
 		root.free()
 
 func _test_level_utility_nodepaths_resolve() -> void:
@@ -237,6 +254,18 @@ func _assert_path_resolves(path: String, root: Node, node: Node, property_name: 
 	if target != null and expected_type != "":
 		assert_true(target.is_class(expected_type), "%s must resolve to %s: %s:%s -> %s" % [property_name, expected_type, path, root.get_path_to(node), node_path])
 	return target
+
+func _assert_scene_audio_player_bus(path: String, root: Node, node: Node) -> void:
+	if _script_path(node) == LEVEL_MUSIC_SCRIPT:
+		return
+	var bus_name := String(node.get("bus"))
+	assert_true(
+		SCENE_AUDIO_BUSES.has(bus_name),
+		"Scene audio players must use explicit Music/Sounds bus: %s:%s uses '%s'" % [path, root.get_path_to(node), bus_name]
+	)
+
+func _is_scene_audio_player(node: Node) -> bool:
+	return node is AudioStreamPlayer or node is AudioStreamPlayer2D
 
 func _is_door_allowed_to_have_inert_target(node: Node) -> bool:
 	var locked := bool(node.get("is_locked")) if _has_property(node, "is_locked") else false

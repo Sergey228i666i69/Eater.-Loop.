@@ -8,6 +8,8 @@
 - Вся музыка проходит через autoload `MusicManager` (`res://levels/music_manager.gd`).
 - SFX должны идти в шину `Sounds`.
 - Музыка уровня обычно запускается через `LevelMusic` (`res://levels/cycles/level_music.gd`).
+- Scene-owned `AudioStreamPlayer`/`AudioStreamPlayer2D` должны явно выбирать шину
+  `Music` или `Sounds`; дефолтный `Master` для контентных сцен запрещён.
 - Временные музыкальные состояния (события, мини-игры, искажения) используют стек
   (`push_music` / `pop_music`).
 - `TriggerSetProperty` умеет управлять музыкой, но нужно правильно сочетать действия
@@ -21,6 +23,9 @@
 - `Sounds` — все эффекты (шаги, интеракции, UI-звуки).
 
 Проверка/создание шин выполняется в `SettingsManager` на старте игры.
+Контентные сцены дополнительно проверяются `test_scene_nodepath_contracts.gd`:
+`LevelMusic` освобождён от scene-bus rule, потому что делегирует воспроизведение
+в `MusicManager`, а обычные сценовые плееры должны явно ставить `Music`/`Sounds`.
 
 ## Mix Settings
 
@@ -278,3 +283,5 @@ player.play()
 ```
 
 Для UI-звуков можно использовать `UIMessage.play_sfx(...)`.
+Если плеер лежит прямо в сцене, а не создаётся кодом, выставляйте `bus` в `.tscn`
+явно: `Sounds` для эффектов, `Music` для музыкальных helper-плееров.

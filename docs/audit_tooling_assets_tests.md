@@ -96,6 +96,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.
 - Fridge authoring contract для feeding/code-lock/final fridge configs, minigame signals/setup methods, food scenes, face/background и code-lock scene.
 - Generic active content scene contract для exported non-empty `NodePath`/`Array[NodePath]` values.
+- Scene-owned audio player bus contract для explicit `Music`/`Sounds` на `AudioStreamPlayer`/`AudioStreamPlayer2D`.
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
 - Trigger target/property/effect/music-stream contract для configured `TriggerSetProperty` и `PropertyChange`.
 - Key-door/search-key contract для required key sources, resolving `SearchKeyManager.search_spots` и managed `SearchSpot` minigame/key/trash configs.
