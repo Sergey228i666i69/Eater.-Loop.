@@ -24,7 +24,7 @@
   Общий helper определения keyboard/mouse/gamepad/Sony input-событий для UI prompt-ов,
   меню и директорского input-mode state.
 - Внутренние helper-и крупных фасадов и state services:
-  `CheckpointDynamicRestore`, `GameDirectorCyclePhaseBridge`, `GameDirectorCycleTimerState`, `GameDirectorDeathCameraCoordinator`, `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathRetryCoordinator`, `GameDirectorDeathScreenReset`, `GameDirectorDeathTitlePresenter`, `GameDirectorDistortionGate`, `GameDirectorDistortionOverlayCoordinator`, `GameDirectorDistortionPhaseState`, `GameDirectorDistortionProgress`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `GameDirectorTimerNodeCoordinator`, `GamepadCallbackRouter`, `GamepadConfirmReleaseGate`, `GamepadHintBuilder`, `GamepadNavigationRepeat`, `GamepadNodeResolver`, `GamepadSchemeRegistry`, `MinigameBackdropPresenter`, `MinigameModalOwnership`, `MinigameMusicSession`, `MinigamePromptVisibilityCoordinator`, `MinigameTimerState`, `UIFadeController`.
+  `CheckpointDynamicRestore`, `GameDirectorCyclePhaseBridge`, `GameDirectorCycleTimerState`, `GameDirectorDeathCameraCoordinator`, `GameDirectorDeathCursorCoordinator`, `GameDirectorDeathRetryCoordinator`, `GameDirectorDeathScreenReset`, `GameDirectorDeathTitlePresenter`, `GameDirectorDistortionGate`, `GameDirectorDistortionOverlayCoordinator`, `GameDirectorDistortionPhaseState`, `GameDirectorDistortionProgress`, `GameDirectorOverlayLayerCoordinator`, `GameDirectorStalkerService`, `GameDirectorTimerNodeCoordinator`, `GamepadCallbackRouter`, `GamepadConfirmReleaseGate`, `GamepadHintBuilder`, `GamepadNavigationRepeat`, `GamepadNodeResolver`, `GamepadSchemeRegistry`, `MinigameBackdropPresenter`, `MinigameModalOwnership`, `MinigameMusicSession`, `MinigamePromptVisibilityCoordinator`, `MinigameTimerState`, `MusicPauseReasonState`, `UIFadeController`.
   Они не являются публичными autoload API и используются для снижения размера
   `GameDirector`, `GameState`, `MinigameController` и `UIMessage` без смены внешних вызовов.
 
@@ -136,6 +136,8 @@
   `MusicManager.resolve_mix_volume_db(...)`.
 - Category offset и clamp policy живут в `MusicMixSettings`; `MusicManager`
   только делегирует туда расчёт и сохраняет совместимый фасад.
+- Base/chase pause reason bookkeeping живёт в `MusicPauseReasonState`; `MusicManager`
+  синхронизирует старые private mirror-поля только для внутренней совместимости и тестов.
 - Сцены/объекты вызывают только публичные методы autoload-модулей.
 - Для специальных death-screen веток используется публичный override-point `CycleLevel.handle_custom_death_screen() -> bool`, без `has_method/call` по строке.
 - Чтение/запись runtime-флагов `GameState` должно идти через публичные getter/mutator/consume методы, а не через разрозненные прямые правки полей там, где уже есть API.
@@ -163,6 +165,8 @@
 - Добавлен публичный API микса `MusicManager.resolve_mix_volume_db(...)`.
 - `MusicMixSettings` получил category offset resolver, чтобы `MusicManager` не
   держал mapping offset-полей внутри большого фасада.
+- `MusicPauseReasonState` вынес reason-map для base/chase music pause из `MusicManager`
+  и получил отдельный focused test.
 - `FridgeCodeLockSession` вынес code-lock scene creation и access-code property
   wiring из `Fridge`, сохранив публичный scene/export contract холодильника.
 - `FridgeFeedingSession` вынес feeding minigame config/instantiation/setup contract
@@ -186,7 +190,7 @@
 - `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.
-- `UIMessage`, `MinigameController` backdrop/prompt/timer/modal/music-session/gamepad-registry lifecycle, `GamepadRuntime` hint/repeat/resolving/callback/confirm-release policy, CycleState phase bridge, cycle timer/checkpoint state, timer node lifecycle, death-title часть, stalker spawn/checkpoint часть, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken/reload policy, death screen reset/cleanup, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state `GameDirector` получили facade-preserving helper split-ы.
+- `UIMessage`, `MinigameController` backdrop/prompt/timer/modal/music-session/gamepad-registry lifecycle, `MusicManager` pause-reason bookkeeping, `GamepadRuntime` hint/repeat/resolving/callback/confirm-release policy, CycleState phase bridge, cycle timer/checkpoint state, timer node lifecycle, death-title часть, stalker spawn/checkpoint часть, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken/reload policy, death screen reset/cleanup, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state `GameDirector` получили facade-preserving helper split-ы.
 - Добавлен скелетный `PlayerSkeletonRig` и активный skeleton-only `player.tscn`.
 - `PlayerSkeletonRig` получил первые loop-клипы `idle`, `walk` и `light_run`, а `Player` начал переключать их вместе с текущей логикой движения.
 - Активный `player.tscn` переведён на skeleton-only визуал, старый png-вариант сохранён в sprite-only `LEGASY-ANIMATIONS-CHARACTER.tscn`.

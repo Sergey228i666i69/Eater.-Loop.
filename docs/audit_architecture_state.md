@@ -7,7 +7,7 @@
 - Main scene задана явно в [`project.godot`](../project.godot), около строк 18-24.
 - Autoload-и перечислены централизованно: `GameState`, `CycleState`, `GameDirector`, `MinigameController`, `MusicManager`, `UIMessage` и другие.
 - Есть тесты на autoload/main scene/scene load/private API usage.
-- `MusicManager`, несмотря на размер, имеет публичный фасад и уже защищён тестом от прямого вызова приватных методов.
+- `MusicManager`, несмотря на размер, имеет публичный фасад, защищён тестом от прямого вызова приватных методов и уже вынес mix offsets / pause-reason bookkeeping в отдельные helper-ы.
 - `MinigameSettings` оформлен как `Resource`, что лучше, чем полностью свободные Dictionary-конфиги.
 
 ## Resolved: Определение Игровой Сцены Через Строку Пути

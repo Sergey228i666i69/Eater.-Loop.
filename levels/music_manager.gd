@@ -1,5 +1,7 @@
 extends Node
 
+const MusicPauseReasonStateScript = preload("res://levels/music_pause_reason_state.gd")
+
 ## MusicManager — единый слой управления музыкой.
 ##
 ## Основные режимы:
@@ -92,6 +94,7 @@ var _runner_pause_position: float = 0.0
 var _runner_paused: bool = false
 var _runner_global_paused: bool = false
 var _runner_global_pause_reasons: Dictionary = {}
+var _runner_global_pause_state: MusicPauseReasonState = MusicPauseReasonStateScript.new()
 var _chase_base_muted: bool = false
 var _event_sources: Dictionary = {}
 var _distortion_sources: Dictionary = {}
@@ -99,6 +102,7 @@ var _pause_player: AudioStreamPlayer
 var _pause_menu_active: bool = false
 var _base_pause_reasons: Dictionary = {}
 var _base_pause_active: bool = false
+var _base_pause_state: MusicPauseReasonState = MusicPauseReasonStateScript.new()
 var _base_pause_player: AudioStreamPlayer
 var _base_pause_restore_db: float = 0.0
 var _base_pause_stream: AudioStream
@@ -285,10 +289,10 @@ func reset_base_music_state() -> void:
 	_base_pause_position = 0.0
 	_base_pause_restore_db = 0.0
 	_base_pause_was_playing = false
-	_base_pause_reasons.clear()
-	_base_pause_active = false
-	_runner_global_pause_reasons.clear()
-	_runner_global_paused = false
+	_base_pause_state.clear()
+	_sync_base_pause_mirror()
+	_runner_global_pause_state.clear()
+	_sync_runner_global_pause_mirror()
 	_chase_base_muted = false
 	_event_sources.clear()
 	_distortion_sources.clear()
@@ -637,25 +641,26 @@ func is_chase_active() -> bool:
 
 func pause_chase_music(fade_time: float = -1.0, reason: String = CHASE_PAUSE_REASON_GENERIC) -> void:
 	var pause_reason := _normalize_chase_pause_reason(reason)
-	_runner_global_pause_reasons[pause_reason] = true
-	if _runner_global_paused:
+	var was_paused := _runner_global_pause_state.is_active()
+	_runner_global_pause_state.request(pause_reason)
+	_sync_runner_global_pause_mirror()
+	if was_paused:
 		return
-	_runner_global_paused = true
 	var target_fade := _resolve_fade_time(fade_time)
 	_pause_runner_music(target_fade, true)
 	_sync_chase_base_mute()
 
 func resume_chase_music(fade_time: float = -1.0, reason: String = CHASE_PAUSE_REASON_GENERIC) -> void:
 	var pause_reason := _normalize_chase_pause_reason(reason)
-	if not _runner_global_pause_reasons.has(pause_reason):
+	var was_paused := _runner_global_pause_state.is_active()
+	if not _runner_global_pause_state.has_reason(pause_reason):
 		return
-	_runner_global_pause_reasons.erase(pause_reason)
-	if not _runner_global_pause_reasons.is_empty():
-		_runner_global_paused = true
+	var should_resume := _runner_global_pause_state.release(pause_reason)
+	_sync_runner_global_pause_mirror()
+	if not should_resume:
 		return
-	if not _runner_global_paused:
+	if not was_paused:
 		return
-	_runner_global_paused = false
 	if not _runner_active:
 		return
 	var target_fade := _resolve_fade_time(fade_time)
@@ -673,8 +678,8 @@ func clear_chase_music_sources(fade_time: float = -1.0) -> void:
 	_runner_active = false
 	_runner_paused = false
 	_runner_pause_position = 0.0
-	_runner_global_paused = false
-	_runner_global_pause_reasons.clear()
+	_runner_global_pause_state.clear()
+	_sync_runner_global_pause_mirror()
 	_runner_active_fade_out_time = -1.0
 	var target_fade := _resolve_fade_time(fade_time)
 	if _runner_player != null and _runner_player.playing:
@@ -1026,14 +1031,15 @@ func _apply_base_pause_to_player(player: AudioStreamPlayer, resume_volume_db: fl
 	)
 
 func _request_base_pause(reason: String, fade_time: float) -> void:
-	_base_pause_reasons[reason] = true
-	if _base_pause_active:
+	var was_active := _base_pause_state.is_active()
+	_base_pause_state.request(reason)
+	_sync_base_pause_mirror()
+	if was_active:
 		var active_player := _resolve_base_output_player()
 		if active_player != null and active_player.playing:
 			_apply_base_pause_to_player(active_player, _get_base_target_volume_db(_current_source_kind), fade_time)
 		return
 	var player := _resolve_base_output_player()
-	_base_pause_active = true
 	if player == null:
 		_base_pause_player = null
 		_base_pause_stream = null
@@ -1052,15 +1058,15 @@ func _request_base_pause(reason: String, fade_time: float) -> void:
 	_apply_base_pause_to_player(player, player.volume_db, fade_time)
 
 func _request_base_resume(reason: String, fade_time: float) -> void:
-	if not _base_pause_reasons.has(reason):
+	var was_active := _base_pause_state.is_active()
+	if not _base_pause_state.has_reason(reason):
 		return
-	_base_pause_reasons[reason] = false
-	for key in _base_pause_reasons.keys():
-		if bool(_base_pause_reasons.get(key, false)):
-			return
-	if not _base_pause_active:
+	var should_resume := _base_pause_state.release(reason)
+	_sync_base_pause_mirror()
+	if not should_resume:
 		return
-	_base_pause_active = false
+	if not was_active:
+		return
 	var player := _base_pause_player
 	var resume_stream := _base_pause_stream
 	var resume_position := _base_pause_position
@@ -1088,6 +1094,14 @@ func _request_base_resume(reason: String, fade_time: float) -> void:
 		player.volume_db = resume_db
 		return
 	_fade_volume(player, resume_db, fade_time)
+
+func _sync_base_pause_mirror() -> void:
+	_base_pause_reasons = _base_pause_state.get_reasons()
+	_base_pause_active = _base_pause_state.is_active()
+
+func _sync_runner_global_pause_mirror() -> void:
+	_runner_global_pause_reasons = _runner_global_pause_state.get_reasons()
+	_runner_global_paused = _runner_global_pause_state.is_active()
 
 func _should_mute_base_for_chase() -> bool:
 	if not _runner_active or _runner_global_paused or _runner_paused:

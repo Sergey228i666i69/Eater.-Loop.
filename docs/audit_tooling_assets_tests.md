@@ -101,6 +101,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Checkpoint scene snapshot contract для dynamic runtime participants и removed participant state.
 - Checkpoint dynamic restore helper contract для enemy-only factory restore allowlist, captured parent/name metadata и restoration target parent.
 - GameDirector death screen reset helper contract для скрытия death UI, очистки fade/focus override и освобождения camera/cursor/pause owners.
+- Music pause reason state contract для нескольких независимых base/chase pause owners.
 - Player stamina state contract для run drain/recovery/unlimited/checkpoint semantics.
 - Player inventory state contract для key add/has/remove normalization, dedupe и checkpoint round-trip.
 - Player skeleton step state contract для first-sample arming, clip wrap step crossing и reset semantics.
