@@ -2,16 +2,29 @@ extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
 const SEARCH_KEY_MANAGER_SCRIPT := "res://levels/minigames/search_key/search_key_manager.gd"
+const SEARCH_SPOT_SCRIPT := "res://objects/interactable/search_spot/search_spot.gd"
+const SearchKeyManagerScript := preload("res://levels/minigames/search_key/search_key_manager.gd")
 const SearchSpotScript := preload("res://objects/interactable/search_spot/search_spot.gd")
+const SearchKeyMinigameScript := preload("res://levels/minigames/search_key/search_minigame.gd")
 const SEARCH_KEY_MANAGER_STRINGLY_PATTERNS := [
 	"has_method(\"set_has_key\")",
 	"has_method(\"set_searched_empty\")",
 	".call(\"set_has_key\"",
 	".call(\"set_searched_empty\""
 ]
+const SEARCH_SPOT_STRINGLY_PATTERNS := [
+	"has_method(\"setup\")",
+	"has_method(\"get_layout_state\")",
+	"has_method(\"mark_all_spots_searched_empty\")",
+	".call(\"setup\"",
+	".call(\"get_layout_state\"",
+	".call(\"mark_all_spots_searched_empty\""
+]
 
 func run() -> Array[String]:
 	_test_search_key_manager_uses_typed_search_spots()
+	_test_search_spot_uses_typed_minigame_and_manager()
+	await _test_search_key_manager_marks_sibling_spots_after_success()
 	_test_managed_search_spots_have_complete_configs()
 	return get_failures()
 
@@ -23,6 +36,47 @@ func _test_search_key_manager_uses_typed_search_spots() -> void:
 			content.find(pattern) == -1,
 			"SearchKeyManager must use typed SearchSpot references instead of method probes: %s" % pattern
 		)
+
+func _test_search_spot_uses_typed_minigame_and_manager() -> void:
+	var content := FileAccess.get_file_as_string(SEARCH_SPOT_SCRIPT)
+	assert_true(content != "", "Failed to read SearchSpot script")
+	for pattern in SEARCH_SPOT_STRINGLY_PATTERNS:
+		assert_true(
+			content.find(pattern) == -1,
+			"SearchSpot must use typed SearchKeyMinigame/SearchKeyManager API instead of method probes: %s" % pattern
+		)
+
+func _test_search_key_manager_marks_sibling_spots_after_success() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	if tree == null:
+		return
+
+	var root := Node.new()
+	var first := SearchSpotScript.new()
+	first.name = "FirstSpot"
+	first.has_key = true
+	var second := SearchSpotScript.new()
+	second.name = "SecondSpot"
+	second.has_key = false
+	var manager := SearchKeyManagerScript.new()
+	manager.name = "SearchKeyManager"
+	manager.search_spots = [NodePath("../FirstSpot"), NodePath("../SecondSpot")]
+
+	root.add_child(first)
+	root.add_child(second)
+	root.add_child(manager)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	first.complete_interaction()
+
+	assert_true(first.is_searched_empty, "SearchKeyManager must mark the successful spot searched-empty")
+	assert_true(second.is_searched_empty, "SearchKeyManager must mark sibling search spots searched-empty after success")
+	assert_true(not second.has_key, "SearchKeyManager must clear sibling search keys after one key is found")
+
+	root.queue_free()
+	await tree.process_frame
 
 func _test_managed_search_spots_have_complete_configs() -> void:
 	for path in _list_level_scenes():
@@ -74,8 +128,7 @@ func _assert_search_minigame_contract(path: String, root: Node, spot: Node, scen
 	assert_true(instance != null, "SearchSpot minigame_scene must instantiate: %s:%s" % [path, root.get_path_to(spot)])
 	if instance == null:
 		return
-	assert_true(instance.has_method("setup"), "SearchSpot minigame_scene must expose setup(config): %s:%s" % [path, root.get_path_to(spot)])
-	assert_true(instance.has_method("get_layout_state"), "SearchSpot minigame_scene must expose get_layout_state(): %s:%s" % [path, root.get_path_to(spot)])
+	assert_true(instance is SearchKeyMinigameScript, "SearchSpot minigame_scene must use SearchKeyMinigame script: %s:%s" % [path, root.get_path_to(spot)])
 	assert_true(instance.has_node("SearchArea/KeyButton"), "SearchSpot minigame_scene must keep SearchArea/KeyButton: %s:%s" % [path, root.get_path_to(spot)])
 	assert_true(instance.has_node("SearchArea/TrashContainer"), "SearchSpot minigame_scene must keep SearchArea/TrashContainer: %s:%s" % [path, root.get_path_to(spot)])
 	instance.free()

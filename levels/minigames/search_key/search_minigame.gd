@@ -1,4 +1,5 @@
 extends Control
+class_name SearchKeyMinigame
 
 @export var trash_scene: PackedScene = preload("res://levels/minigames/ui/draggable_trash.tscn")
 @export var key_texture: Texture2D

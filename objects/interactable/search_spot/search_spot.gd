@@ -1,5 +1,6 @@
 extends "res://objects/interactable/interactive_object.gd"
 
+const SearchKeyMinigameScript := preload("res://levels/minigames/search_key/search_minigame.gd")
 
 @export_group("Search Settings")
 @export var minigame_scene: PackedScene
@@ -16,7 +17,7 @@ extends "res://objects/interactable/interactive_object.gd"
 var has_key: bool = false
 var is_searched_empty: bool = false
 
-var _current_minigame: Node = null
+var _current_minigame: SearchKeyMinigameScript = null
 var _layout_state: Dictionary = {}
 
 func set_has_key(value: bool) -> void:
@@ -40,21 +41,26 @@ func _on_interact() -> void:
 		push_warning("SearchSpot: minigame_scene не задан.")
 		return
 
-	var minigame = minigame_scene.instantiate()
+	var raw_minigame := minigame_scene.instantiate()
+	var minigame := raw_minigame as SearchKeyMinigameScript
+	if minigame == null:
+		push_warning("SearchSpot: minigame_scene must use SearchKeyMinigame.")
+		if raw_minigame != null:
+			raw_minigame.free()
+		return
 	_current_minigame = minigame
 
-	if minigame.has_method("setup"):
-		var layout_payload: Dictionary = {}
-		if not _layout_state.is_empty():
-			layout_payload = _layout_state.duplicate(true)
-		minigame.setup({
-			"has_key": has_key,
-			"key_id": key_id,
-			"key_texture": key_texture,
-			"trash_range": Vector2i(trash_min, trash_max),
-			"trash_textures": trash_textures,
-			"layout_state": layout_payload
-		})
+	var layout_payload: Dictionary = {}
+	if not _layout_state.is_empty():
+		layout_payload = _layout_state.duplicate(true)
+	minigame.setup({
+		"has_key": has_key,
+		"key_id": key_id,
+		"key_texture": key_texture,
+		"trash_range": Vector2i(trash_min, trash_max),
+		"trash_textures": trash_textures,
+		"layout_state": layout_payload
+	})
 
 	set_prompts_enabled(false)
 	if MinigameController and MinigameController.has_signal("minigame_finished"):
@@ -74,25 +80,18 @@ func _on_minigame_finished(minigame: Node, success: bool) -> void:
 		return
 	if MinigameController and MinigameController.minigame_finished.is_connected(_on_minigame_finished):
 		MinigameController.minigame_finished.disconnect(_on_minigame_finished)
-	_current_minigame = null
 	set_prompts_enabled(true)
 
-	if is_instance_valid(minigame) and minigame.has_method("get_layout_state"):
-		_layout_state = minigame.get_layout_state()
+	var finished_minigame := minigame as SearchKeyMinigameScript
+	if is_instance_valid(finished_minigame):
+		_layout_state = finished_minigame.get_layout_state()
+	_current_minigame = null
 
 	if success and has_key:
 		var found_key_id := key_id
 		has_key = false
 		is_searched_empty = true
 		complete_interaction(InteractionResultBuilder.key_reward(found_key_id))
-		_mark_all_spots_searched_empty()
-
-func _mark_all_spots_searched_empty() -> void:
-	var manager := get_tree().get_first_node_in_group("search_key_manager")
-	if manager == null:
-		return
-	if manager.has_method("mark_all_spots_searched_empty"):
-		manager.mark_all_spots_searched_empty()
 
 func capture_checkpoint_state() -> Dictionary:
 	var state := super.capture_checkpoint_state()
