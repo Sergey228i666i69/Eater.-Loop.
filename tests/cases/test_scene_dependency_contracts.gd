@@ -31,6 +31,7 @@ func run() -> Array[String]:
 	_test_reversible_triggers_are_not_one_shot()
 	_test_scripts_that_join_runtime_groups_expose_required_methods()
 	_test_checkpoint_custom_methods_are_declared_in_pairs()
+	_test_checkpoint_participants_have_stable_scene_paths()
 	return get_failures()
 
 func _test_key_search_spots_do_not_depend_on_the_door_they_unlock() -> void:
@@ -209,6 +210,25 @@ func _test_checkpoint_custom_methods_are_declared_in_pairs() -> void:
 			"Checkpoint content scripts with custom checkpoint API must declare capture/apply as a pair: %s" % path
 		)
 
+func _test_checkpoint_participants_have_stable_scene_paths() -> void:
+	for path in _list_active_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		for node in _walk_scene_nodes(root):
+			if not _node_uses_checkpoint_contract(node):
+				continue
+			var relative_path := CheckpointStateUtils.get_scene_relative_path(root, node)
+			assert_true(
+				relative_path != "",
+				"Checkpoint participant must have a scene-relative path: %s:%s" % [path, root.get_path_to(node)]
+			)
+			assert_true(
+				_is_stable_checkpoint_path(relative_path),
+				"Checkpoint participant path must be stable and explicit: %s:%s" % [path, relative_path]
+			)
+		root.free()
+
 func _list_active_scenes() -> Array[String]:
 	var scenes: Array[String] = []
 	for dir_path in SCENE_DIRS:
@@ -264,6 +284,33 @@ func _script_is_checkpoint_content_participant(content: String) -> bool:
 	return content.find("extends InteractiveObject") != -1 \
 		or content.find("interactive_object.gd") != -1 \
 		or _script_adds_group(content, CheckpointStateUtils.CHECKPOINT_STATEFUL_GROUP)
+
+func _node_uses_checkpoint_contract(node: Node) -> bool:
+	return node != null and (node.has_method("capture_checkpoint_state") or node.has_method("apply_checkpoint_state"))
+
+func _is_stable_checkpoint_path(relative_path: String) -> bool:
+	if relative_path == ".":
+		return true
+	for segment in relative_path.split("/"):
+		var text := str(segment)
+		if text.strip_edges() == "" or text.find("@") != -1:
+			return false
+	return true
+
+func _walk_scene_nodes(root: Node) -> Array[Node]:
+	var nodes: Array[Node] = []
+	if root == null:
+		return nodes
+	nodes.append(root)
+	_append_child_nodes(root, nodes)
+	return nodes
+
+func _append_child_nodes(node: Node, nodes: Array[Node]) -> void:
+	for child in node.get_children():
+		if child == null:
+			continue
+		nodes.append(child)
+		_append_child_nodes(child, nodes)
 
 func _collect_scene_key_sources(root: Node) -> Dictionary:
 	var keys := {}

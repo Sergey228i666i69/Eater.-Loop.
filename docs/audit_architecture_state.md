@@ -80,7 +80,7 @@
 
 ## P2: Checkpoint System Стал Надёжнее, Но Контракт Всё Ещё Нужен
 
-Snapshot собирает `checkpoint_stateful` участников и сохраняет relative path. После ремонта runtime-created enemy-ноды дополнительно сохраняют dynamic restore descriptor (`scene_path`, `parent_path`, `node_name`) и могут быть пересозданы при apply. Scene snapshot/restore логика вынесена из `GameState` в `CheckpointSceneSnapshot`, dynamic factory-restore policy вынесена в `CheckpointDynamicRestore`, а `GameState` оставлен стабильным фасадом для capture/apply. Custom checkpoint API у content scripts теперь проверяется как пара: если script объявляет `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, он должен объявить оба метода.
+Snapshot собирает `checkpoint_stateful` участников и сохраняет stable scene-relative path. После ремонта runtime-created enemy-ноды дополнительно сохраняют dynamic restore descriptor (`scene_path`, `parent_path`, `node_name`) и могут быть пересозданы при apply. Scene snapshot/restore логика вынесена из `GameState` в `CheckpointSceneSnapshot`, dynamic factory-restore policy вынесена в `CheckpointDynamicRestore`, а `GameState` оставлен стабильным фасадом для capture/apply. Custom checkpoint API у content scripts теперь проверяется как пара: если script объявляет `capture_checkpoint_state()` или `apply_checkpoint_state(state)`, он должен объявить оба метода. Active scenes также проверяются на стабильные checkpoint participant paths: участники не должны получать пустой path или Godot-generated `@...` сегменты.
 
 Примеры:
 
@@ -89,9 +89,9 @@ Snapshot собирает `checkpoint_stateful` участников и сохр
 - [`levels/cycles/checkpoint_dynamic_restore.gd`](../levels/cycles/checkpoint_dynamic_restore.gd), около строки 3: allowlist, metadata capture и factory restore для runtime-created enemies.
 - [`levels/cycles/game_state.gd`](../levels/cycles/game_state.gd), около строки 314: фасадные делегаты checkpoint scene state.
 
-Для простых статичных объектов это нормально; для динамических врагов стало безопаснее и покрыто `test_checkpoint_scene_snapshot.gd`, `test_checkpoint_dynamic_restore.gd` плюс интеграционными respawn-тестами. Оставшаяся ломкость: переименованные узлы, не-enemy runtime objects и scene contracts без validator-а.
+Для простых статичных объектов это нормально; для динамических врагов стало безопаснее и покрыто `test_checkpoint_scene_snapshot.gd`, `test_checkpoint_dynamic_restore.gd` плюс интеграционными respawn-тестами. Оставшаяся ломкость: переименованные узлы и не-enemy runtime objects.
 
-Следующий ремонт: добавить stable checkpoint ids/validators для важных сценовых участников. Новые runtime classes для factory restore должны сначала расширять allowlist/policy в `CheckpointDynamicRestore` и получать отдельный тест.
+Следующий ремонт: новые runtime classes для factory restore должны сначала расширять allowlist/policy в `CheckpointDynamicRestore` и получать отдельный тест.
 
 ## P2: Локализация Частично Закрыта
 
