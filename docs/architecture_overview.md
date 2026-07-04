@@ -65,7 +65,7 @@
 - Backdrop registry/fullscreen backdrop detection вынесены в `MinigameBackdropPresenter`.
 - Suspend/restore lifecycle для `InteractionPrompts` вынесен в `MinigamePromptVisibilityCoordinator`.
 - Timer state и одноразовый timeout-флаг вынесены в `MinigameTimerState`; `MinigameController` только эмитит публичные сигналы и решает auto-finish.
-- Pause/cursor ownership state вынесен в `MinigameModalOwnership`; публичное поведение `pause_game`/`show_mouse_cursor` остаётся в `MinigameSettings`.
+- Pause/cursor ownership state вынесен в `MinigameModalOwnership`; helper ходит к typed `PauseManager`/`CursorManager` API напрямую, а публичное поведение `pause_game`/`show_mouse_cursor` остаётся в `MinigameSettings`.
 - Music stack/session state вынесен в `MinigameMusicSession`; `MinigameController` сохраняет публичные `stop_minigame_music(...)`/`update_minigame_music(...)` и ходит к `MusicManager` только через его публичный фасад.
 - Registry зарегистрированных gamepad-схем вынесен в `GamepadSchemeRegistry`; контроллер сохраняет публичные `set_gamepad_scheme`/`clear_gamepad_scheme`.
 - Player-facing gamepad hint policy вынесен в `GamepadHintBuilder`; `GamepadRuntime` сохраняет input/navigation/callback lifecycle.

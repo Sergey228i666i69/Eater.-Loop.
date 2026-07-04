@@ -1,23 +1,37 @@
 extends "res://tests/test_case.gd"
 
 const MinigameModalOwnership = preload("res://levels/minigames/minigame_modal_ownership.gd")
+const PauseManagerScript := preload("res://levels/menu/pause_manager.gd")
+const CursorManagerScript := preload("res://levels/minigames/cursor_manager.gd")
+const MODAL_OWNERSHIP_SCRIPT := "res://levels/minigames/minigame_modal_ownership.gd"
+const STRINGLY_OWNERSHIP_PATTERNS := [
+	"has_method(\"request_pause\")",
+	"has_method(\"release_pause\")",
+	"has_method(\"request_visible\")",
+	"has_method(\"release_visible\")",
+	".call(\"request_pause\"",
+	".call(\"release_pause\"",
+	".call(\"request_visible\"",
+	".call(\"release_visible\""
+]
 
 
 class FakePauseManager:
-	extends RefCounted
+	extends PauseManagerScript
 
 	var requested: Array = []
 	var released: Array = []
 
-	func request_pause(owner: Object, reason: String) -> void:
+	func request_pause(owner: Object, reason: String = "") -> String:
 		requested.append({"owner": owner, "reason": reason})
+		return "fake:%s" % reason
 
-	func release_pause(owner: Object, reason: String) -> void:
+	func release_pause(owner: Object, reason: String = "") -> void:
 		released.append({"owner": owner, "reason": reason})
 
 
 class FakeCursorManager:
-	extends RefCounted
+	extends CursorManagerScript
 
 	var requested: Array = []
 	var released: Array = []
@@ -30,10 +44,21 @@ class FakeCursorManager:
 
 
 func run() -> Array[String]:
+	_test_modal_ownership_uses_typed_managers()
 	_test_requests_and_releases_pause_and_cursor_once()
 	_test_disabled_modal_flags_do_not_request_ownership()
 	await _test_pause_fallback_uses_tree_paused()
 	return get_failures()
+
+
+func _test_modal_ownership_uses_typed_managers() -> void:
+	var content := FileAccess.get_file_as_string(MODAL_OWNERSHIP_SCRIPT)
+	assert_true(content != "", "Failed to read MinigameModalOwnership script")
+	for pattern in STRINGLY_OWNERSHIP_PATTERNS:
+		assert_true(
+			content.find(pattern) == -1,
+			"MinigameModalOwnership must use typed manager APIs instead of stringly method probes: %s" % pattern
+		)
 
 
 func _test_requests_and_releases_pause_and_cursor_once() -> void:
@@ -64,6 +89,8 @@ func _test_requests_and_releases_pause_and_cursor_once() -> void:
 	assert_true(not ownership.is_cursor_requested(), "Cursor ownership flag must clear after release")
 
 	owner.free()
+	pause.free()
+	cursor.free()
 
 
 func _test_disabled_modal_flags_do_not_request_ownership() -> void:
@@ -85,6 +112,8 @@ func _test_disabled_modal_flags_do_not_request_ownership() -> void:
 	assert_eq(cursor.released.size(), 0, "Disabled cursor flag must not release an unowned cursor")
 
 	owner.free()
+	pause.free()
+	cursor.free()
 
 
 func _test_pause_fallback_uses_tree_paused() -> void:

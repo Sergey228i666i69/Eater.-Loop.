@@ -65,6 +65,7 @@
 6. Feeding-холодильник с `minigame_scene` или `food_scenes` должен иметь полный config: loadable feeding scene с `minigame_finished` и `setup_game`, непустые `food_scenes`, положительный `food_count`, `andrey_face` и `background_texture`. Code-lock холодильник должен иметь непустой `access_code` и `code_lock_scene` с сигналом `unlocked`; final fridge должен иметь `final_minigame_scene` с финальным setup contract. Это проверяет `test_fridge_authoring_contracts.gd`.
 7. Timeout, cancel и fail-forward должны быть одноразовыми. Повторное закрытие мини-игры не должно выдавать деньги, еду или completion второй раз.
 8. Start/finish fade переходы мини-игр принадлежат `MinigameController` и идут через стабильный `UIMessage.play_fade_sequence(...)` facade; новые мини-игры не должны добавлять локальные method-probe fallback-и вокруг этого transition path.
+9. Pause/cursor ownership задавай через `MinigameSettings.pause_game` и `show_mouse_cursor`: `MinigameModalOwnership` уже ходит к typed `PauseManager`/`CursorManager` API, поэтому новая мини-игра не должна вручную дублировать эти manager-вызовы.
 
 ## Локализация И Текст
 
