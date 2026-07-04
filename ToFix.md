@@ -12,7 +12,7 @@
 
 - pause ownership, typed interaction outcomes, fade controller, minigame backdrop/prompt/timer/modal/music/gamepad-hint/gamepad-repeat/gamepad-node-resolving/gamepad-callback/gamepad-confirm-release lifecycle helpers, scene checkpoint snapshot/restore/dynamic-restore helpers, player run/stamina helper, player key inventory helper, player skeleton step timing helper, player flashlight charge/recharge helper, death-title presentation и death screen reset/cleanup уже вынесены из самых хрупких мест;
 - STU/scene/utility/level/lab/fridge-authoring contracts теперь покрыты валидаторами, но крупные сцены всё ещё дороги для ручного ревью;
-- naming debt из этого списка закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references;
+- naming debt из этого списка закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references, включая старый runtime-prefix `Frizzer`;
 - `MusicManager`, `GameDirector`, оставшиеся visual/facing/checkpoint glue части `Player` и STU-сцены всё ещё крупные, но оставшиеся распилы теперь являются отдельными future refactor задачами, а не открытыми runtime-долгами этого файла.
 
 Оценка проблемности после закрытия этого списка: примерно 5/10. Это поддерживаемый проект с рабочими тестами; исходные P1-регрессии и найденные здесь P2/P3-долги закрыты, а оставшаяся цена поддержки в основном связана с будущими крупными scene-authoring и architecture refactor-ами.

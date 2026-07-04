@@ -162,7 +162,7 @@ func _should_auto_complete_after_interact() -> bool:
 # --- ЛОГИКА КОДОВОГО ЗАМКА ---
 func _start_code_lock() -> void:
 	if code_lock_scene == null:
-		push_warning("Frizzer: Не назначена сцена Code Lock!")
+		push_warning("Fridge: Не назначена сцена Code Lock!")
 		fail_interaction("missing_code_lock_scene")
 		return
 	
@@ -216,7 +216,7 @@ func _start_feeding_process() -> void:
 	
 	var selected_scene := _resolve_feeding_scene()
 	if not FridgeFeedingSessionScript.can_start(selected_scene, food_scenes):
-		push_warning("Frizzer: Нет сцены мини-игры или еды!")
+		push_warning("Fridge: Нет сцены мини-игры или еды!")
 		_is_interacting = false
 		fail_interaction("missing_feeding_scene_or_food")
 		if UIMessage:
@@ -225,7 +225,7 @@ func _start_feeding_process() -> void:
 	
 	var game: Node = FridgeFeedingSessionScript.create_game(selected_scene)
 	if not FridgeFeedingSessionScript.has_finish_signal(game):
-		push_warning("Frizzer: Некорректная сцена мини-игры еды!")
+		push_warning("Fridge: Некорректная сцена мини-игры еды!")
 		if game != null:
 			game.queue_free()
 		_is_interacting = false

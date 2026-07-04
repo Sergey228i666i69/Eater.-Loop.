@@ -79,7 +79,7 @@ Git почти не трекает аудио/изображения, но сц�
 - `FridgeNoizeE.wav` -> `FridgeNoiseE.wav`;
 - search-key `Без названия *.png` backgrounds получили descriptive names.
 
-Scene/script references и `.import` metadata обновлены вместе с файлами. Оставшиеся спорные имена вроде `Frizzer` лучше трогать только отдельным scene-authoring rename pass, если они окажутся реально вредными в текущей работе.
+Scene/script references и `.import` metadata обновлены вместе с файлами. Старый runtime log-prefix `Frizzer` нормализован в `Fridge` и закреплён статическим контрактом.
 
 ## Resolved: Дублировался Паттерн Прожектора
 

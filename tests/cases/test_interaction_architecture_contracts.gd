@@ -32,6 +32,9 @@ const LEGACY_INTERACTION_FLAG_PATTERNS := [
 const LEGACY_SCENE_CALLBACK_PATTERNS := [
 	"on_fed_andrey"
 ]
+const LEGACY_RUNTIME_TEXT_PATTERNS := [
+	"Frizzer"
+]
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
@@ -142,6 +145,9 @@ func run() -> Array[String]:
 
 		for pattern in LEGACY_SCENE_CALLBACK_PATTERNS:
 			assert_true(content.find(pattern) == -1, "Legacy scene callback is forbidden: %s (%s)" % [path, pattern])
+
+		for pattern in LEGACY_RUNTIME_TEXT_PATTERNS:
+			assert_true(content.find(pattern) == -1, "Legacy runtime text label is forbidden: %s (%s)" % [path, pattern])
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 
