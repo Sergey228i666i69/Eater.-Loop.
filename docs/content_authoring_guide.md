@@ -31,7 +31,7 @@
 16. Для event/distortion музыки передавай scene-owned `Node` как `source` в `MusicManager.start_event_music(...)` / `start_distortion_music(...)`: manager снимет registry/stack entry при `tree_exited`, а обычный enter/exit flow всё равно должен явно вызывать stop.
 17. Если уровень использует крупные STU-пути или dynamic door redirects, держи route/wiring paths в exported `NodePath`/target-полях scene script-а и добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
 18. В level scripts не вызывай публичный API двери через `has_method("set_locked")` / `call("set_target_marker_path", ...)`, если путь обязан вести к двери. Типизируй узел как `Door`, а validator пусть проверяет, что exported path действительно резолвится в `Door`.
-19. Финальные развилки должны быть typed: `laptop_path` резолвится в `Laptop`, `fridge_path` в `Fridge`, `bed_path` в `Bed`, а ветка выбирается по typed success/feeding signals. Не возвращай выбор ветки на legacy `interaction_finished`.
+19. Финальные развилки, fridge-driven redirects и signal-driven spawner conditions должны быть typed: `laptop_path` резолвится в `Laptop`, `fridge_path` в `Fridge`, `bed_path` в `Bed`, а реакция на успешное взаимодействие идёт через `interaction_succeeded` или доменный сигнал вроде `feeding_finished`. Не подписывай новый runtime/scene authoring на legacy `interaction_finished`.
 20. Если root scene script экспортирует optional wiring, называй его явно (`primary_fridge_path`, `fridge_interacted_spawn_marker_path`) и добавляй его в allowlist общего validator-а только когда пустое значение действительно является частью дизайна.
 
 ## Новый Интерактив
@@ -89,6 +89,7 @@
 - lab completion id or required lab reference contract;
 - lab minigame scene contract;
 - trigger target path, property, effect or music-stream contract;
+- typed interaction signal subscription contract;
 - exported content scene `NodePath` resolving contract;
 - scene-owned audio player bus contract;
 - utility-level condition/spawn path contract;

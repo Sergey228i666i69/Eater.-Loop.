@@ -22,8 +22,8 @@ func _wire_bathroom_redirect() -> void:
 	for fridge in _fridges:
 		if fridge == null:
 			continue
-		if not fridge.interaction_finished.is_connected(_on_fridge_interaction_finished):
-			fridge.interaction_finished.connect(_on_fridge_interaction_finished)
+		if not fridge.interaction_succeeded.is_connected(_on_fridge_interaction_succeeded):
+			fridge.interaction_succeeded.connect(_on_fridge_interaction_succeeded)
 
 	if CycleState != null and CycleState.has_signal("fridge_interacted_changed"):
 		var on_changed := Callable(self, "_on_fridge_interacted_changed")
@@ -38,7 +38,7 @@ func _register_fridge(path: NodePath) -> void:
 		return
 	_fridges.append(fridge)
 
-func _on_fridge_interaction_finished() -> void:
+func _on_fridge_interaction_succeeded(_result: Dictionary = {}) -> void:
 	_update_bathroom_door_target()
 
 func _on_fridge_interacted_changed() -> void:

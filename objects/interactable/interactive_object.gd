@@ -333,8 +333,6 @@ func _disconnect_dependency_listener() -> void:
 		return
 	if dependency_object.interaction_succeeded.is_connected(_on_dependency_succeeded):
 		dependency_object.interaction_succeeded.disconnect(_on_dependency_succeeded)
-	if dependency_object.interaction_finished.is_connected(_on_dependency_finished):
-		dependency_object.interaction_finished.disconnect(_on_dependency_finished)
 	if dependency_object.interaction_requested.is_connected(_on_dependency_interaction_requested):
 		dependency_object.interaction_requested.disconnect(_on_dependency_interaction_requested)
 

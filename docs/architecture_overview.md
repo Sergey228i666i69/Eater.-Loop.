@@ -92,7 +92,7 @@
 - Зависимости между интерактивными объектами задаются через `set_dependency_object(...)` вместе с явным `set_dependency_condition(...)`.
 - Доступные dependency-смыслы: `COMPLETED` для typed success outcome dependency и `INTERACTION_REQUESTED` для unlock-а после попытки взаимодействия.
 - Любой интерактив может эмитить `interaction_result(result)`, `interaction_succeeded(result)`, `interaction_failed(result)` и `interaction_cancelled(result)`.
-- `complete_interaction(...)` является success wrapper и сохраняет legacy `interaction_finished`; failed/cancelled outcomes не должны выставлять `is_completed`.
+- `complete_interaction(...)` является success wrapper и сохраняет legacy `interaction_finished` только для совместимости; новые runtime/scene subscriptions используют typed `interaction_succeeded`, а failed/cancelled outcomes не должны выставлять `is_completed`.
 - `InteractionResultBuilder` является канонической точкой сборки result Dictionary: `payload` зарезервирован как typed Dictionary для reward/item/branch data, а top-level custom keys остаются только совместимым слоем.
 - Включение/отключение объекта делается через `set_interaction_enabled(...)`, а не прямой раздельной правкой prompt/input флагов.
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
@@ -199,7 +199,7 @@
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
-- Добавлены scene-contract validators для critical NodePath/child contracts, scene audio-bus contracts, utility-level NodePaths, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
+- Добавлены scene-contract validators для critical NodePath/child contracts, scene audio-bus contracts, typed interaction signal subscriptions, utility-level NodePaths, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
 - `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.

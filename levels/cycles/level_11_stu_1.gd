@@ -25,8 +25,8 @@ func _wire_level11_fridge_state() -> void:
 	var fridge_done := _is_fridge_success_done()
 	if _fridge != null:
 		_fridge.is_completed = fridge_done
-		if not _fridge.interaction_finished.is_connected(_on_fridge_successfully_interacted):
-			_fridge.interaction_finished.connect(_on_fridge_successfully_interacted)
+		if not _fridge.interaction_succeeded.is_connected(_on_fridge_successfully_interacted):
+			_fridge.interaction_succeeded.connect(_on_fridge_successfully_interacted)
 
 	_configure_note_dependency()
 	_apply_door_lock_state(fridge_done)
@@ -40,7 +40,7 @@ func _configure_note_dependency() -> void:
 	_note_story.set_dependency_condition(InteractiveObject.DependencyCondition.COMPLETED)
 	_note_story.refresh_interaction_state()
 
-func _on_fridge_successfully_interacted() -> void:
+func _on_fridge_successfully_interacted(_result: Dictionary = {}) -> void:
 	if _fridge != null:
 		_fridge.is_completed = true
 	_apply_door_lock_state(true)

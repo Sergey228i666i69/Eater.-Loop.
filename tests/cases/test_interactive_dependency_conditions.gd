@@ -12,6 +12,7 @@ func run() -> Array[String]:
 	await _test_interaction_result_signals_separate_success_failure_and_legacy_finish()
 	await _test_default_condition_behaves_like_legacy_completion()
 	await _test_completed_condition_ignores_attempts()
+	await _test_completed_condition_ignores_legacy_finish_emit()
 	await _test_interaction_requested_condition_unlocks_on_attempt()
 	await _test_interaction_requested_checkpoint_state_restores_unlock()
 	await _test_rebinding_dependency_disconnects_old_signals()
@@ -125,7 +126,33 @@ func _test_completed_condition_ignores_attempts() -> void:
 	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "COMPLETED dependency condition must not unlock on interaction_requested")
 
 	dependency.complete_interaction()
-	assert_true(bool(dependent.call("_is_dependency_satisfied")), "COMPLETED dependency condition must unlock after interaction_finished")
+	assert_true(bool(dependent.call("_is_dependency_satisfied")), "COMPLETED dependency condition must unlock after typed completion")
+
+	root.queue_free()
+	await tree.process_frame
+
+func _test_completed_condition_ignores_legacy_finish_emit() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		fail("SceneTree is not available")
+		return
+
+	var root := Node2D.new()
+	var dependency := ProbeInteractive.new()
+	var dependent := ProbeInteractive.new()
+	root.add_child(dependency)
+	root.add_child(dependent)
+	tree.root.add_child(root)
+	await tree.process_frame
+
+	dependent.set_dependency_object(dependency)
+	dependent.set_dependency_condition(InteractiveObject.DependencyCondition.COMPLETED)
+
+	dependency.interaction_finished.emit()
+	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Raw legacy interaction_finished emit must not satisfy completed dependency")
+
+	dependency.complete_interaction()
+	assert_true(bool(dependent.call("_is_dependency_satisfied")), "Completed dependency must still unlock through complete_interaction()")
 
 	root.queue_free()
 	await tree.process_frame

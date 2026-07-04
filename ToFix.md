@@ -51,6 +51,7 @@
 - Legacy-комментарии из runtime-кода очищены в `InteractiveObject`, `fridge.gd` и `laptop.gd`.
 - Input-device detection централизован в `global/input_device_utils.gd` и переиспользуется `GameDirector`, `InteractionPrompts` и `MainMenu`.
 - `InteractiveObject` получил typed `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`; final branch и completed dependencies переведены на success outcome.
+- Level scripts и `TargetMonsterSpawner` node-signal defaults переведены с legacy `interaction_finished` на typed `interaction_succeeded`; архитектурный контракт запрещает новые runtime/scene подписки на legacy signal.
 - `PauseManager` получил owner-token API; pause menu, UI notes/hints, minigames и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`: критичные interactable paths, utility-level paths для лебёдки/corridor distortion/`TargetMonsterSpawner`, active content scene exported non-empty `NodePath`/`Array[NodePath]` resolving, scene-owned audio player `Music`/`Sounds` bus contract, playable level root contract, cycle-level metadata/Player instance/Player export ranges/bed transitions/bed target scene types/root exported `*_path` wiring, typed root path expectations и LevelMusic configs покрыты `test_level_authoring_contracts.gd`, lab laptop IDs/timer settings и fridge required lab IDs покрыты `test_lab_authoring_contracts.gd`, feeding/code-lock/final fridge configs покрыты `test_fridge_authoring_contracts.gd`, STU exported route/wiring paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`, configured `TriggerSetProperty` target/property/effect/music-stream wiring покрыт `test_trigger_set_property_contracts.gd`, managed `SearchSpot` minigame/key/trash configs покрыты `test_search_key_authoring_contracts.gd`, а key-door/search-key wiring и stable scene-relative paths для checkpoint participants покрыты `test_scene_dependency_contracts.gd`.
 - Убраны две key-door ловушки: `level_09_crazy` больше не требует несуществующий `lebedka_key` и не держит пустой `SearchKeyManager`, а `level_12_STU_2` больше не запирает игрока в 604 через `key_6level` без источника ключа.
@@ -66,11 +67,12 @@
 Статус: закрыто.
 
 - `objects/interactable/interactive_object.gd` теперь эмитит `interaction_result(result)`, `interaction_succeeded(result)`, `interaction_failed(result)` и `interaction_cancelled(result)`.
-- `complete_interaction()` остаётся совместимым success wrapper и по-прежнему эмитит legacy `interaction_finished`.
+- `complete_interaction()` остаётся совместимым success wrapper и по-прежнему эмитит legacy `interaction_finished`, но runtime scripts и scene authoring больше не должны подписываться на него.
 - Failed/cancelled outcomes не выставляют `is_completed` и не удовлетворяют `COMPLETED` dependencies.
 - `InteractionResultBuilder` нормализует `payload` в Dictionary для reward/item/branch data и сохраняет совместимые top-level custom keys.
 - `DependencyCondition.COMPLETED` слушает typed success outcome, а `INTERACTION_REQUESTED` остаётся attempt-level unlock.
 - `level_11_end.gd` выбирает laptop branch только по typed `interaction_succeeded`; final scene wiring проверяет реальные `Laptop`/`Fridge`/`Bed` paths и `bad_ending_scene`.
+- `level_07_doors.gd`, `level_11_stu_1.gd`, `level_13_stu_3.gd` и node-signal defaults `TargetMonsterSpawner` теперь используют typed `interaction_succeeded`; `test_interaction_architecture_contracts.gd` запрещает новые legacy subscriptions.
 - Контракт покрыт `tests/cases/test_interactive_dependency_conditions.gd` и `tests/cases/test_level11_end_flow_contracts.gd`.
 
 ### 9. Владение `get_tree().paused` размазано по singleton-ам

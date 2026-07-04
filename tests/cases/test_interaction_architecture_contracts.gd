@@ -38,6 +38,13 @@ const LEGACY_RUNTIME_TEXT_PATTERNS := [
 const INLINE_KEY_REWARD_PAYLOAD_PATTERNS := [
 	"\"reward_type\": \"key\""
 ]
+const LEGACY_INTERACTION_FINISHED_SCRIPT_PATTERNS := [
+	".interaction_finished.connect",
+	"condition_signal_name: StringName = &\"interaction_finished\""
+]
+const LEGACY_INTERACTION_FINISHED_SCENE_PATTERNS := [
+	"condition_signal_name = &\"interaction_finished\""
+]
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
@@ -167,6 +174,9 @@ func run() -> Array[String]:
 			for pattern in INLINE_KEY_REWARD_PAYLOAD_PATTERNS:
 				assert_true(content.find(pattern) == -1, "Key reward payloads must use InteractionResultBuilder.key_reward(...): %s (%s)" % [path, pattern])
 
+		for pattern in LEGACY_INTERACTION_FINISHED_SCRIPT_PATTERNS:
+			assert_true(content.find(pattern) == -1, "Runtime scripts must subscribe to typed interaction_succeeded instead of legacy interaction_finished: %s (%s)" % [path, pattern])
+
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 
 		if path != GAME_STATE_PATH:
@@ -195,6 +205,8 @@ func run() -> Array[String]:
 			continue
 		for pattern in FORBIDDEN_ACTIVE_SCENE_PATTERNS:
 			assert_true(content.find(pattern) == -1, "Active scene must not reference archived resources: %s (%s)" % [path, pattern])
+		for pattern in LEGACY_INTERACTION_FINISHED_SCENE_PATTERNS:
+			assert_true(content.find(pattern) == -1, "Active scenes must use typed interaction_succeeded instead of legacy interaction_finished signal wiring: %s (%s)" % [path, pattern])
 
 	var game_director_content := FileAccess.get_file_as_string(GAME_DIRECTOR_PATH)
 	assert_true(game_director_content != "", "Failed to read script: %s" % GAME_DIRECTOR_PATH)

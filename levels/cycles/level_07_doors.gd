@@ -21,14 +21,14 @@ func _setup_level_logic() -> void:
 	_hall2_right_door = get_node_or_null(hall2_right_door_path) as Door
 	_apply_unified_locked_messages()
 
-	if _fridge != null and not _fridge.interaction_finished.is_connected(_on_fridge_interaction_finished):
-		_fridge.interaction_finished.connect(_on_fridge_interaction_finished)
+	if _fridge != null and not _fridge.interaction_succeeded.is_connected(_on_fridge_interaction_succeeded):
+		_fridge.interaction_succeeded.connect(_on_fridge_interaction_succeeded)
 
 	_apply_pre_fridge_layout()
 	if CycleState != null and CycleState.has_method("is_fridge_interacted") and CycleState.is_fridge_interacted():
 		_apply_post_fridge_layout()
 
-func _on_fridge_interaction_finished() -> void:
+func _on_fridge_interaction_succeeded(_result: Dictionary = {}) -> void:
 	_apply_post_fridge_layout()
 
 func _apply_pre_fridge_layout() -> void:

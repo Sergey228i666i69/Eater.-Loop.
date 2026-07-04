@@ -40,8 +40,8 @@ enum ConditionType {
 @export_group("Condition/Node Signal")
 ## Узел, от сигнала которого ждать условие (например, интерактивный объект).
 @export var condition_node_path: NodePath
-## Имя сигнала у узла (например, interaction_finished).
-@export var condition_signal_name: StringName = &"interaction_finished"
+## Имя сигнала у узла (например, interaction_succeeded).
+@export var condition_signal_name: StringName = &"interaction_succeeded"
 ## Необязательная проверка bool-свойства узла на момент сигнала.
 @export var condition_property_name: StringName = &""
 ## Ожидаемое значение bool-свойства condition_property_name.
