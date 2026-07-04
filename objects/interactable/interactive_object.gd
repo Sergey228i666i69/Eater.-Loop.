@@ -192,6 +192,15 @@ func hide_manager_prompt() -> void:
 	_interaction_focused = false
 	_hide_prompt()
 
+func set_manager_focus(focused: bool) -> void:
+	if _interaction_focused == focused:
+		_refresh_prompt_state()
+		return
+	if focused:
+		show_manager_prompt()
+	else:
+		hide_manager_prompt()
+
 func get_interaction_sort_position() -> Vector2:
 	return global_position
 
@@ -406,15 +415,6 @@ func _refresh_prompt_state() -> void:
 		_show_prompt()
 	else:
 		_hide_prompt()
-
-func _set_interaction_focus(focused: bool) -> void:
-	if _interaction_focused == focused:
-		_refresh_prompt_state()
-		return
-	if focused:
-		show_manager_prompt()
-	else:
-		hide_manager_prompt()
 
 func _uses_interaction_manager() -> bool:
 	return InteractionManager != null and InteractionManager.has_method("register_candidate")

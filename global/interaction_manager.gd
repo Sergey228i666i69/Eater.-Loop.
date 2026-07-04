@@ -49,7 +49,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	var selected := _select_candidate()
 	if selected == null:
 		return
-	var action := selected.call("_get_interact_action") as String
+	var action := selected.get_interact_action_name()
 	if action == "":
 		return
 	if not event.is_action_pressed(action):
@@ -122,7 +122,7 @@ func _distance_to_player(object: InteractiveObject, player: Variant) -> float:
 func _set_object_focus(object: InteractiveObject, focused: bool) -> void:
 	if object == null or not is_instance_valid(object):
 		return
-	object.call("_set_interaction_focus", focused)
+	object.set_manager_focus(focused)
 
 func _can_show_prompt(object: InteractiveObject) -> bool:
 	return object != null and object.can_show_manager_prompt()

@@ -95,6 +95,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - MinigameController UI transition facade contract запрещает возвращать start/finish fade к stringly `UIMessage.has_method/call` probes.
 - Minigame modal ownership contract запрещает возвращать pause/cursor ownership к stringly `PauseManager`/`CursorManager` method probes.
 - Typed interaction signal subscription contract запрещает runtime/scene authoring подписываться на legacy `interaction_finished`; новые level redirects и signal-driven spawner defaults используют `interaction_succeeded`.
+- InteractionManager public API contract запрещает центральному input flow возвращаться к private string calls `_get_interact_action` / `_set_interaction_focus`; manager должен использовать `InteractiveObject.get_interact_action_name()` и `set_manager_focus(...)`.
 - CycleLevel UI facade contract запрещает возвращать стартовые subtitle/respawn blackout к stringly `UIMessage.has_method/call` probes.
 - SceneContext classification contract для gameplay path fallback, cycle/timer root contract, `gameplay_scene` group и ending pause-blocking.
 - Level authoring contract для cycle metadata, single Player instance, Player export ranges, configured bed transitions, bed target scene type, conditional respawn paths, LevelMusic configs и включённых стартовых текстов.

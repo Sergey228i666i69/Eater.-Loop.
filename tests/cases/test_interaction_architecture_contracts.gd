@@ -62,6 +62,7 @@ const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
 const MINIGAME_CONTROLLER_PATH := "res://levels/minigames/minigame_controller.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
+const INTERACTION_MANAGER_PATH := "res://global/interaction_manager.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -158,6 +159,12 @@ const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
 const FORBIDDEN_MINIGAME_CONTROLLER_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"play_fade_sequence\")",
 	"UIMessage.call(\"play_fade_sequence\""
+]
+const FORBIDDEN_INTERACTION_MANAGER_STRINGLY_PATTERNS := [
+	"call(\"_get_interact_action\"",
+	"call('_get_interact_action'",
+	"call(\"_set_interaction_focus\"",
+	"call('_set_interaction_focus'"
 ]
 
 func run() -> Array[String]:
@@ -269,6 +276,23 @@ func run() -> Array[String]:
 			minigame_controller_content.find(pattern) == -1,
 			"MinigameController must use the stable UIMessage transition facade directly instead of stringly method probes: %s" % pattern
 		)
+
+	var interaction_manager_content := FileAccess.get_file_as_string(INTERACTION_MANAGER_PATH)
+	assert_true(interaction_manager_content != "", "Failed to read script: %s" % INTERACTION_MANAGER_PATH)
+	if interaction_manager_content != "":
+		assert_true(
+			interaction_manager_content.find("get_interact_action_name()") != -1,
+			"InteractionManager must read interact action through InteractiveObject public API"
+		)
+		assert_true(
+			interaction_manager_content.find("set_manager_focus(") != -1,
+			"InteractionManager must set focus through InteractiveObject public API"
+		)
+		for pattern in FORBIDDEN_INTERACTION_MANAGER_STRINGLY_PATTERNS:
+			assert_true(
+				interaction_manager_content.find(pattern) == -1,
+				"InteractionManager must not call InteractiveObject private API by string: %s" % pattern
+			)
 
 	return get_failures()
 

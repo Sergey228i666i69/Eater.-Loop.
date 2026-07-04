@@ -37,7 +37,7 @@
 ## Новый Интерактив
 
 1. Наследуйся от `InteractiveObject`, если объект участвует в player interaction flow.
-2. Не обрабатывай один и тот же `interact` input параллельно с `InteractionManager`. Дай manager-у выбрать объект по availability, priority и distance.
+2. Не обрабатывай один и тот же `interact` input параллельно с `InteractionManager`. Дай manager-у выбрать объект по availability, priority и distance. Если нужен свой action, переопредели внутренний `_get_interact_action()` в наследнике; внешний manager всё равно читает его через публичный `get_interact_action_name()`. Не вызывай `_set_interaction_focus()` или другие private focus hooks строкой: для manager-facing фокуса есть `set_manager_focus(...)`.
 3. Для зависимостей указывай и объект, и typed condition: `COMPLETED` или `INTERACTION_REQUESTED`. Не возвращайся к старому one-shot fail-open поведению.
 4. Вызывай `complete_interaction()` только после успешного outcome. Failed/cancelled/requested outcomes не должны удовлетворять completed dependency.
 5. Для данных результата, которые могут понадобиться другим объектам (`reward_type`, `key_id`, item/reward/branch data), используй `InteractionResultBuilder.with_payload(...)`; для выдачи ключа используй готовый `InteractionResultBuilder.key_reward(key_id)`. `payload` зарезервирован как Dictionary; произвольные совместимые top-level ключи допускаются только для старых локальных данных. Если появляется новый тип reward/item/branch payload, сначала добавь constants/helper в `InteractionResultBuilder` и focused test, затем используй его в интерактивах.

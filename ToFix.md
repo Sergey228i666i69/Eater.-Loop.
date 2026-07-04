@@ -37,7 +37,7 @@
 - LLM glitch minigame теперь явно оформлена как intentionally fail-forward, а не случайно невыигрываемая.
 - Фонарик больше не переключается во время black-screen/fade transitions и blocked movement.
 - Event/distortion music больше не push-ит дубликаты в stack при повторном старте того же source; source registry вынесен в `MusicScopedSourceRegistry` и автоматически освобождает scoped source при `Node.tree_exited`.
-- `InteractiveObject` явно unregister-ится из `InteractionManager` при `_exit_tree`.
+- `InteractiveObject` явно unregister-ится из `InteractionManager` при `_exit_tree`, а `InteractionManager` больше не вызывает private interaction action/focus hooks строками.
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
 - Ending-сцены классифицируются через `SceneContext`, gameplay path fallback ограничен `level_*.tscn`, gameplay-сцены вне стандартной папки могут опираться на `gameplay_scene` group или cycle/timer root contract, и pause menu не открывается поверх концовок.
 - `ending_credits.gd` уважает export `return_scene`, поэтому credits можно переиспользовать в другом menu/ending flow без правки кода.
@@ -52,6 +52,7 @@
 - Input-device detection централизован в `global/input_device_utils.gd` и переиспользуется `GameDirector`, `InteractionPrompts` и `MainMenu`.
 - `InteractiveObject` получил typed `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`; final branch и completed dependencies переведены на success outcome.
 - Level scripts и `TargetMonsterSpawner` node-signal defaults переведены с legacy `interaction_finished` на typed `interaction_succeeded`; архитектурный контракт запрещает новые runtime/scene подписки на legacy signal.
+- `InteractionManager` больше не вызывает `InteractiveObject._get_interact_action()` и `_set_interaction_focus()` через stringly `call`: action читается через `get_interact_action_name()`, фокус задаётся через `set_manager_focus(...)`, а архитектурный тест запрещает возврат к private string calls.
 - `PauseManager` получил owner-token API; pause menu, UI notes/hints, minigames и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`: критичные interactable paths, utility-level paths для лебёдки/corridor distortion/`TargetMonsterSpawner`, typed `Fridge` target у лебёдки, active content scene exported non-empty `NodePath`/`Array[NodePath]` resolving, scene-owned audio player `Music`/`Sounds` bus contract, playable level root contract, cycle-level metadata/Player instance/Player export ranges/bed transitions/bed target scene types/root exported `*_path` wiring, typed root path expectations и LevelMusic configs покрыты `test_level_authoring_contracts.gd`, lab laptop IDs/timer settings и fridge required lab IDs покрыты `test_lab_authoring_contracts.gd`, feeding/code-lock/final fridge configs покрыты `test_fridge_authoring_contracts.gd`, STU exported route/wiring paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`, configured `TriggerSetProperty` target/property/effect/music-stream wiring покрыт `test_trigger_set_property_contracts.gd`, managed `SearchSpot` minigame/key/trash configs и typed `SearchKeyManager.search_spots` покрыты `test_search_key_authoring_contracts.gd`, а key-door/search-key wiring и stable scene-relative paths для checkpoint participants покрыты `test_scene_dependency_contracts.gd`.
 - Content-object scripts больше не должны использовать stringly probes для стабильных collaborators: лебёдка типизирует `Fridge`, reward/utility objects вызывают `UIMessage.fade_*` через autoload facade, а `test_interaction_architecture_contracts.gd` запрещает возврат к `UIMessage.has_method(...)` и `call("apply_winch_release_state")`.
@@ -168,7 +169,7 @@
 
 Статус: закрыто.
 
-- `objects/interactable/interactive_object.gd` получил `_exit_tree()` cleanup: dependency disconnect, unregister из `InteractionManager`, сброс player/focus/prompt.
+- `objects/interactable/interactive_object.gd` получил `_exit_tree()` cleanup: dependency disconnect, unregister из `InteractionManager`, сброс player/focus/prompt. Manager-facing action/focus API стал публичным, чтобы центральный input flow не зависел от private string calls.
 - Regression покрыт в `tests/cases/test_interaction_manager_focus.gd`.
 
 ### 17. `SearchSpot` не выставляет `complete_interaction()` после найденного ключа

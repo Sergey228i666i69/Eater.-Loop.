@@ -47,7 +47,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 - прожекторов;
 - кровати.
 
-Статус: закрыто. `InteractionManager` выбирает один объект по availability, priority, distance и порядку входа, показывает одну подсказку и consume-ит input. Поведение покрыто `test_interaction_manager_focus.gd`.
+Статус: закрыто. `InteractionManager` выбирает один объект по availability, priority, distance и порядку входа, показывает одну подсказку и consume-ит input. Manager больше не вызывает private action/focus hooks через `call("_...")`: action читается через `get_interact_action_name()`, а фокус задаётся через `set_manager_focus(...)`. Поведение покрыто `test_interaction_manager_focus.gd`, а архитектурный contract запрещает вернуть private string calls.
 
 ## Resolved: Деньги Level 12 Плохо Переживают Чекпоинты
 

@@ -97,6 +97,7 @@
 - Любой интерактив может эмитить `interaction_result(result)`, `interaction_succeeded(result)`, `interaction_failed(result)` и `interaction_cancelled(result)`.
 - `complete_interaction(...)` является success wrapper и сохраняет legacy `interaction_finished` только для совместимости; новые runtime/scene subscriptions используют typed `interaction_succeeded`, а failed/cancelled outcomes не должны выставлять `is_completed`.
 - `InteractionResultBuilder` является канонической точкой сборки result Dictionary: `payload` зарезервирован как typed Dictionary для reward/item/branch data, а top-level custom keys остаются только совместимым слоем.
+- `InteractionManager` выбирает focused candidate и вызывает только публичный manager-facing API `InteractiveObject`: `get_interact_action_name()` для action name и `set_manager_focus(...)` для prompt focus. Private hooks вроде `_get_interact_action()` остаются внутренними override-точками самого интерактива.
 - `SearchKeyManager.search_spots` резолвятся в `SearchSpot`; manager сбрасывает и выбирает точки через typed API, а не через `has_method` probes.
 - Включение/отключение объекта делается через `set_interaction_enabled(...)`, а не прямой раздельной правкой prompt/input флагов.
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
@@ -200,7 +201,7 @@
 - Добавлены архитектурные тесты на запрет private-coupling к `InteractiveObject` и stringly custom death handler.
 - Эти изменения не меняют игровой процесс и затрагивают только подкапотную часть.
 - Добавлена классификация ending-сцен в `SceneContext` и единое blocking-правило для pause menu поверх концовок.
-- Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup и fail-forward LLM glitch contract.
+- Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup/public action-focus API и fail-forward LLM glitch contract.
 - Event/distortion music sources теперь scoped к `Node.tree_exited`: удалённый trigger/controller автоматически освобождает registry/stack entry через `MusicScopedSourceRegistry`.
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
