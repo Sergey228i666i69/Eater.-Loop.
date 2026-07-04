@@ -1,6 +1,7 @@
 extends RefCounted
 
 const RESTORABLE_GROUPS: Array[StringName] = [&"enemies"]
+const RESTORABLE_SCRIPT_PREFIXES: Array[String] = ["res://enemies/"]
 
 func capture_restore_data(scene: Node, node: Node) -> Dictionary:
 	if scene == null or node == null:
@@ -41,10 +42,16 @@ func restore_node(scene: Node, entry: Dictionary) -> Node:
 	var restored := packed.instantiate()
 	if restored == null:
 		return null
+	if not is_restorable_scene_instance(restored):
+		restored.free()
+		return null
 	var node_name := str(restore_data.get("node_name", ""))
 	if node_name != "":
 		restored.name = node_name
 	parent.add_child(restored)
+	if not is_restorable_runtime_node(restored):
+		restored.queue_free()
+		return null
 	return restored
 
 func is_restorable_runtime_node(node: Node) -> bool:
@@ -57,6 +64,13 @@ func is_restorable_runtime_node(node: Node) -> bool:
 			return true
 	return false
 
+func is_restorable_scene_instance(node: Node) -> bool:
+	if node == null:
+		return false
+	if is_restorable_runtime_node(node):
+		return true
+	return _has_restorable_script(node)
+
 func resolve_parent(scene: Node, parent_path: String) -> Node:
 	if scene == null:
 		return null
@@ -66,3 +80,18 @@ func resolve_parent(scene: Node, parent_path: String) -> Node:
 	if parent != null:
 		return parent
 	return scene
+
+func _has_restorable_script(node: Node) -> bool:
+	var script_raw: Variant = node.get_script()
+	while script_raw is Script:
+		var script := script_raw as Script
+		if _is_restorable_script_path(String(script.resource_path)):
+			return true
+		script_raw = script.get_base_script()
+	return false
+
+func _is_restorable_script_path(script_path: String) -> bool:
+	for prefix in RESTORABLE_SCRIPT_PREFIXES:
+		if script_path.begins_with(prefix):
+			return true
+	return false

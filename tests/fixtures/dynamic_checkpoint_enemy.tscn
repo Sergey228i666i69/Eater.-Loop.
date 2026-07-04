@@ -2,5 +2,5 @@
 
 [ext_resource type="Script" path="res://tests/fixtures/dynamic_checkpoint_enemy.gd" id="1_dynamic_checkpoint_enemy"]
 
-[node name="DynamicCheckpointEnemy" type="CharacterBody2D"]
+[node name="DynamicCheckpointEnemy" type="CharacterBody2D" groups=["enemies"]]
 script = ExtResource("1_dynamic_checkpoint_enemy")

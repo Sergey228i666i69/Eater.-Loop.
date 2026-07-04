@@ -100,7 +100,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Scene typed override hygiene contract для явных door/interactable defaults вместо inherited `null`.
 - Checkpoint participant stable-path contract для active scenes: custom checkpoint nodes must resolve to non-empty scene-relative paths without generated `@...` segments.
 - Checkpoint scene snapshot contract для dynamic runtime participants и removed participant state.
-- Checkpoint dynamic restore helper contract для enemy-only factory restore allowlist, captured parent/name metadata и restoration target parent.
+- Checkpoint dynamic restore helper contract для enemy-only factory restore allowlist, captured parent/name metadata, restoration target parent и fail-closed reject неразрешённых scene paths.
 - Interaction result builder contract для typed Dictionary payload, metadata/source/player preservation и защиты payload от alias-мутаций.
 - GameDirector death screen reset helper contract для скрытия death UI, очистки fade/focus override и освобождения camera/cursor/pause owners.
 - Music pause reason state contract для нескольких независимых base/chase pause owners.

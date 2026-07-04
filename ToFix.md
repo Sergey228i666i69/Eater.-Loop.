@@ -103,7 +103,7 @@
 - `Fridge` больше не держит code-lock scene adapter напрямую: создание lock scene и `code_value`/legacy `target_code` wiring вынесены в `FridgeCodeLockSession`.
 - `Fridge` больше не держит feeding minigame setup напрямую: config check, scene instantiation, `minigame_finished` contract и `setup_game` wiring вынесены в `FridgeFeedingSession`.
 - `Fridge` больше не держит post-feeding world hooks напрямую: cycle marks, chase cleanup, teleport и checkpoint/autosave fallback вынесены в `FridgeCompletionSession`.
-- `CheckpointSceneSnapshot` больше не держит dynamic runtime restore policy напрямую: allowlist, restore metadata, parent resolution и scene instantiation вынесены в `CheckpointDynamicRestore`.
+- `CheckpointSceneSnapshot` больше не держит dynamic runtime restore policy напрямую: allowlist, restore metadata, parent resolution, scene instantiation и fail-closed reject неразрешённых scene paths вынесены в `CheckpointDynamicRestore`.
 - Оставшаяся крупность `GameDirector`, `MusicManager` и visual/facing/checkpoint glue частей `Player` теперь зафиксирована как future architecture refactor, а не открытый долг этого remediation списка.
 
 ### 11. Scene validators нужно расширить на NodePath/child-name contracts

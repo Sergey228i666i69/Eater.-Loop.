@@ -2,11 +2,13 @@ extends "res://tests/test_case.gd"
 
 const CheckpointDynamicRestore = preload("res://levels/cycles/checkpoint_dynamic_restore.gd")
 const DYNAMIC_ENEMY_SCENE_PATH := "res://tests/fixtures/dynamic_checkpoint_enemy.tscn"
+const NON_RESTORABLE_SCENE_PATH := "res://objects/interactable/door/door.tscn"
 
 func run() -> Array[String]:
 	await _test_ownerless_runtime_enemy_captures_restore_data()
 	await _test_non_enemy_runtime_node_is_not_factory_restorable()
 	await _test_restore_node_uses_captured_parent_and_name()
+	await _test_restore_node_rejects_unallowlisted_scene_path()
 	return get_failures()
 
 func _test_ownerless_runtime_enemy_captures_restore_data() -> void:
@@ -33,6 +35,32 @@ func _test_ownerless_runtime_enemy_captures_restore_data() -> void:
 	assert_eq(restore_data.get("scene_path", ""), DYNAMIC_ENEMY_SCENE_PATH, "Runtime enemy restore must keep scene path")
 	assert_eq(restore_data.get("parent_path", ""), "SpawnParent", "Runtime enemy restore must keep scene-relative parent path")
 	assert_eq(restore_data.get("node_name", ""), "RuntimeEnemy", "Runtime enemy restore must keep node name")
+
+	scene.queue_free()
+	await tree.process_frame
+
+func _test_restore_node_rejects_unallowlisted_scene_path() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	if tree == null:
+		return
+
+	var helper: RefCounted = CheckpointDynamicRestore.new()
+	var scene := Node2D.new()
+	scene.name = "Scene"
+	tree.root.add_child(scene)
+	await tree.process_frame
+
+	var restored: Node = helper.restore_node(scene, {
+		"dynamic_restore": {
+			"scene_path": NON_RESTORABLE_SCENE_PATH,
+			"parent_path": ".",
+			"node_name": "RestoredDoor",
+		}
+	})
+
+	assert_true(restored == null, "Dynamic restore must reject non-allowlisted scene paths")
+	assert_true(scene.get_node_or_null("RestoredDoor") == null, "Rejected dynamic restore must not attach the node")
 
 	scene.queue_free()
 	await tree.process_frame
