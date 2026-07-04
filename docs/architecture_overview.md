@@ -184,6 +184,7 @@
 - Эти изменения не меняют игровой процесс и затрагивают только подкапотную часть.
 - Добавлена классификация ending-сцен в `SceneContext` и единое blocking-правило для pause menu поверх концовок.
 - Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup и fail-forward LLM glitch contract.
+- Event/distortion music sources теперь scoped к `Node.tree_exited`: удалённый trigger/controller автоматически освобождает registry/stack entry в `MusicManager`.
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.

@@ -359,6 +359,7 @@ func start_distortion_music(source: Object, stream: AudioStream, fade_time: floa
 	if _distortion_sources.has(source_id):
 		return
 	_distortion_sources[source_id] = true
+	_connect_scoped_music_source_exit(source, &"_on_distortion_music_source_exited", source_id)
 	var target_volume := resolve_mix_volume_db(MIX_DISTORTION, volume_db)
 	push_music(stream, fade_time, target_volume, source_id, SOURCE_KIND_DISTORTION)
 
@@ -367,10 +368,7 @@ func stop_distortion_music(source: Object, fade_time: float = -1.0) -> void:
 		return
 	var source_id := source.get_instance_id()
 	_distortion_sources.erase(source_id)
-	if _current_source_id == source_id:
-		pop_music(fade_time)
-	else:
-		remove_music_from_stack_by_source_id(source_id)
+	_release_scoped_music_source(source_id, fade_time)
 
 func start_event_music(source: Object, stream: AudioStream, fade_in_time: float = -1.0, volume_db: float = 999.0, fade_out_time: float = 1.0) -> void:
 	if source == null or stream == null:
@@ -380,6 +378,7 @@ func start_event_music(source: Object, stream: AudioStream, fade_in_time: float 
 		_event_sources[source_id] = {"fade_out_time": fade_out_time}
 		return
 	_event_sources[source_id] = {"fade_out_time": fade_out_time}
+	_connect_scoped_music_source_exit(source, &"_on_event_music_source_exited", source_id)
 	var target_volume := resolve_mix_volume_db(MIX_EVENT, volume_db)
 	push_music(stream, fade_in_time, target_volume, source_id, SOURCE_KIND_EVENT)
 
@@ -387,17 +386,8 @@ func stop_event_music(source: Object, fade_out_time: float = -1.0) -> void:
 	if source == null:
 		return
 	var source_id := source.get_instance_id()
-	var target_fade := fade_out_time
-	if target_fade < 0.0:
-		var entry: Dictionary = _event_sources.get(source_id, {})
-		if entry.has("fade_out_time"):
-			target_fade = float(entry.get("fade_out_time"))
-	if target_fade < 0.0:
-		target_fade = default_fade_time
-	if _current_source_id == source_id:
-		pop_music(target_fade)
-	else:
-		remove_music_from_stack_by_source_id(source_id)
+	var target_fade := _resolve_event_music_fade_out(source_id, fade_out_time)
+	_release_scoped_music_source(source_id, target_fade)
 	_event_sources.erase(source_id)
 
 func start_minigame_music(stream: AudioStream, volume_db: float = 999.0) -> void:
@@ -523,6 +513,43 @@ func _on_ambient_suppression_source_exited(source_id: int) -> void:
 	if played_pending:
 		return
 	_sync_base_music_output(0.0)
+
+func _connect_scoped_music_source_exit(source: Object, method: StringName, source_id: int) -> void:
+	if not source is Node:
+		return
+	var source_node := source as Node
+	var on_exited := Callable(self, method).bind(source_id)
+	if not source_node.tree_exited.is_connected(on_exited):
+		source_node.tree_exited.connect(on_exited, Object.CONNECT_ONE_SHOT)
+
+func _on_event_music_source_exited(source_id: int) -> void:
+	if not _event_sources.has(source_id):
+		return
+	var target_fade := _resolve_event_music_fade_out(source_id, -1.0)
+	_event_sources.erase(source_id)
+	_release_scoped_music_source(source_id, target_fade)
+
+func _on_distortion_music_source_exited(source_id: int) -> void:
+	if not _distortion_sources.has(source_id):
+		return
+	_distortion_sources.erase(source_id)
+	_release_scoped_music_source(source_id, 0.0)
+
+func _resolve_event_music_fade_out(source_id: int, fade_out_time: float) -> float:
+	var target_fade := fade_out_time
+	if target_fade < 0.0:
+		var entry: Dictionary = _event_sources.get(source_id, {})
+		if entry.has("fade_out_time"):
+			target_fade = float(entry.get("fade_out_time"))
+	if target_fade < 0.0:
+		target_fade = default_fade_time
+	return target_fade
+
+func _release_scoped_music_source(source_id: int, fade_time: float) -> void:
+	if _current_source_id == source_id:
+		pop_music(fade_time)
+		return
+	remove_music_from_stack_by_source_id(source_id)
 
 func _cleanup_ambient_suppression_sources() -> void:
 	if _ambient_suppression_sources.is_empty():

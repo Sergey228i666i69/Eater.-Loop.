@@ -47,7 +47,7 @@
 - Main scene и autoload-и явно заданы в `project.godot`.
 - Есть локальный тест-раннер и 106 тестов.
 - Тесты уже проверяют autoload-и, main scene, project config, localization CSV/mojibake/translit-key/static non-Cyrillic/GDScript call-literal text hygiene, RU player-facing localization key coverage including gamepad hints, cycle/lab/fridge authoring contracts, загрузку сцен и запрет использования приватного API `MusicManager`.
-- `MusicManager` большой, но имеет осмысленный публичный фасад; mix-offset policy живёт в `MusicMixSettings`, а pause-reason bookkeeping в `MusicPauseReasonState`.
+- `MusicManager` большой, но имеет осмысленный публичный фасад; mix-offset policy живёт в `MusicMixSettings`, pause-reason bookkeeping в `MusicPauseReasonState`, а event/distortion sources сами освобождаются при `Node.tree_exited`.
 - `MinigameSettings` как `Resource` лучше, чем полностью ad-hoc Dictionary-конфиги.
 - `InteractiveObject` уже является полезной базовой точкой для lock/dependency/one-shot/minigame поведения.
 

@@ -103,6 +103,13 @@ var volume_db := MusicManager.resolve_mix_volume_db(MusicManager.MIX_MINIGAME, r
 `MusicManager._apply_mix(...)`; внутренне фасад делегирует category offset в
 `MusicMixSettings`.
 
+Event/distortion music является scoped к переданному `source`. Если source является
+`Node`, `MusicManager` сам отпустит registry/stack entry при `tree_exited`, поэтому
+удалённый trigger или scene-owned controller не оставит приоритетную музыку висеть.
+Явный `stop_event_music(...)` / `stop_distortion_music(...)` всё ещё нужен для
+обычного enter/exit flow, но аварийный cleanup больше не является обязанностью
+каждого content script.
+
 ### 4) Пауза и возобновление всей музыки
 
 ```gdscript
@@ -194,6 +201,8 @@ MusicManager.play_ambient_music(stream, fade_time, volume_db)
 - `6 (Пауза)` -> `3 (Восстановить)`
 
 `restore_music_volume` снимает только ducking, но не снимает pause состояния.
+Если trigger с `Event start` удаляется вместе со сценой раньше exit-события,
+`MusicManager` автоматически снимет его scoped source при `tree_exited`.
 
 ## Кейс: музыка выключена в спальне, включена в остальном уровне
 

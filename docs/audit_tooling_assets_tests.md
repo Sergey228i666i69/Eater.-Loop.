@@ -104,6 +104,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Interaction result builder contract для typed Dictionary payload, metadata/source/player preservation и защиты payload от alias-мутаций.
 - GameDirector death screen reset helper contract для скрытия death UI, очистки fade/focus override и освобождения camera/cursor/pause owners.
 - Music pause reason state contract для нескольких независимых base/chase pause owners.
+- MusicManager scoped source cleanup regression для event/distortion music, чтобы удалённые trigger/controller nodes не оставляли приоритетную музыку в registry/stack.
 - Player stamina state contract для run drain/recovery/unlimited/checkpoint semantics.
 - Player inventory state contract для key add/has/remove normalization, dedupe и checkpoint round-trip.
 - Player skeleton step state contract для first-sample arming, clip wrap step crossing и reset semantics.

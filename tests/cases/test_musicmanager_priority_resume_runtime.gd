@@ -2,6 +2,7 @@ extends "res://tests/test_case.gd"
 
 const AMBIENT_STREAM_PATH := "res://music/InsideAmbient.wav"
 const DISTORTION_STREAM_PATH := "res://music/StressMusic.wav"
+const EVENT_STREAM_PATH := "res://music/UniversityMusic.wav"
 const MUSIC_MANAGER_PATH := "res://levels/music_manager.gd"
 
 func run() -> Array[String]:
@@ -14,13 +15,16 @@ func run() -> Array[String]:
 
 	var ambient_stream := load(AMBIENT_STREAM_PATH) as AudioStream
 	var distortion_stream := load(DISTORTION_STREAM_PATH) as AudioStream
+	var event_stream := load(EVENT_STREAM_PATH) as AudioStream
 	assert_true(ambient_stream != null, "Ambient test stream failed to load")
 	assert_true(distortion_stream != null, "Distortion test stream failed to load")
-	if ambient_stream == null or distortion_stream == null:
+	assert_true(event_stream != null, "Event test stream failed to load")
+	if ambient_stream == null or distortion_stream == null or event_stream == null:
 		return get_failures()
 
 	await _test_pending_ambient_does_not_override_distortion(ambient_stream, distortion_stream)
-	await _test_event_and_distortion_music_start_are_idempotent(ambient_stream, distortion_stream)
+	await _test_event_and_distortion_music_start_are_idempotent(event_stream, distortion_stream)
+	await _test_scoped_music_sources_cleanup_on_tree_exit(ambient_stream, event_stream, distortion_stream)
 	_test_mix_settings_resource_resolves_category_offsets()
 	_test_pause_resume_restores_playback_position()
 	_test_chase_pause_reasons_do_not_resume_while_minigame_paused()
@@ -89,6 +93,50 @@ func _test_event_and_distortion_music_start_are_idempotent(event_stream: AudioSt
 
 	source.queue_free()
 	await tree.process_frame
+	_cleanup_music_manager()
+
+func _test_scoped_music_sources_cleanup_on_tree_exit(ambient_stream: AudioStream, event_stream: AudioStream, distortion_stream: AudioStream) -> void:
+	_cleanup_music_manager()
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	if tree == null:
+		return
+
+	MusicManager.play_ambient_music(ambient_stream, 0.0)
+	await tree.process_frame
+	var event_source := Node.new()
+	tree.root.add_child(event_source)
+	await tree.process_frame
+	var event_source_id := event_source.get_instance_id()
+	MusicManager.start_event_music(event_source, event_stream, 0.0, 999.0, 0.0)
+	await tree.process_frame
+	assert_true(MusicManager.get("_event_sources").has(event_source_id), "Event source must register while its node is alive")
+	assert_eq(String(MusicManager.get("_current_source_kind")), MusicManager.SOURCE_KIND_EVENT, "Event music must become the active source before tree-exit cleanup")
+
+	event_source.queue_free()
+	await tree.process_frame
+	await tree.process_frame
+
+	assert_true(not MusicManager.get("_event_sources").has(event_source_id), "Event source must unregister automatically when its node exits the tree")
+	assert_eq(MusicManager.get_current_stream(), ambient_stream, "Event source tree exit must release the scoped stack entry")
+	assert_eq(String(MusicManager.get("_current_source_kind")), MusicManager.SOURCE_KIND_AMBIENT, "Ambient source kind must restore after event source tree exit")
+
+	var distortion_source := Node.new()
+	tree.root.add_child(distortion_source)
+	await tree.process_frame
+	var distortion_source_id := distortion_source.get_instance_id()
+	MusicManager.start_distortion_music(distortion_source, distortion_stream, 0.0)
+	await tree.process_frame
+	assert_true(MusicManager.get("_distortion_sources").has(distortion_source_id), "Distortion source must register while its node is alive")
+	assert_eq(String(MusicManager.get("_current_source_kind")), MusicManager.SOURCE_KIND_DISTORTION, "Distortion music must become the active source before tree-exit cleanup")
+
+	distortion_source.queue_free()
+	await tree.process_frame
+	await tree.process_frame
+
+	assert_true(not MusicManager.get("_distortion_sources").has(distortion_source_id), "Distortion source must unregister automatically when its node exits the tree")
+	assert_eq(MusicManager.get_current_stream(), ambient_stream, "Distortion source tree exit must release the scoped stack entry")
+	assert_eq(String(MusicManager.get("_current_source_kind")), MusicManager.SOURCE_KIND_AMBIENT, "Ambient source kind must restore after distortion source tree exit")
 	_cleanup_music_manager()
 
 func _test_mix_settings_resource_resolves_category_offsets() -> void:
