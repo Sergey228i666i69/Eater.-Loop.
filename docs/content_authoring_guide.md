@@ -28,6 +28,7 @@
 13. Для event/distortion музыки передавай scene-owned `Node` как `source` в `MusicManager.start_event_music(...)` / `start_distortion_music(...)`: manager снимет registry/stack entry при `tree_exited`, а обычный enter/exit flow всё равно должен явно вызывать stop.
 14. Если уровень использует крупные STU-пути или dynamic door redirects, держи route/wiring paths в exported `NodePath`/target-полях scene script-а и добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
 15. В level scripts не вызывай публичный API двери через `has_method("set_locked")` / `call("set_target_marker_path", ...)`, если путь обязан вести к двери. Типизируй узел как `Door`, а validator пусть проверяет, что exported path действительно резолвится в `Door`.
+16. Финальные развилки должны быть typed: `laptop_path` резолвится в `Laptop`, `fridge_path` в `Fridge`, `bed_path` в `Bed`, а ветка выбирается по typed success/feeding signals. Не возвращай выбор ветки на legacy `interaction_finished`.
 
 ## Новый Интерактив
 

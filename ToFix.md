@@ -70,7 +70,7 @@
 - Failed/cancelled outcomes не выставляют `is_completed` и не удовлетворяют `COMPLETED` dependencies.
 - `InteractionResultBuilder` нормализует `payload` в Dictionary для reward/item/branch data и сохраняет совместимые top-level custom keys.
 - `DependencyCondition.COMPLETED` слушает typed success outcome, а `INTERACTION_REQUESTED` остаётся attempt-level unlock.
-- `level_11_end.gd` выбирает laptop branch по `interaction_succeeded`, с fallback только для старых объектов без typed signal.
+- `level_11_end.gd` выбирает laptop branch только по typed `interaction_succeeded`; final scene wiring проверяет реальные `Laptop`/`Fridge`/`Bed` paths и `bad_ending_scene`.
 - Контракт покрыт `tests/cases/test_interactive_dependency_conditions.gd` и `tests/cases/test_level11_end_flow_contracts.gd`.
 
 ### 9. Владение `get_tree().paused` размазано по singleton-ам

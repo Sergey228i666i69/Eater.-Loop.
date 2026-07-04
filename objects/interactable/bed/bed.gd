@@ -1,4 +1,5 @@
 extends "res://objects/interactable/interactive_object.gd"
+class_name Bed
 
 ## Путь к следующей сцене, куда переносить игрока после сна.
 @export_file("*.tscn") var next_level_path: String
