@@ -108,7 +108,9 @@ Event/distortion music является scoped к переданному `source
 удалённый trigger или scene-owned controller не оставит приоритетную музыку висеть.
 Явный `stop_event_music(...)` / `stop_distortion_music(...)` всё ещё нужен для
 обычного enter/exit flow, но аварийный cleanup больше не является обязанностью
-каждого content script.
+каждого content script. Source-id metadata и `tree_exited` wiring живут в
+`MusicScopedSourceRegistry`; `MusicManager` остаётся публичным фасадом, который
+решает, когда делать `push_music(...)` и `pop_music(...)`.
 
 ### 4) Пауза и возобновление всей музыки
 

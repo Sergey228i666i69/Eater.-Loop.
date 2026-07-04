@@ -706,6 +706,8 @@
 │   ├── music_manager.gd.uid
 │   ├── music_mix_settings.gd
 │   ├── music_mix_settings.gd.uid
+│   ├── music_scoped_source_registry.gd
+│   ├── music_scoped_source_registry.gd.uid
 │   ├── prompt_view.gd
 │   └── prompt_view.gd.uid
 ├── music
@@ -1581,6 +1583,8 @@
 │   │   ├── test_minigame_gamepad_bindings.gd.uid
 │   │   ├── test_music_crossfade_suppression_runtime.gd
 │   │   ├── test_music_crossfade_suppression_runtime.gd.uid
+│   │   ├── test_music_scoped_source_registry.gd
+│   │   ├── test_music_scoped_source_registry.gd.uid
 │   │   ├── test_musicmanager_priority_resume_runtime.gd
 │   │   ├── test_musicmanager_priority_resume_runtime.gd.uid
 │   │   ├── test_musicmanager_private_api_usage.gd

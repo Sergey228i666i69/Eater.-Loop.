@@ -139,6 +139,9 @@
   только делегирует туда расчёт и сохраняет совместимый фасад.
 - Base/chase pause reason bookkeeping живёт в `MusicPauseReasonState`; `MusicManager`
   синхронизирует старые private mirror-поля только для внутренней совместимости и тестов.
+- Event/distortion source-id metadata и `tree_exited` callback wiring живут в
+  `MusicScopedSourceRegistry`; `MusicManager` сохраняет публичный фасад и стековую
+  семантику.
 - Сцены/объекты вызывают только публичные методы autoload-модулей.
 - Для специальных death-screen веток используется публичный override-point `CycleLevel.handle_custom_death_screen() -> bool`, без `has_method/call` по строке.
 - Чтение/запись runtime-флагов `GameState` должно идти через публичные getter/mutator/consume методы, а не через разрозненные прямые правки полей там, где уже есть API.
@@ -184,7 +187,7 @@
 - Эти изменения не меняют игровой процесс и затрагивают только подкапотную часть.
 - Добавлена классификация ending-сцен в `SceneContext` и единое blocking-правило для pause menu поверх концовок.
 - Добавлены regression-тесты для music overlay idempotency, flashlight transition blocking, SearchSpot completion, InteractionManager cleanup и fail-forward LLM glitch contract.
-- Event/distortion music sources теперь scoped к `Node.tree_exited`: удалённый trigger/controller автоматически освобождает registry/stack entry в `MusicManager`.
+- Event/distortion music sources теперь scoped к `Node.tree_exited`: удалённый trigger/controller автоматически освобождает registry/stack entry через `MusicScopedSourceRegistry`.
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.

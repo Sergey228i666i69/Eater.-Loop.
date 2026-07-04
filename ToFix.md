@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 106 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 107 тестов.
 
 Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
@@ -36,7 +36,7 @@
 - Chase music pause получил reason-map для menu/global/minigame, и закрытие pause menu больше не снимает minigame pause.
 - LLM glitch minigame теперь явно оформлена как intentionally fail-forward, а не случайно невыигрываемая.
 - Фонарик больше не переключается во время black-screen/fade transitions и blocked movement.
-- Event/distortion music больше не push-ит дубликаты в stack при повторном старте того же source и автоматически освобождает scoped source при `Node.tree_exited`.
+- Event/distortion music больше не push-ит дубликаты в stack при повторном старте того же source; source registry вынесен в `MusicScopedSourceRegistry` и автоматически освобождает scoped source при `Node.tree_exited`.
 - `InteractiveObject` явно unregister-ится из `InteractionManager` при `_exit_tree`.
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
 - Ending-сцены классифицируются через `SceneContext`, и pause menu не открывается поверх концовок.
@@ -99,7 +99,7 @@
 - `levels/minigames/minigame_controller.gd` больше не держит minigame music pushed/stream/stop-on-finish state напрямую: это вынесено в `levels/minigames/minigame_music_session.gd` и покрыто `tests/cases/test_minigame_music_session.gd`.
 - `levels/game_director.gd` больше не держит death-title sequence, readable glitch layout и material factory: это вынесено в `levels/game_director_death_title_presenter.gd`.
 - `levels/game_director.gd` больше не держит stalker spawn/checkpoint service, overlay layer policy, death cursor/input policy, death camera capture/restore, death retry restore/darken/reload policy, death screen reset/cleanup, cycle timer/checkpoint state, CycleState phase bridge, timer node lifecycle, minigame distortion gate, distortion progress/easing math, distortion overlay/material actuator и distortion phase/checkpoint state напрямую: это вынесено в отдельные `game_director_*` helper-ы с focused tests.
-- `MusicManager` facade оставлен стабильным: он уже защищён private-API тестом, mix-offset policy вынесена в `MusicMixSettings`, base/chase pause reason bookkeeping вынесен в `MusicPauseReasonState`, а event/distortion source lifecycle получил `tree_exited` cleanup; рискованный широкий audio-stack refactor лучше делать отдельной задачей с audio-regression focus.
+- `MusicManager` facade оставлен стабильным: он уже защищён private-API тестом, mix-offset policy вынесена в `MusicMixSettings`, base/chase pause reason bookkeeping вынесен в `MusicPauseReasonState`, а event/distortion source lifecycle вынесен в `MusicScopedSourceRegistry` с `tree_exited` cleanup; рискованный широкий audio-stack refactor лучше делать отдельной задачей с audio-regression focus.
 - `Fridge` больше не держит code-lock scene adapter напрямую: создание lock scene и `code_value`/legacy `target_code` wiring вынесены в `FridgeCodeLockSession`.
 - `Fridge` больше не держит feeding minigame setup напрямую: config check, scene instantiation, `minigame_finished` contract и `setup_game` wiring вынесены в `FridgeFeedingSession`.
 - `Fridge` больше не держит post-feeding world hooks напрямую: cycle marks, chase cleanup, teleport и checkpoint/autosave fallback вынесены в `FridgeCompletionSession`.
@@ -149,6 +149,7 @@
 Статус: закрыто.
 
 - `levels/music_manager.gd` теперь не делает повторный `push_music` для уже активного event/distortion source.
+- `MusicScopedSourceRegistry` владеет source metadata, mirror dictionary и `tree_exited` callback wiring для event/distortion music.
 - `reset_base_music_state()` чистит event/distortion source registry.
 - Regression покрыт в `tests/cases/test_musicmanager_priority_resume_runtime.gd`.
 
@@ -202,7 +203,7 @@
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (106)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (107)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 

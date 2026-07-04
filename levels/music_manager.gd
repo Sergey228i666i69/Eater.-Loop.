@@ -1,6 +1,7 @@
 extends Node
 
 const MusicPauseReasonStateScript = preload("res://levels/music_pause_reason_state.gd")
+const MusicScopedSourceRegistryScript = preload("res://levels/music_scoped_source_registry.gd")
 
 ## MusicManager — единый слой управления музыкой.
 ##
@@ -98,6 +99,8 @@ var _runner_global_pause_state: MusicPauseReasonState = MusicPauseReasonStateScr
 var _chase_base_muted: bool = false
 var _event_sources: Dictionary = {}
 var _distortion_sources: Dictionary = {}
+var _event_source_registry = MusicScopedSourceRegistryScript.new(_event_sources)
+var _distortion_source_registry = MusicScopedSourceRegistryScript.new(_distortion_sources)
 var _pause_player: AudioStreamPlayer
 var _pause_menu_active: bool = false
 var _base_pause_reasons: Dictionary = {}
@@ -294,8 +297,8 @@ func reset_base_music_state() -> void:
 	_runner_global_pause_state.clear()
 	_sync_runner_global_pause_mirror()
 	_chase_base_muted = false
-	_event_sources.clear()
-	_distortion_sources.clear()
+	_event_source_registry.clear()
+	_distortion_source_registry.clear()
 	_clear_pending_ambient_request()
 
 func get_current_stream() -> AudioStream:
@@ -356,10 +359,8 @@ func start_distortion_music(source: Object, stream: AudioStream, fade_time: floa
 	if source == null or stream == null:
 		return
 	var source_id := source.get_instance_id()
-	if _distortion_sources.has(source_id):
+	if not _distortion_source_registry.register(source, {}, self, &"_on_distortion_music_source_exited"):
 		return
-	_distortion_sources[source_id] = true
-	_connect_scoped_music_source_exit(source, &"_on_distortion_music_source_exited", source_id)
 	var target_volume := resolve_mix_volume_db(MIX_DISTORTION, volume_db)
 	push_music(stream, fade_time, target_volume, source_id, SOURCE_KIND_DISTORTION)
 
@@ -367,18 +368,15 @@ func stop_distortion_music(source: Object, fade_time: float = -1.0) -> void:
 	if source == null:
 		return
 	var source_id := source.get_instance_id()
-	_distortion_sources.erase(source_id)
+	_distortion_source_registry.unregister_id(source_id)
 	_release_scoped_music_source(source_id, fade_time)
 
 func start_event_music(source: Object, stream: AudioStream, fade_in_time: float = -1.0, volume_db: float = 999.0, fade_out_time: float = 1.0) -> void:
 	if source == null or stream == null:
 		return
 	var source_id := source.get_instance_id()
-	if _event_sources.has(source_id):
-		_event_sources[source_id] = {"fade_out_time": fade_out_time}
+	if not _event_source_registry.register(source, {"fade_out_time": fade_out_time}, self, &"_on_event_music_source_exited"):
 		return
-	_event_sources[source_id] = {"fade_out_time": fade_out_time}
-	_connect_scoped_music_source_exit(source, &"_on_event_music_source_exited", source_id)
 	var target_volume := resolve_mix_volume_db(MIX_EVENT, volume_db)
 	push_music(stream, fade_in_time, target_volume, source_id, SOURCE_KIND_EVENT)
 
@@ -388,7 +386,7 @@ func stop_event_music(source: Object, fade_out_time: float = -1.0) -> void:
 	var source_id := source.get_instance_id()
 	var target_fade := _resolve_event_music_fade_out(source_id, fade_out_time)
 	_release_scoped_music_source(source_id, target_fade)
-	_event_sources.erase(source_id)
+	_event_source_registry.unregister_id(source_id)
 
 func start_minigame_music(stream: AudioStream, volume_db: float = 999.0) -> void:
 	if stream == null:
@@ -514,31 +512,23 @@ func _on_ambient_suppression_source_exited(source_id: int) -> void:
 		return
 	_sync_base_music_output(0.0)
 
-func _connect_scoped_music_source_exit(source: Object, method: StringName, source_id: int) -> void:
-	if not source is Node:
-		return
-	var source_node := source as Node
-	var on_exited := Callable(self, method).bind(source_id)
-	if not source_node.tree_exited.is_connected(on_exited):
-		source_node.tree_exited.connect(on_exited, Object.CONNECT_ONE_SHOT)
-
 func _on_event_music_source_exited(source_id: int) -> void:
-	if not _event_sources.has(source_id):
+	if not _event_source_registry.has_id(source_id):
 		return
 	var target_fade := _resolve_event_music_fade_out(source_id, -1.0)
-	_event_sources.erase(source_id)
+	_event_source_registry.unregister_id(source_id)
 	_release_scoped_music_source(source_id, target_fade)
 
 func _on_distortion_music_source_exited(source_id: int) -> void:
-	if not _distortion_sources.has(source_id):
+	if not _distortion_source_registry.has_id(source_id):
 		return
-	_distortion_sources.erase(source_id)
+	_distortion_source_registry.unregister_id(source_id)
 	_release_scoped_music_source(source_id, 0.0)
 
 func _resolve_event_music_fade_out(source_id: int, fade_out_time: float) -> float:
 	var target_fade := fade_out_time
 	if target_fade < 0.0:
-		var entry: Dictionary = _event_sources.get(source_id, {})
+		var entry: Dictionary = _event_source_registry.get_metadata(source_id)
 		if entry.has("fade_out_time"):
 			target_fade = float(entry.get("fade_out_time"))
 	if target_fade < 0.0:
