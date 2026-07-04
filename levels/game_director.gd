@@ -4,6 +4,7 @@ signal distortion_started
 
 const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_coordinator.gd")
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
+const DeathEntryPresenter = preload("res://levels/game_director_death_entry_presenter.gd")
 const DeathFadeCoordinator = preload("res://levels/game_director_death_fade_coordinator.gd")
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
 const DeathScreenReset = preload("res://levels/game_director_death_screen_reset.gd")
@@ -106,6 +107,7 @@ var _death_retry_button: Button
 var _input_kind: int = 0
 var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
+var _death_entry_presenter: RefCounted
 var _death_fade_coordinator: RefCounted
 var _death_retry_coordinator: RefCounted
 var _death_screen_reset: RefCounted
@@ -137,6 +139,7 @@ func _ready() -> void:
 	_create_death_overlay()
 	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
+	_death_entry_presenter = DeathEntryPresenter.new()
 	_death_fade_coordinator = DeathFadeCoordinator.new()
 	_death_retry_coordinator = DeathRetryCoordinator.new()
 	_death_screen_reset = DeathScreenReset.new()
@@ -467,12 +470,13 @@ func trigger_death_screen() -> void:
 	_stop_light_only_jump_effect()
 	_hide_distortion_overlays()
 	_get_death_camera_coordinator().capture(_resolve_primary_camera())
-	if _death_title_presenter != null:
-		_death_title_presenter.apply_next_title(death_title_text)
-	if _death_retry_button:
-		_death_retry_button.text = tr(death_retry_text)
-	if _death_root:
-		_death_root.visible = false
+	_get_death_entry_presenter().prepare_entry(
+		_death_root,
+		_death_retry_button,
+		_death_title_presenter,
+		death_title_text,
+		tr(death_retry_text)
+	)
 	var tilt_sign := -1.0 if randf() < 0.5 else 1.0
 	_get_death_fade_coordinator().begin_fade(
 		create_tween(),
@@ -534,6 +538,11 @@ func _get_death_camera_coordinator() -> RefCounted:
 	if _death_camera_coordinator == null:
 		_death_camera_coordinator = DeathCameraCoordinator.new()
 	return _death_camera_coordinator
+
+func _get_death_entry_presenter() -> RefCounted:
+	if _death_entry_presenter == null:
+		_death_entry_presenter = DeathEntryPresenter.new()
+	return _death_entry_presenter
 
 func _get_death_fade_coordinator() -> RefCounted:
 	if _death_fade_coordinator == null:
