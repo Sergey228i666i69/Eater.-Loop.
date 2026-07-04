@@ -108,6 +108,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Music ambient suppression state contract для bedroom/ambient-silent source tracking, stale weakref cleanup и `tree_exited` callback wiring.
 - Music scoped source registry contract и MusicManager scoped source cleanup regression для event/distortion music, чтобы удалённые trigger/controller nodes не оставляли приоритетную музыку в registry/stack.
 - Player stamina state contract для run drain/recovery/unlimited/checkpoint semantics.
+- Player facing state contract для direction normalization и checkpoint restore без zero-scale facing.
 - Player inventory state contract для key add/has/remove normalization, dedupe и checkpoint round-trip.
 - Player skeleton step state contract для first-sample arming, clip wrap step crossing и reset semantics.
 - Player flashlight charge state contract для drain/recharge/instant-full/checkpoint semantics.

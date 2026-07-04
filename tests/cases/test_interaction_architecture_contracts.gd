@@ -38,6 +38,7 @@ const LEGACY_RUNTIME_TEXT_PATTERNS := [
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
+const PLAYER_PATH := "res://player/player.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
@@ -122,6 +123,9 @@ const FORBIDDEN_CYCLE_STATE_PUBLIC_FIELD_DECLARATIONS := [
 const FORBIDDEN_ACTIVE_SCENE_PATTERNS := [
 	"archive(trash)"
 ]
+const FORBIDDEN_PLAYER_PATTERNS := [
+	"var _facing_dir"
+]
 
 func run() -> Array[String]:
 	var scripts: Array[String] = []
@@ -188,6 +192,11 @@ func run() -> Array[String]:
 
 	var game_state_content := FileAccess.get_file_as_string(GAME_STATE_PATH)
 	assert_true(game_state_content.find("func autosave_run") != -1, "GameState must expose public autosave_run()")
+
+	var player_content := FileAccess.get_file_as_string(PLAYER_PATH)
+	assert_true(player_content != "", "Failed to read script: %s" % PLAYER_PATH)
+	for pattern in FORBIDDEN_PLAYER_PATTERNS:
+		assert_true(player_content.find(pattern) == -1, "Player must delegate extracted state instead of owning pattern: %s" % pattern)
 
 	var fridge_content := FileAccess.get_file_as_string(FRIDGE_PATH)
 	assert_true(fridge_content.find("FridgeCompletionSessionScript.save_after_feeding") != -1, "Fridge must delegate post-feeding save policy")

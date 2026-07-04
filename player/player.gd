@@ -1,6 +1,7 @@
 extends CharacterBody2D
 
 const PlayerFlashlightChargeState = preload("res://player/player_flashlight_charge_state.gd")
+const PlayerFacingState = preload("res://player/player_facing_state.gd")
 const PlayerInventoryState = preload("res://player/player_inventory_state.gd")
 const PlayerSkeletonStepState = preload("res://player/player_skeleton_step_state.gd")
 const PlayerStaminaState = preload("res://player/player_stamina_state.gd")
@@ -98,8 +99,6 @@ var skeleton_flashlight_visual: CanvasItem = null
 var skeleton_front_hand_visual: CanvasItem = null
 var skeleton_front_hand_empty_visual: CanvasItem = null
 
-# Внутренние переменные
-var _facing_dir: float = 1.0
 var _pivot_base_scale: Vector2 = Vector2.ONE
 var _sprite_base_scale: Vector2 = Vector2.ONE
 var _skeleton_rig_base_scale: Vector2 = Vector2.ONE
@@ -119,6 +118,7 @@ var _movement_blocked: bool = false
 var _stamina_state: RefCounted
 var _current_skeleton_animation: StringName = StringName()
 var _skeleton_step_state: RefCounted
+var _facing_state: RefCounted
 
 # Переменные для аудио
 var _flashlight_player: AudioStreamPlayer
@@ -180,6 +180,7 @@ func _ready() -> void:
 	_stamina_state = PlayerStaminaState.new()
 	_sync_stamina_config()
 	_get_stamina_state().reset_full()
+	_facing_state = PlayerFacingState.new()
 	_flashlight_charge_state = PlayerFlashlightChargeState.new()
 	_sync_flashlight_charge_config()
 	_get_flashlight_charge_state().reset_full()
@@ -231,8 +232,8 @@ func _physics_process(delta: float) -> void:
 
 	# Логика поворота персонажа
 	if direction != 0:
-		_facing_dir = sign(direction)
-		_apply_facing()
+		if _get_facing_state().set_from_direction(direction):
+			_apply_facing()
 
 	# Обновление анимации
 	_update_walk_animation(delta, direction)
@@ -376,18 +377,19 @@ func _emit_flashlight_activation_denied() -> void:
 	player_made_sound.emit()
 
 func _apply_facing() -> void:
+	var facing_dir: float = float(_get_facing_state().get_direction())
 	if pivot:
-		pivot.scale = Vector2(abs(_pivot_base_scale.x) * _facing_dir, _pivot_base_scale.y)
+		pivot.scale = Vector2(abs(_pivot_base_scale.x) * facing_dir, _pivot_base_scale.y)
 	if sprite:
 		var x_scale: float = absf(_sprite_base_scale.x) * _sprite_anim_scale.x
 		var y_scale: float = _sprite_base_scale.y * _sprite_anim_scale.y
 		if not _sprite_under_pivot:
-			x_scale *= _facing_dir
+			x_scale *= facing_dir
 		sprite.scale = Vector2(x_scale, y_scale)
 	if skeleton_rig:
-		skeleton_rig.scale = Vector2(absf(_skeleton_rig_base_scale.x) * _facing_dir, _skeleton_rig_base_scale.y)
+		skeleton_rig.scale = Vector2(absf(_skeleton_rig_base_scale.x) * facing_dir, _skeleton_rig_base_scale.y)
 	if flashlight and pivot == null:
-		flashlight.scale = Vector2(abs(_flashlight_base_scale.x) * _facing_dir, _flashlight_base_scale.y)
+		flashlight.scale = Vector2(abs(_flashlight_base_scale.x) * facing_dir, _flashlight_base_scale.y)
 		flashlight.offset = _flashlight_base_offset
 
 func _setup_animations() -> void:
@@ -577,9 +579,10 @@ func capture_checkpoint_state() -> Dictionary:
 	var inventory_state: Dictionary = _get_inventory_state().capture_checkpoint_state()
 	var stamina_state: Dictionary = _get_stamina_state().capture_checkpoint_state()
 	var flashlight_state: Dictionary = _get_flashlight_charge_state().capture_checkpoint_state()
+	var facing_state: Dictionary = _get_facing_state().capture_checkpoint_state()
 	return {
 		"keys": inventory_state.get("keys", []),
-		"facing_dir": _facing_dir,
+		"facing_dir": float(facing_state.get("facing_dir", 1.0)),
 		"stamina": float(stamina_state.get("stamina", 0.0)),
 		"flashlight_charge": float(flashlight_state.get("flashlight_charge", 0.0)),
 		"time_since_flashlight_use": float(flashlight_state.get("time_since_flashlight_use", 0.0)),
@@ -589,7 +592,7 @@ func capture_checkpoint_state() -> Dictionary:
 
 func apply_checkpoint_state(state: Dictionary) -> void:
 	_get_inventory_state().apply_checkpoint_state(state)
-	_facing_dir = float(state.get("facing_dir", _facing_dir))
+	_get_facing_state().apply_checkpoint_state(state)
 	_sync_stamina_config()
 	_get_stamina_state().apply_checkpoint_state(state)
 	_sync_flashlight_charge_config()
@@ -609,6 +612,11 @@ func _get_skeleton_step_state() -> RefCounted:
 	if _skeleton_step_state == null:
 		_skeleton_step_state = PlayerSkeletonStepState.new()
 	return _skeleton_step_state
+
+func _get_facing_state() -> RefCounted:
+	if _facing_state == null:
+		_facing_state = PlayerFacingState.new()
+	return _facing_state
 
 func _get_flashlight_charge_state() -> RefCounted:
 	if _flashlight_charge_state == null:
