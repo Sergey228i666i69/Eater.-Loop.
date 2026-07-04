@@ -70,6 +70,8 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"reset_cycle_state()",
 	"queue_respawn_blackout",
 	"reload_current_scene",
+	"prepare_retry(GameState",
+	"finish_retry_transition(",
 	"set_screen_dark(true)",
 	"fade_out(0.0)",
 	"var _minigame_active: bool",

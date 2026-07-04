@@ -504,8 +504,10 @@ func _on_death_fade_completed() -> void:
 func _on_death_retry_pressed() -> void:
 	if not _is_death_sequence_active():
 		return
-	await _get_death_retry_coordinator().prepare_retry(GameState, CycleState, UIMessage)
-	_get_death_retry_coordinator().finish_retry_transition(
+	await _get_death_retry_coordinator().run_retry_flow(
+		GameState,
+		CycleState,
+		UIMessage,
 		_death_root,
 		get_tree(),
 		Callable(self, "_restore_death_camera"),

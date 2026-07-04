@@ -78,6 +78,7 @@ func run() -> Array[String]:
 	await _test_autosave_fallback_is_used_when_respawn_method_is_missing()
 	await _test_missing_checkpoint_resets_cycle_and_uses_fade_fallback()
 	await _test_finish_retry_transition_hides_ui_releases_owners_and_schedules_reload()
+	await _test_run_retry_flow_prepares_and_finishes_transition()
 	return get_failures()
 
 func _test_respawn_checkpoint_wins_and_preserves_cycle_state() -> void:
@@ -142,4 +143,35 @@ func _test_finish_retry_transition_hides_ui_releases_owners_and_schedules_reload
 	assert_true(not death_root.visible, "Death retry transition must hide the death UI root")
 	assert_eq(callbacks.calls, ["restore_camera", "release_cursor", "release_pause"], "Death retry transition must restore camera and release owners in order")
 	assert_eq(tree.reload_calls, 1, "Death retry transition must defer one current-scene reload")
+	death_root.free()
+
+func _test_run_retry_flow_prepares_and_finishes_transition() -> void:
+	var coordinator: RefCounted = DeathRetryCoordinator.new()
+	var game_state := RespawnGameState.new()
+	var cycle_state := FakeCycleState.new()
+	var ui_message := DarkUIMessage.new()
+	var death_root := Control.new()
+	death_root.visible = true
+	var callbacks := RetryTransitionCallbacks.new()
+	var tree := ReloadTreeProbe.new()
+
+	var scheduled: bool = await coordinator.run_retry_flow(
+		game_state,
+		cycle_state,
+		ui_message,
+		death_root,
+		tree,
+		Callable(callbacks, "restore_camera"),
+		Callable(callbacks, "release_cursor"),
+		Callable(callbacks, "release_pause")
+	)
+	await Engine.get_main_loop().process_frame
+
+	assert_true(scheduled, "Death retry flow must schedule scene reload")
+	assert_eq(game_state.restore_calls, 1, "Death retry flow must prepare checkpoint restore")
+	assert_eq(cycle_state.blackout_calls, 1, "Death retry flow must queue respawn blackout")
+	assert_eq(ui_message.dark_values, [true], "Death retry flow must darken screen before transition")
+	assert_true(not death_root.visible, "Death retry flow must hide death UI")
+	assert_eq(callbacks.calls, ["restore_camera", "release_cursor", "release_pause"], "Death retry flow must release owners in transition order")
+	assert_eq(tree.reload_calls, 1, "Death retry flow must defer one current-scene reload")
 	death_root.free()

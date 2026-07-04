@@ -21,6 +21,19 @@ func prepare_retry(game_state: Object, cycle_state: Object, ui_message: Object) 
 			await ui_message.fade_out(0.0)
 	return restored
 
+func run_retry_flow(
+	game_state: Object,
+	cycle_state: Object,
+	ui_message: Object,
+	death_root: CanvasItem,
+	tree: Object,
+	restore_camera: Callable,
+	release_cursor: Callable,
+	release_pause: Callable
+) -> bool:
+	await prepare_retry(game_state, cycle_state, ui_message)
+	return finish_retry_transition(death_root, tree, restore_camera, release_cursor, release_pause)
+
 func finish_retry_transition(death_root: CanvasItem, tree: Object, restore_camera: Callable, release_cursor: Callable, release_pause: Callable) -> bool:
 	_call_if_valid(restore_camera)
 	if death_root != null:
