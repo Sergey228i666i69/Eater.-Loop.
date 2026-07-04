@@ -522,12 +522,24 @@
 │   │   │   ├── final_feed_minigame.gd.uid
 │   │   │   └── final_feed_minigame.tscn
 │   │   ├── gamepad
+│   │   │   ├── gamepad_callback_router.gd
+│   │   │   ├── gamepad_callback_router.gd.uid
+│   │   │   ├── gamepad_confirm_release_gate.gd
+│   │   │   ├── gamepad_confirm_release_gate.gd.uid
 │   │   │   ├── gamepad_highlighter.gd
 │   │   │   ├── gamepad_highlighter.gd.uid
 │   │   │   ├── gamepad_hint_bar.gd
 │   │   │   ├── gamepad_hint_bar.gd.uid
+│   │   │   ├── gamepad_hint_builder.gd
+│   │   │   ├── gamepad_hint_builder.gd.uid
+│   │   │   ├── gamepad_navigation_repeat.gd
+│   │   │   ├── gamepad_navigation_repeat.gd.uid
+│   │   │   ├── gamepad_node_resolver.gd
+│   │   │   ├── gamepad_node_resolver.gd.uid
 │   │   │   ├── gamepad_runtime.gd
 │   │   │   ├── gamepad_runtime.gd.uid
+│   │   │   ├── gamepad_scheme_registry.gd
+│   │   │   ├── gamepad_scheme_registry.gd.uid
 │   │   │   ├── gamepad_spatial_nav.gd
 │   │   │   └── gamepad_spatial_nav.gd.uid
 │   │   ├── labs
@@ -671,8 +683,16 @@
 │   │   ├── minigame_backdrop_presenter.gd.uid
 │   │   ├── minigame_controller.gd
 │   │   ├── minigame_controller.gd.uid
+│   │   ├── minigame_modal_ownership.gd
+│   │   ├── minigame_modal_ownership.gd.uid
+│   │   ├── minigame_music_session.gd
+│   │   ├── minigame_music_session.gd.uid
+│   │   ├── minigame_prompt_visibility_coordinator.gd
+│   │   ├── minigame_prompt_visibility_coordinator.gd.uid
 │   │   ├── minigame_settings.gd
-│   │   └── minigame_settings.gd.uid
+│   │   ├── minigame_settings.gd.uid
+│   │   ├── minigame_timer_state.gd
+│   │   └── minigame_timer_state.gd.uid
 │   ├── ui
 │   │   ├── prompts
 │   │   │   ├── prompt_interact_default.tscn
@@ -685,21 +705,33 @@
 │   ├── game_director.gd
 │   ├── game_director.gd.uid
 │   ├── game_director_cycle_phase_bridge.gd
+│   ├── game_director_cycle_phase_bridge.gd.uid
 │   ├── game_director_cycle_timer_state.gd
+│   ├── game_director_cycle_timer_state.gd.uid
 │   ├── game_director_death_camera_coordinator.gd
+│   ├── game_director_death_camera_coordinator.gd.uid
 │   ├── game_director_death_cursor_coordinator.gd
+│   ├── game_director_death_cursor_coordinator.gd.uid
 │   ├── game_director_death_retry_coordinator.gd
+│   ├── game_director_death_retry_coordinator.gd.uid
 │   ├── game_director_death_screen_reset.gd
 │   ├── game_director_death_screen_reset.gd.uid
 │   ├── game_director_death_title_presenter.gd
 │   ├── game_director_death_title_presenter.gd.uid
 │   ├── game_director_distortion_gate.gd
+│   ├── game_director_distortion_gate.gd.uid
 │   ├── game_director_distortion_overlay_coordinator.gd
+│   ├── game_director_distortion_overlay_coordinator.gd.uid
 │   ├── game_director_distortion_phase_state.gd
+│   ├── game_director_distortion_phase_state.gd.uid
 │   ├── game_director_distortion_progress.gd
+│   ├── game_director_distortion_progress.gd.uid
 │   ├── game_director_overlay_layer_coordinator.gd
+│   ├── game_director_overlay_layer_coordinator.gd.uid
 │   ├── game_director_stalker_service.gd
+│   ├── game_director_stalker_service.gd.uid
 │   ├── game_director_timer_node_coordinator.gd
+│   ├── game_director_timer_node_coordinator.gd.uid
 │   ├── interaction_prompts.gd
 │   ├── interaction_prompts.gd.uid
 │   ├── music_ambient_suppression_state.gd
@@ -708,8 +740,12 @@
 │   ├── music_manager.gd.uid
 │   ├── music_mix_settings.gd
 │   ├── music_mix_settings.gd.uid
+│   ├── music_pause_reason_state.gd
+│   ├── music_pause_reason_state.gd.uid
 │   ├── music_scoped_source_registry.gd
 │   ├── music_scoped_source_registry.gd.uid
+│   ├── music_stack_state.gd
+│   ├── music_stack_state.gd.uid
 │   ├── prompt_view.gd
 │   └── prompt_view.gd.uid
 ├── music
@@ -1208,7 +1244,13 @@
 │       │   ├── final_ending_fridge.gd.uid
 │       │   ├── fridge.gd
 │       │   ├── fridge.gd.uid
-│       │   └── fridge.tscn
+│       │   ├── fridge.tscn
+│       │   ├── fridge_code_lock_session.gd
+│       │   ├── fridge_code_lock_session.gd.uid
+│       │   ├── fridge_completion_session.gd
+│       │   ├── fridge_completion_session.gd.uid
+│       │   ├── fridge_feeding_session.gd
+│       │   └── fridge_feeding_session.gd.uid
 │       ├── generator
 │       │   ├── Generator.png
 │       │   ├── Generator.png.import
@@ -1302,6 +1344,8 @@
 │       │   ├── trigger_set_property.gd
 │       │   ├── trigger_set_property.gd.uid
 │       │   └── trigger_set_property.tscn
+│       ├── interaction_result_builder.gd
+│       ├── interaction_result_builder.gd.uid
 │       ├── interactive_object.gd
 │       └── interactive_object.gd.uid
 ├── player
@@ -1450,8 +1494,16 @@
 │   ├── player.gd
 │   ├── player.gd.uid
 │   ├── player.tscn
+│   ├── player_flashlight_charge_state.gd
+│   ├── player_flashlight_charge_state.gd.uid
+│   ├── player_inventory_state.gd
+│   ├── player_inventory_state.gd.uid
 │   ├── player_skeleton_forearm_mesh_prototype.tscn
 │   ├── player_skeleton_rig.tscn
+│   ├── player_skeleton_step_state.gd
+│   ├── player_skeleton_step_state.gd.uid
+│   ├── player_stamina_state.gd
+│   ├── player_stamina_state.gd.uid
 │   ├── stamina_bar.gd
 │   ├── stamina_bar.gd.uid
 │   ├── step_audio_component.gd
@@ -1507,28 +1559,56 @@
 │   │   ├── test_final_feed_minigame_stage_transition.gd.uid
 │   │   ├── test_flashlight_pickup_clears_location.gd
 │   │   ├── test_flashlight_pickup_clears_location.gd.uid
+│   │   ├── test_fridge_authoring_contracts.gd
+│   │   ├── test_fridge_authoring_contracts.gd.uid
 │   │   ├── test_fridge_chase_interaction.gd
 │   │   ├── test_fridge_chase_interaction.gd.uid
 │   │   ├── test_fridge_visual_after_eating.gd
 │   │   ├── test_fridge_visual_after_eating.gd.uid
+│   │   ├── test_game_director_cycle_phase_bridge.gd
+│   │   ├── test_game_director_cycle_phase_bridge.gd.uid
+│   │   ├── test_game_director_cycle_timer_state.gd
+│   │   ├── test_game_director_cycle_timer_state.gd.uid
+│   │   ├── test_game_director_death_camera_coordinator.gd
+│   │   ├── test_game_director_death_camera_coordinator.gd.uid
+│   │   ├── test_game_director_death_cursor_coordinator.gd
+│   │   ├── test_game_director_death_cursor_coordinator.gd.uid
+│   │   ├── test_game_director_death_retry_coordinator.gd
+│   │   ├── test_game_director_death_retry_coordinator.gd.uid
+│   │   ├── test_game_director_death_screen_reset.gd
+│   │   ├── test_game_director_death_screen_reset.gd.uid
+│   │   ├── test_game_director_death_title_presenter.gd
+│   │   ├── test_game_director_death_title_presenter.gd.uid
+│   │   ├── test_game_director_distortion_gate.gd
+│   │   ├── test_game_director_distortion_gate.gd.uid
+│   │   ├── test_game_director_distortion_overlay_coordinator.gd
+│   │   ├── test_game_director_distortion_overlay_coordinator.gd.uid
+│   │   ├── test_game_director_distortion_phase_state.gd
+│   │   ├── test_game_director_distortion_phase_state.gd.uid
+│   │   ├── test_game_director_distortion_progress.gd
+│   │   ├── test_game_director_distortion_progress.gd.uid
+│   │   ├── test_game_director_overlay_layer_coordinator.gd
+│   │   ├── test_game_director_overlay_layer_coordinator.gd.uid
+│   │   ├── test_game_director_stalker_service.gd
+│   │   ├── test_game_director_stalker_service.gd.uid
+│   │   ├── test_game_director_timer_node_coordinator.gd
+│   │   ├── test_game_director_timer_node_coordinator.gd.uid
+│   │   ├── test_gamepad_callback_router.gd
+│   │   ├── test_gamepad_callback_router.gd.uid
+│   │   ├── test_gamepad_confirm_release_gate.gd
+│   │   ├── test_gamepad_confirm_release_gate.gd.uid
+│   │   ├── test_gamepad_hint_builder.gd
+│   │   ├── test_gamepad_hint_builder.gd.uid
+│   │   ├── test_gamepad_navigation_repeat.gd
+│   │   ├── test_gamepad_navigation_repeat.gd.uid
+│   │   ├── test_gamepad_node_resolver.gd
+│   │   ├── test_gamepad_node_resolver.gd.uid
 │   │   ├── test_gamepad_pick_place_flow.gd
 │   │   ├── test_gamepad_pick_place_flow.gd.uid
 │   │   ├── test_gamepad_runtime_navigation.gd
 │   │   ├── test_gamepad_runtime_navigation.gd.uid
-│   │   ├── test_game_director_cycle_phase_bridge.gd
-│   │   ├── test_game_director_cycle_timer_state.gd
-│   │   ├── test_game_director_death_camera_coordinator.gd
-│   │   ├── test_game_director_death_cursor_coordinator.gd
-│   │   ├── test_game_director_death_retry_coordinator.gd
-│   │   ├── test_game_director_death_screen_reset.gd
-│   │   ├── test_game_director_death_screen_reset.gd.uid
-│   │   ├── test_game_director_distortion_gate.gd
-│   │   ├── test_game_director_distortion_overlay_coordinator.gd
-│   │   ├── test_game_director_distortion_phase_state.gd
-│   │   ├── test_game_director_distortion_progress.gd
-│   │   ├── test_game_director_overlay_layer_coordinator.gd
-│   │   ├── test_game_director_stalker_service.gd
-│   │   ├── test_game_director_timer_node_coordinator.gd
+│   │   ├── test_gamepad_scheme_registry.gd
+│   │   ├── test_gamepad_scheme_registry.gd.uid
 │   │   ├── test_generator_activates_required_lamps.gd
 │   │   ├── test_generator_activates_required_lamps.gd.uid
 │   │   ├── test_input_actions.gd
@@ -1541,10 +1621,14 @@
 │   │   ├── test_interaction_completion_contracts.gd.uid
 │   │   ├── test_interaction_manager_focus.gd
 │   │   ├── test_interaction_manager_focus.gd.uid
+│   │   ├── test_interaction_result_builder.gd
+│   │   ├── test_interaction_result_builder.gd.uid
 │   │   ├── test_interactive_dependency_conditions.gd
 │   │   ├── test_interactive_dependency_conditions.gd.uid
 │   │   ├── test_interactive_object_locked_message.gd
 │   │   ├── test_interactive_object_locked_message.gd.uid
+│   │   ├── test_lab_authoring_contracts.gd
+│   │   ├── test_lab_authoring_contracts.gd.uid
 │   │   ├── test_lamp_generator_requirement.gd
 │   │   ├── test_lamp_generator_requirement.gd.uid
 │   │   ├── test_laptop_lab_music_runtime.gd
@@ -1567,6 +1651,8 @@
 │   │   ├── test_level13_multi_lab_requirement.gd.uid
 │   │   ├── test_level14_end_music_policy_runtime.gd
 │   │   ├── test_level14_end_music_policy_runtime.gd.uid
+│   │   ├── test_level_authoring_contracts.gd
+│   │   ├── test_level_authoring_contracts.gd.uid
 │   │   ├── test_level_checkpoint_spawn.gd
 │   │   ├── test_level_checkpoint_spawn.gd.uid
 │   │   ├── test_level_default_flashlight.gd
@@ -1575,6 +1661,8 @@
 │   │   ├── test_light_adds_directional_contract.gd.uid
 │   │   ├── test_llm_glitch_fail_forward_contract.gd
 │   │   ├── test_llm_glitch_fail_forward_contract.gd.uid
+│   │   ├── test_localization_contracts.gd
+│   │   ├── test_localization_contracts.gd.uid
 │   │   ├── test_main_menu_startup_disclaimer_runtime.gd
 │   │   ├── test_main_menu_startup_disclaimer_runtime.gd.uid
 │   │   ├── test_minigame_backdrop_dedup_runtime.gd
@@ -1583,12 +1671,24 @@
 │   │   ├── test_minigame_backdrop_transition_visibility.gd.uid
 │   │   ├── test_minigame_gamepad_bindings.gd
 │   │   ├── test_minigame_gamepad_bindings.gd.uid
+│   │   ├── test_minigame_modal_ownership.gd
+│   │   ├── test_minigame_modal_ownership.gd.uid
+│   │   ├── test_minigame_music_session.gd
+│   │   ├── test_minigame_music_session.gd.uid
+│   │   ├── test_minigame_prompt_visibility_coordinator.gd
+│   │   ├── test_minigame_prompt_visibility_coordinator.gd.uid
+│   │   ├── test_minigame_timer_state.gd
+│   │   ├── test_minigame_timer_state.gd.uid
 │   │   ├── test_music_ambient_suppression_state.gd
 │   │   ├── test_music_ambient_suppression_state.gd.uid
 │   │   ├── test_music_crossfade_suppression_runtime.gd
 │   │   ├── test_music_crossfade_suppression_runtime.gd.uid
+│   │   ├── test_music_pause_reason_state.gd
+│   │   ├── test_music_pause_reason_state.gd.uid
 │   │   ├── test_music_scoped_source_registry.gd
 │   │   ├── test_music_scoped_source_registry.gd.uid
+│   │   ├── test_music_stack_state.gd
+│   │   ├── test_music_stack_state.gd.uid
 │   │   ├── test_musicmanager_priority_resume_runtime.gd
 │   │   ├── test_musicmanager_priority_resume_runtime.gd.uid
 │   │   ├── test_musicmanager_private_api_usage.gd
@@ -1601,14 +1701,24 @@
 │   │   ├── test_pause_manager_tokens.gd.uid
 │   │   ├── test_player_cutout_inpaint_tool_contract.gd
 │   │   ├── test_player_cutout_inpaint_tool_contract.gd.uid
+│   │   ├── test_player_flashlight_charge_state.gd
+│   │   ├── test_player_flashlight_charge_state.gd.uid
+│   │   ├── test_player_inventory_state.gd
+│   │   ├── test_player_inventory_state.gd.uid
 │   │   ├── test_player_rig_preview_tool_contract.gd
 │   │   ├── test_player_rig_preview_tool_contract.gd.uid
 │   │   ├── test_player_skeleton_mesh_prototype_contract.gd
 │   │   ├── test_player_skeleton_mesh_prototype_contract.gd.uid
 │   │   ├── test_player_skeleton_rig_contract.gd
 │   │   ├── test_player_skeleton_rig_contract.gd.uid
+│   │   ├── test_player_skeleton_step_state.gd
+│   │   ├── test_player_skeleton_step_state.gd.uid
+│   │   ├── test_player_stamina_state.gd
+│   │   ├── test_player_stamina_state.gd.uid
 │   │   ├── test_project_config.gd
 │   │   ├── test_project_config.gd.uid
+│   │   ├── test_resource_uid_contracts.gd
+│   │   ├── test_resource_uid_contracts.gd.uid
 │   │   ├── test_respawn_checkpoint_restore.gd
 │   │   ├── test_respawn_checkpoint_restore.gd.uid
 │   │   ├── test_save_state_split.gd
@@ -1630,7 +1740,9 @@
 │   │   ├── test_stu_level_path_contracts.gd
 │   │   ├── test_stu_level_path_contracts.gd.uid
 │   │   ├── test_target_spawner_state_conditions.gd
+│   │   ├── test_target_spawner_state_conditions.gd.uid
 │   │   ├── test_trigger_set_property_contracts.gd
+│   │   ├── test_trigger_set_property_contracts.gd.uid
 │   │   ├── test_ui_message_dialogue_channels.gd
 │   │   ├── test_ui_message_dialogue_channels.gd.uid
 │   │   ├── test_ui_message_modal_state.gd
@@ -1654,9 +1766,10 @@
 │   │   └── run_godot_with_dmg_fix.sh
 │   ├── player_cutout_inpaint
 │   │   └── build_player_cutout_inpaint_package.py
-│   └── player_rig_preview
-│       ├── export_player_rig_montage.py
-│       └── export_player_rig_scene_context.py
+│   ├── player_rig_preview
+│   │   ├── export_player_rig_montage.py
+│   │   ├── export_player_rig_native_frame.py
+│   │   └── export_player_rig_scene_context.py
 ├── AGENTS.md
 ├── ToFix.md
 ├── default_bus_layout.tres
@@ -1666,4 +1779,4 @@
 ├── project.godot
 └── structure.txt
 
-129 directories, 1491 files
+137 directories, 1730 files

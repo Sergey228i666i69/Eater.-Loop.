@@ -1,6 +1,7 @@
 extends Node
 
 const MusicPauseReasonStateScript = preload("res://levels/music_pause_reason_state.gd")
+const MusicStackStateScript = preload("res://levels/music_stack_state.gd")
 const MusicAmbientSuppressionStateScript = preload("res://levels/music_ambient_suppression_state.gd")
 const MusicScopedSourceRegistryScript = preload("res://levels/music_scoped_source_registry.gd")
 
@@ -84,6 +85,7 @@ var _crossfade_to: AudioStreamPlayer
 var _crossfade_target_db: float = 0.0
 var _pitch_stop_player: AudioStreamPlayer
 var _stack: Array[Dictionary] = []
+var _stack_state = MusicStackStateScript.new(_stack)
 var _runner_player: AudioStreamPlayer
 var _runner_fade_tween: Tween
 var _runner_sources: Dictionary = {}
@@ -243,13 +245,13 @@ func push_music(stream: AudioStream, fade_time: float = -1.0, volume_db: float =
 		"was_ducked": _is_ducked,
 		"duck_volume_db": duck_volume
 	}
-	_stack.append(entry)
+	_stack_state.push(entry)
 	play_music(stream, fade_time, volume_db, 0.0, 999.0, source_id, source_kind)
 
 func pop_music(fade_time: float = -1.0) -> void:
-	if _stack.is_empty():
+	if _stack_state.is_empty():
 		return
-	var entry: Dictionary = _stack.pop_back()
+	var entry: Dictionary = _stack_state.pop()
 	var stream: AudioStream = entry.get("stream", null)
 	var was_playing: bool = bool(entry.get("was_playing", true))
 	var was_ducked: bool = bool(entry.get("was_ducked", false))
@@ -270,7 +272,7 @@ func pop_music(fade_time: float = -1.0) -> void:
 	play_music(stream, fade_time, volume_db, position, 999.0, source_id, source_kind)
 
 func clear_stack() -> void:
-	_stack.clear()
+	_stack_state.clear()
 
 func reset_base_music_state() -> void:
 	_kill_fade_tween()
@@ -313,18 +315,10 @@ func resolve_mix_volume_db(category: String, volume_db: float = 999.0) -> float:
 	return _apply_mix(category, base_volume)
 
 func remove_music_from_stack(stream: AudioStream) -> void:
-	if stream == null:
-		return
-	for i in range(_stack.size() - 1, -1, -1):
-		if _stack[i].get("stream", null) == stream:
-			_stack.remove_at(i)
+	_stack_state.remove_by_stream(stream)
 
 func remove_music_from_stack_by_source_id(source_id: int) -> void:
-	if source_id == 0:
-		return
-	for i in range(_stack.size() - 1, -1, -1):
-		if int(_stack[i].get("source_id", 0)) == source_id:
-			_stack.remove_at(i)
+	_stack_state.remove_by_source_id(source_id)
 
 func play_ambient_music(stream: AudioStream, fade_time: float = -1.0, volume_db: float = 999.0) -> void:
 	if stream == null:
