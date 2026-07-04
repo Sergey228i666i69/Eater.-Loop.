@@ -1,7 +1,14 @@
 extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
+const LEVEL_MINIGAME_DIR := "res://levels/minigames"
+const LEVEL_UI_DIR := "res://levels/ui"
+const OBJECT_DIR := "res://objects"
 const INTERACTABLE_DIR := "res://objects/interactable"
+const ENEMY_DIR := "res://enemies"
+const PLAYER_SCENES := [
+	"res://player/player.tscn",
+]
 const DOOR_SCRIPT := "res://objects/interactable/door/door.gd"
 const BLOCKPOST_SCRIPT := "res://objects/interactable/level12/blockpost/blockpost.gd"
 const STUDENT_MONEY_SCRIPT := "res://objects/interactable/level12/student/student_money_npc.gd"
@@ -20,6 +27,7 @@ func run() -> Array[String]:
 	_test_unlocked_level_doors_have_resolving_targets()
 	_test_blockpost_child_contracts()
 	_test_level_money_interactables_resolve_money_systems()
+	_test_content_scene_exported_nodepaths_resolve()
 	_test_interactable_exported_nodepaths_resolve()
 	_test_level_utility_nodepaths_resolve()
 	return get_failures()
@@ -72,6 +80,15 @@ func _test_level_money_interactables_resolve_money_systems() -> void:
 				_assert_money_system_resolves(path, root, node, "add_money")
 			elif script_path == LAPTOP_SCRIPT and _has_property(node, "reward_on_work_completion") and bool(node.get("reward_on_work_completion")):
 				_assert_money_system_resolves(path, root, node, "add_money")
+		root.free()
+
+func _test_content_scene_exported_nodepaths_resolve() -> void:
+	for path in _list_content_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		for node in _nodes_including_root(root):
+			_assert_exported_nodepath_properties_resolve(path, root, node)
 		root.free()
 
 func _test_interactable_exported_nodepaths_resolve() -> void:
@@ -145,6 +162,41 @@ func _assert_money_system_resolves(path: String, root: Node, node: Node, require
 	if money_system != null:
 		assert_true(money_system.has_method(required_method), "Money system must expose %s for %s:%s" % [required_method, path, root.get_path_to(node)])
 
+func _assert_exported_nodepath_properties_resolve(path: String, root: Node, node: Node) -> void:
+	for property_info in node.get_property_list():
+		if not _is_exported_script_property(property_info):
+			continue
+		var property_name := String(property_info.get("name", ""))
+		if _is_owner_relative_target_marker_property(property_name):
+			continue
+		var property_type := int(property_info.get("type", TYPE_NIL))
+		if property_type == TYPE_NODE_PATH:
+			var node_path: NodePath = node.get(property_name)
+			if node_path.is_empty():
+				continue
+			_assert_path_resolves(path, root, node, property_name, node_path)
+		elif property_type == TYPE_ARRAY:
+			_assert_exported_nodepath_array_entries_resolve(path, root, node, property_name)
+
+func _assert_exported_nodepath_array_entries_resolve(path: String, root: Node, node: Node, property_name: String) -> void:
+	var values: Array = node.get(property_name)
+	for index in range(values.size()):
+		var value: Variant = values[index]
+		if not (value is NodePath):
+			continue
+		var node_path := value as NodePath
+		assert_true(not node_path.is_empty(), "%s entry must not be empty when configured: %s:%s[%d]" % [property_name, path, root.get_path_to(node), index])
+		if node_path.is_empty():
+			continue
+		_assert_path_resolves(path, root, node, "%s[%d]" % [property_name, index], node_path)
+
+func _is_exported_script_property(property_info: Dictionary) -> bool:
+	var usage := int(property_info.get("usage", 0))
+	return (usage & PROPERTY_USAGE_SCRIPT_VARIABLE) != 0 and (usage & PROPERTY_USAGE_STORAGE) != 0
+
+func _is_owner_relative_target_marker_property(property_name: String) -> bool:
+	return property_name.ends_with("_target") or property_name.find("_target_") != -1
+
 func _assert_required_nodepath_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> Node:
 	if not _has_property(node, property_name):
 		return null
@@ -199,6 +251,21 @@ func _list_contract_scenes() -> Array[String]:
 	scenes.append_array(utils.list_files(INTERACTABLE_DIR, ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"]))
 	scenes.sort()
 	return scenes
+
+func _list_content_scenes() -> Array[String]:
+	var scenes: Array[String] = []
+	for root_dir in [LEVEL_DIR, LEVEL_MINIGAME_DIR, LEVEL_UI_DIR, OBJECT_DIR, ENEMY_DIR]:
+		scenes.append_array(utils.list_files(root_dir, ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"]))
+	for path in PLAYER_SCENES:
+		if ResourceLoader.exists(path):
+			scenes.append(path)
+	scenes.sort()
+	return scenes
+
+func _nodes_including_root(root: Node) -> Array[Node]:
+	var nodes: Array[Node] = [root]
+	nodes.append_array(root.find_children("*", "", true, false))
+	return nodes
 
 func _instantiate_scene(path: String) -> Node:
 	var packed_scene := assert_loads(path) as PackedScene

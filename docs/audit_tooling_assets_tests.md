@@ -94,6 +94,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Level authoring contract для cycle metadata, single Player instance, Player export ranges, configured bed transitions, bed target scene type, conditional respawn paths и включённых стартовых текстов.
 - Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.
 - Fridge authoring contract для feeding/code-lock/final fridge configs, minigame signals/setup methods, food scenes, face/background и code-lock scene.
+- Generic active content scene contract для exported non-empty `NodePath`/`Array[NodePath]` values.
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
 - Trigger target/property contract для configured `TriggerSetProperty` и `PropertyChange`.
 - Key-door/search-key contract для required key sources и resolving `SearchKeyManager.search_spots`.

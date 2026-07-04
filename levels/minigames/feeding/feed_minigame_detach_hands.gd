@@ -31,8 +31,8 @@ const SCREAM_STREAMS: Array[AudioStream] = [
 @export_range(0.1, 1.0, 0.01) var scream_repeat_delay: float = 0.25
 @export_range(-40.0, 6.0, 0.1) var scream_volume_db: float = -4.0
 @export_group("Drip Points")
-@export var first_hand_drip_point_path: NodePath = NodePath("FirstHandDripPoint")
-@export var second_hand_drip_point_path: NodePath = NodePath("SecondHandDripPoint")
+@export var first_hand_drip_point_path: NodePath = NodePath("Control/AndreyFace/FirstHandDripPoint")
+@export var second_hand_drip_point_path: NodePath = NodePath("Control/AndreyFace/SecondHandDripPoint")
 @export_group("Pain Shock")
 @export_range(0.0, 1.0, 0.01) var pain_shock_pull_peak: float = 0.55
 @export_range(0.0, 1.0, 0.01) var pain_shock_detach_peak: float = 0.85
@@ -298,7 +298,7 @@ func _win() -> void:
 	get_tree().create_timer(finish_delay).timeout.connect(_close_game)
 
 func _resolve_drip_position(drip_point_path: NodePath, fallback_local: Vector2, drip_size: Vector2) -> Vector2:
-	var point := andrey_sprite.get_node_or_null(drip_point_path) as Node2D
+	var point := get_node_or_null(drip_point_path) as Node2D
 	if point == null:
 		return fallback_local - Vector2(drip_size.x * 0.5, 2.0)
 	var local_in_face: Vector2 = andrey_sprite.get_global_transform_with_canvas().affine_inverse() * point.global_position
