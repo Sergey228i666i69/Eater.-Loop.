@@ -13,7 +13,7 @@
 
 ## Новый Уровень
 
-1. Используй существующий `levels/cycles/level.gd`-контур, если сцена является игровой. Не добавляй локальные проверки вида `path.find("/levels/cycles/")`; классификация сцены должна идти через `SceneContext`.
+1. Используй существующий `levels/cycles/level.gd`-контур, если сцена является игровой. Playable scenes в `levels/cycles/` должны называться `level_*.tscn` и иметь root-контракт `get_cycle_number()` / `get_timer_duration()`; non-level utility-сцены в этой папке должны быть явно allowlisted в `test_level_authoring_contracts.gd`. Не добавляй локальные проверки вида `path.find("/levels/cycles/")`; классификация сцены должна идти через `SceneContext`.
 2. Не правь `GameDirector` ради локальной механики уровня, пока это можно выразить интерактивом, trigger-ом, resource/config-ом или отдельным scene script.
 3. Двери должны иметь resolving `target_marker`. Self-target допустим только для inert/locked двери, иначе fade-to-self снова станет runtime-багом.
 4. Cycle-level scene должна иметь ровно один Player instance из `res://player/player.tscn`; respawn, enemies, UI bars и checkpoint flow завязаны на единственный runtime `player`.
@@ -77,6 +77,7 @@
 - required child name or `NodePath`;
 - required group/method contract;
 - scene script должен явно задать condition/config;
+- playable level scene должен иметь явный cycle/timer root contract;
 - cycle-level metadata, Player instance/export ranges or bed transition/target scene type contract;
 - lab completion id or required lab reference contract;
 - lab minigame scene contract;

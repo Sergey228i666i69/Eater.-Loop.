@@ -4,13 +4,30 @@ const LEVEL_DIR := "res://levels/cycles"
 const BED_SCRIPT := "res://objects/interactable/bed/bed.gd"
 const PLAYER_SCRIPT := "res://player/player.gd"
 const SceneContextScript = preload("res://global/scene_context.gd")
+const NON_LEVEL_SCENE_ALLOWLIST := {
+	"TextureDistortionManager.tscn": true,
+}
 
 func run() -> Array[String]:
+	_test_cycle_scene_directory_has_explicit_level_contracts()
 	_test_cycle_level_metadata_is_sane()
 	_test_cycle_levels_have_single_player()
 	_test_cycle_level_bed_transitions_are_loadable()
 	_test_cycle_level_exported_paths_are_valid()
 	return get_failures()
+
+func _test_cycle_scene_directory_has_explicit_level_contracts() -> void:
+	for path in _list_level_scenes():
+		var root := _instantiate_scene(path)
+		if root == null:
+			continue
+		var file_name := path.get_file()
+		if file_name.begins_with("level_"):
+			assert_true(_is_cycle_level(root), "Playable level scenes must expose cycle/timer contract: %s" % path)
+		else:
+			assert_true(NON_LEVEL_SCENE_ALLOWLIST.has(file_name), "Non-level scenes in %s must be explicitly allowlisted: %s" % [LEVEL_DIR, path])
+			assert_true(not _is_cycle_level(root), "Allowlisted utility scenes must not masquerade as cycle levels: %s" % path)
+		root.free()
 
 func _test_cycle_level_metadata_is_sane() -> void:
 	for path in _list_level_scenes():
