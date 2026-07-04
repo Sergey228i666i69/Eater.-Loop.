@@ -31,7 +31,7 @@ func _on_interact() -> void:
 	_is_reward_in_progress = false
 
 func _play_reward_sequence() -> void:
-	if UIMessage and UIMessage.has_method("fade_out"):
+	if UIMessage != null:
 		await UIMessage.fade_out(fade_out_duration)
 	else:
 		await get_tree().create_timer(max(0.0, fade_out_duration)).timeout
@@ -43,7 +43,7 @@ func _play_reward_sequence() -> void:
 	if reward_message.strip_edges() != "":
 		UIMessage.show_notification(reward_message)
 
-	if UIMessage and UIMessage.has_method("fade_in"):
+	if UIMessage != null:
 		await UIMessage.fade_in(fade_in_duration)
 	else:
 		await get_tree().create_timer(max(0.0, fade_in_duration)).timeout

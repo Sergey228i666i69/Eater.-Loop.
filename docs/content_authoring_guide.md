@@ -30,7 +30,7 @@
 15. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
 16. Для event/distortion музыки передавай scene-owned `Node` как `source` в `MusicManager.start_event_music(...)` / `start_distortion_music(...)`: manager снимет registry/stack entry при `tree_exited`, а обычный enter/exit flow всё равно должен явно вызывать stop.
 17. Если уровень использует крупные STU-пути или dynamic door redirects, держи route/wiring paths в exported `NodePath`/target-полях scene script-а и добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
-18. В level scripts не вызывай публичный API двери через `has_method("set_locked")` / `call("set_target_marker_path", ...)`, если путь обязан вести к двери. Типизируй узел как `Door`, а validator пусть проверяет, что exported path действительно резолвится в `Door`.
+18. В level scripts не вызывай публичный API двери через `has_method("set_locked")` / `call("set_target_marker_path", ...)`, если путь обязан вести к двери. Типизируй узел как `Door`, а validator пусть проверяет, что exported path действительно резолвится в `Door`. То же правило действует для content-object collaborators: если путь обязан вести к холодильнику, типизируй его как `Fridge`, а не проверяй отдельный метод строкой.
 19. Финальные развилки, fridge-driven redirects и signal-driven spawner conditions должны быть typed: `laptop_path` резолвится в `Laptop`, `fridge_path` в `Fridge`, `bed_path` в `Bed`, а реакция на успешное взаимодействие идёт через `interaction_succeeded` или доменный сигнал вроде `feeding_finished`. Не подписывай новый runtime/scene authoring на legacy `interaction_finished`.
 20. Если root scene script экспортирует optional wiring, называй его явно (`primary_fridge_path`, `fridge_interacted_spawn_marker_path`) и добавляй его в allowlist общего validator-а только когда пустое значение действительно является частью дизайна.
 
@@ -45,6 +45,7 @@
 7. Если дверь требует `required_key_id`, в этой же сцене должен быть источник такого ключа: `SearchSpot.key_id`, `Key.key_id` или `Note.reward_key_id`. Если используешь `SearchKeyManager`, его `search_spots` должен быть непустым и все paths должны резолвиться.
 8. Managed `SearchSpot` должен быть полноценной точкой поиска: `minigame_scene` инстанцируется и держит `setup(config)`, `get_layout_state()`, `SearchArea/KeyButton`, `SearchArea/TrashContainer`; `key_id` непустой, `key_texture` задан, `trash_textures` непустой и `trash_min`/`trash_max` образуют валидный видимый диапазон.
 9. Все exported `NodePath` для критичных детей должны либо быть пустыми и optional, либо резолвиться. Для новых обязательных child/path contracts добавляй проверку в `test_scene_nodepath_contracts.gd`.
+10. Для стабильных autoload/facade API не добавляй локальные `has_method` guards в content scripts. Например, `UIMessage.fade_out(...)` / `fade_in(...)` вызываются напрямую при `UIMessage != null`; если facade меняется, должен падать тест или parser, а не тихо пропускаться поведение.
 
 ## Свет, Генератор И Враги
 
@@ -95,6 +96,7 @@
 - exported content scene `NodePath` resolving contract;
 - scene-owned audio player bus contract;
 - utility-level condition/spawn path contract;
+- typed collaborator contract для content-object script-а;
 - key-door source, search manager or managed `SearchSpot` config contract;
 - inherited scene override must use explicit typed defaults instead of `null`;
 - fridge feeding/code-lock/final minigame config contract;

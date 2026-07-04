@@ -136,7 +136,8 @@ func _test_level_utility_nodepaths_resolve() -> void:
 		for node in root.find_children("*", "", true, false):
 			var script_path := _script_path(node)
 			if script_path == LEBEDKA_SCRIPT:
-				_assert_required_nodepath_resolves_with_method(path, root, node, "fridge_path", "apply_winch_release_state")
+				var fridge := _assert_required_nodepath_resolves(path, root, node, "fridge_path")
+				assert_true(fridge is Fridge, "Lebedka fridge_path must resolve to Fridge: %s:%s" % [path, root.get_path_to(node)])
 				_assert_optional_nodepath_resolves(path, root, node, "sprite_node", "Sprite2D")
 			elif script_path == CORRIDOR_DISTORTION_SCRIPT:
 				_assert_required_nodepath_resolves(path, root, node, "trigger_path", "Area2D")

@@ -97,6 +97,7 @@
 - Включение/отключение объекта делается через `set_interaction_enabled(...)`, а не прямой раздельной правкой prompt/input флагов.
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
 - Если зависимость не выполнена, базовый `InteractiveObject` обязан показать `locked_message`, если наследник не переопределил это поведение явно.
+- Content-object scripts должны использовать стабильные collaborators типизированно: обязательный fridge path резолвится в `Fridge`, а `UIMessage.fade_*` вызывается через facade при `UIMessage != null`, без локальных `has_method/call` probes.
 
 ### 2.7 Контур input-device detection
 
@@ -200,7 +201,7 @@
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
-- Добавлены scene-contract validators для critical NodePath/child contracts, scene audio-bus contracts, typed interaction signal subscriptions, runtime input action literals, utility-level NodePaths, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
+- Добавлены scene-contract validators для critical NodePath/child contracts, scene audio-bus contracts, typed interaction signal subscriptions, runtime input action literals, utility-level NodePaths, content-object typed collaborators, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
 - `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.
 - Localization validator покрывает death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names и money reward reasons; death-title presenter локализует default и sequence titles через `tr(...)`.
 - Naming debt закрыт Godot-aware rename-ами с обновлением `.import` и scene/script references.

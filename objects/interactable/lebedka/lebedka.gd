@@ -51,7 +51,7 @@ func _on_interact() -> void:
 	if is_instance_valid(player) and player.has_method("set_physics_process"):
 		player.set_physics_process(false)
 
-	if UIMessage and UIMessage.has_method("fade_out"):
+	if UIMessage != null:
 		await UIMessage.fade_out(fade_out_duration)
 	else:
 		await get_tree().create_timer(max(0.0, fade_out_duration)).timeout
@@ -62,7 +62,7 @@ func _on_interact() -> void:
 	if hold_duration > 0.0:
 		await get_tree().create_timer(hold_duration).timeout
 
-	if UIMessage and UIMessage.has_method("fade_in"):
+	if UIMessage != null:
 		await UIMessage.fade_in(fade_in_duration)
 	else:
 		await get_tree().create_timer(max(0.0, fade_in_duration)).timeout
@@ -90,22 +90,22 @@ func _apply_winch_effects() -> void:
 	set_prompts_enabled(false)
 	complete_interaction()
 
-func _get_fridge_target() -> Node:
+func _get_fridge_target() -> Fridge:
 	if fridge_path.is_empty():
 		push_warning("Lebedka: fridge_path is not assigned.")
 		return null
 	
-	var fridge := get_node_or_null(fridge_path)
-	if fridge == null or not fridge.has_method("apply_winch_release_state"):
+	var fridge := get_node_or_null(fridge_path) as Fridge
+	if fridge == null:
 		push_warning("Lebedka: fridge_path does not point to Fridge.")
 		return null
 	
 	return fridge
 
-func _apply_fridge_winch_state(fridge: Node) -> void:
+func _apply_fridge_winch_state(fridge: Fridge) -> void:
 	if fridge == null:
 		return
-	fridge.call("apply_winch_release_state")
+	fridge.apply_winch_release_state()
 
 func _apply_used_visual() -> void:
 	if _sprite and used_sprite:

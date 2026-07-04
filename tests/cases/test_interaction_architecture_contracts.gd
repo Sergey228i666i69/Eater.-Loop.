@@ -45,6 +45,12 @@ const LEGACY_INTERACTION_FINISHED_SCRIPT_PATTERNS := [
 const LEGACY_INTERACTION_FINISHED_SCENE_PATTERNS := [
 	"condition_signal_name = &\"interaction_finished\""
 ]
+const CONTENT_OBJECT_STRINGLY_PATTERNS := [
+	"UIMessage.has_method(\"fade_out\")",
+	"UIMessage.has_method(\"fade_in\")",
+	"has_method(\"apply_winch_release_state\")",
+	".call(\"apply_winch_release_state\""
+]
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
@@ -176,6 +182,10 @@ func run() -> Array[String]:
 
 		for pattern in LEGACY_INTERACTION_FINISHED_SCRIPT_PATTERNS:
 			assert_true(content.find(pattern) == -1, "Runtime scripts must subscribe to typed interaction_succeeded instead of legacy interaction_finished: %s (%s)" % [path, pattern])
+
+		if path.begins_with("res://objects/"):
+			for pattern in CONTENT_OBJECT_STRINGLY_PATTERNS:
+				assert_true(content.find(pattern) == -1, "Content objects must use typed collaborators instead of stringly method probes: %s (%s)" % [path, pattern])
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 
