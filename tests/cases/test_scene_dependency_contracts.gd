@@ -3,6 +3,7 @@ extends "res://tests/test_case.gd"
 const LEVEL04_SCENE_PATH := "res://levels/cycles/level_04_findkey.tscn"
 const DOOR_SCRIPT := "res://objects/interactable/door/door.gd"
 const SEARCH_KEY_MANAGER_SCRIPT := "res://levels/minigames/search_key/search_key_manager.gd"
+const SearchSpotScript := preload("res://objects/interactable/search_spot/search_spot.gd")
 const SCENE_DIRS := [
 	"res://levels",
 	"res://objects"
@@ -119,7 +120,7 @@ func _test_search_key_managers_have_resolving_spots() -> void:
 				var spot := node.get_node_or_null(spot_path)
 				assert_true(spot != null, "SearchKeyManager search spot must resolve: %s:%s[%d] -> %s" % [path, root.get_path_to(node), index, spot_path])
 				if spot != null:
-					assert_true(spot.has_method("set_has_key"), "SearchKeyManager search spot must expose set_has_key(): %s:%s[%d] -> %s" % [path, root.get_path_to(node), index, spot_path])
+					assert_true(spot is SearchSpotScript, "SearchKeyManager search spot must be SearchSpot: %s:%s[%d] -> %s" % [path, root.get_path_to(node), index, spot_path])
 		root.free()
 
 func _test_scene_dependencies_declare_typed_conditions() -> void:

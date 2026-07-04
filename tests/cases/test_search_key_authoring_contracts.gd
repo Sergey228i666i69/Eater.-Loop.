@@ -2,11 +2,27 @@ extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
 const SEARCH_KEY_MANAGER_SCRIPT := "res://levels/minigames/search_key/search_key_manager.gd"
-const SEARCH_SPOT_SCRIPT := "res://objects/interactable/search_spot/search_spot.gd"
+const SearchSpotScript := preload("res://objects/interactable/search_spot/search_spot.gd")
+const SEARCH_KEY_MANAGER_STRINGLY_PATTERNS := [
+	"has_method(\"set_has_key\")",
+	"has_method(\"set_searched_empty\")",
+	".call(\"set_has_key\"",
+	".call(\"set_searched_empty\""
+]
 
 func run() -> Array[String]:
+	_test_search_key_manager_uses_typed_search_spots()
 	_test_managed_search_spots_have_complete_configs()
 	return get_failures()
+
+func _test_search_key_manager_uses_typed_search_spots() -> void:
+	var content := FileAccess.get_file_as_string(SEARCH_KEY_MANAGER_SCRIPT)
+	assert_true(content != "", "Failed to read SearchKeyManager script")
+	for pattern in SEARCH_KEY_MANAGER_STRINGLY_PATTERNS:
+		assert_true(
+			content.find(pattern) == -1,
+			"SearchKeyManager must use typed SearchSpot references instead of method probes: %s" % pattern
+		)
 
 func _test_managed_search_spots_have_complete_configs() -> void:
 	for path in _list_level_scenes():
@@ -26,12 +42,12 @@ func _assert_managed_search_spots(path: String, root: Node, manager: Node) -> vo
 		var spot := manager.get_node_or_null(spot_path)
 		if spot == null:
 			continue
-		assert_true(_script_path(spot) == SEARCH_SPOT_SCRIPT, "SearchKeyManager search_spots must point to SearchSpot: %s:%s[%d] -> %s" % [path, root.get_path_to(manager), index, spot_path])
-		if _script_path(spot) != SEARCH_SPOT_SCRIPT:
+		assert_true(spot is SearchSpotScript, "SearchKeyManager search_spots must point to SearchSpot: %s:%s[%d] -> %s" % [path, root.get_path_to(manager), index, spot_path])
+		if not (spot is SearchSpotScript):
 			continue
-		_assert_search_spot_config(path, root, spot)
+		_assert_search_spot_config(path, root, spot as SearchSpotScript)
 
-func _assert_search_spot_config(path: String, root: Node, spot: Node) -> void:
+func _assert_search_spot_config(path: String, root: Node, spot: SearchSpotScript) -> void:
 	var minigame_scene := _get_packed_scene(spot, "minigame_scene")
 	assert_true(minigame_scene != null, "SearchSpot must set minigame_scene: %s:%s" % [path, root.get_path_to(spot)])
 	_assert_search_minigame_contract(path, root, spot, minigame_scene)

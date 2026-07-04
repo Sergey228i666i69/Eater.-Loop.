@@ -102,7 +102,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
 - Content-object stringly collaborator contract для запрета `UIMessage.has_method(...)` и method-string winch/fridge glue там, где уже есть стабильный facade/typed class.
 - Trigger target/property/effect/music-stream contract для configured `TriggerSetProperty` и `PropertyChange`.
-- Key-door/search-key contract для required key sources, resolving `SearchKeyManager.search_spots` и managed `SearchSpot` minigame/key/trash configs.
+- Key-door/search-key contract для required key sources, resolving typed `SearchKeyManager.search_spots` и managed `SearchSpot` minigame/key/trash configs.
 - Scene typed override hygiene contract для явных door/interactable defaults вместо inherited `null`.
 - Checkpoint participant stable-path contract для active scenes: custom checkpoint nodes must resolve to non-empty scene-relative paths without generated `@...` segments.
 - Checkpoint scene snapshot contract для dynamic runtime participants и removed participant state.
