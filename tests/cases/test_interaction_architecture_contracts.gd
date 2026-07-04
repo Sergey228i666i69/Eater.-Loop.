@@ -62,6 +62,7 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"var _death_camera: Camera2D",
 	"_death_camera_base_",
 	"tween_property(_death_camera",
+	"tween_property(_death_fade_rect",
 	"var _death_sequence_active",
 	"var _death_pause_requested",
 	"restore_respawn_checkpoint",

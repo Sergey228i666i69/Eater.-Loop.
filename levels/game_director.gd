@@ -4,6 +4,7 @@ signal distortion_started
 
 const DeathCameraCoordinator = preload("res://levels/game_director_death_camera_coordinator.gd")
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
+const DeathFadeCoordinator = preload("res://levels/game_director_death_fade_coordinator.gd")
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
 const DeathScreenReset = preload("res://levels/game_director_death_screen_reset.gd")
 const DeathSequenceState = preload("res://levels/game_director_death_sequence_state.gd")
@@ -105,6 +106,7 @@ var _death_retry_button: Button
 var _input_kind: int = 0
 var _death_camera_coordinator: RefCounted
 var _death_cursor_coordinator: RefCounted
+var _death_fade_coordinator: RefCounted
 var _death_retry_coordinator: RefCounted
 var _death_screen_reset: RefCounted
 var _death_sequence_state: RefCounted
@@ -135,6 +137,7 @@ func _ready() -> void:
 	_create_death_overlay()
 	_death_camera_coordinator = DeathCameraCoordinator.new()
 	_death_cursor_coordinator = DeathCursorCoordinator.new()
+	_death_fade_coordinator = DeathFadeCoordinator.new()
 	_death_retry_coordinator = DeathRetryCoordinator.new()
 	_death_screen_reset = DeathScreenReset.new()
 	_death_sequence_state = DeathSequenceState.new()
@@ -463,27 +466,24 @@ func trigger_death_screen() -> void:
 	_get_distortion_phase_state().reset_for_normal_phase()
 	_stop_light_only_jump_effect()
 	_hide_distortion_overlays()
-	if _death_camera_coordinator == null:
-		_death_camera_coordinator = DeathCameraCoordinator.new()
-	_death_camera_coordinator.capture(_resolve_primary_camera())
+	_get_death_camera_coordinator().capture(_resolve_primary_camera())
 	if _death_title_presenter != null:
 		_death_title_presenter.apply_next_title(death_title_text)
 	if _death_retry_button:
 		_death_retry_button.text = tr(death_retry_text)
 	if _death_root:
 		_death_root.visible = false
-	if _death_fade_rect:
-		_death_fade_rect.visible = true
-		_death_fade_rect.color = Color(0, 0, 0, 0)
-	var fade_time: float = maxf(0.01, death_fade_duration)
-	var tween := create_tween()
-	tween.set_parallel(true)
-	if _death_fade_rect:
-		tween.tween_property(_death_fade_rect, "color:a", 1.0, fade_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	if _death_camera_coordinator.has_camera():
-		var tilt_sign := -1.0 if randf() < 0.5 else 1.0
-		_death_camera_coordinator.tween_to_death_pose(tween, fade_time, death_camera_tilt_deg, death_camera_zoom_mult, tilt_sign)
-	tween.finished.connect(_on_death_fade_completed)
+	var tilt_sign := -1.0 if randf() < 0.5 else 1.0
+	_get_death_fade_coordinator().begin_fade(
+		create_tween(),
+		_death_fade_rect,
+		_get_death_camera_coordinator(),
+		death_fade_duration,
+		death_camera_tilt_deg,
+		death_camera_zoom_mult,
+		tilt_sign,
+		Callable(self, "_on_death_fade_completed")
+	)
 
 func _handle_custom_scene_death() -> bool:
 	var scene := get_tree().current_scene
@@ -526,9 +526,17 @@ func _reset_death_screen_state() -> void:
 	)
 
 func _restore_death_camera() -> void:
+	_get_death_camera_coordinator().restore()
+
+func _get_death_camera_coordinator() -> RefCounted:
 	if _death_camera_coordinator == null:
 		_death_camera_coordinator = DeathCameraCoordinator.new()
-	_death_camera_coordinator.restore()
+	return _death_camera_coordinator
+
+func _get_death_fade_coordinator() -> RefCounted:
+	if _death_fade_coordinator == null:
+		_death_fade_coordinator = DeathFadeCoordinator.new()
+	return _death_fade_coordinator
 
 func _get_death_retry_coordinator() -> RefCounted:
 	if _death_retry_coordinator == null:

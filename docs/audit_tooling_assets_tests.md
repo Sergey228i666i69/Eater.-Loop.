@@ -104,6 +104,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Interaction result builder contract для typed Dictionary payload, metadata/source/player preservation и защиты payload от alias-мутаций.
 - GameDirector death screen reset helper contract для скрытия death UI, очистки fade/focus override и освобождения camera/cursor/pause owners.
 - GameDirector death sequence state contract для idempotent start, pause owner tracking и reset без silent pause leak.
+- GameDirector death fade coordinator contract для fade rect alpha tween, duration clamp, completion callback и camera tween delegation.
 - Music pause reason state contract для нескольких независимых base/chase pause owners.
 - Music ambient suppression state contract для bedroom/ambient-silent source tracking, stale weakref cleanup и `tree_exited` callback wiring.
 - Music scoped source registry contract и MusicManager scoped source cleanup regression для event/distortion music, чтобы удалённые trigger/controller nodes не оставляли приоритетную музыку в registry/stack.
