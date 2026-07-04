@@ -1,13 +1,12 @@
 extends "res://levels/cycles/level.gd"
 
-const TO_BATHROOM_DEFAULT_TARGET := NodePath("../../../1thBathroom/InteractableObjects/Door(In1thBathroom)")
-const TO_BEDROOM_TARGET := NodePath("../../../../Bedroom/InteractableObjects/Door(InBedroom)")
-
 @export var door_to_bathroom_path: NodePath = NodePath("1thLevel/1thHall/InteractableObjects/Door(ToBathroom)")
+@export var door_to_bathroom_default_target: NodePath = NodePath("../../../1thBathroom/InteractableObjects/Door(In1thBathroom)")
+@export var door_to_bedroom_target: NodePath = NodePath("../../../../Bedroom/InteractableObjects/Door(InBedroom)")
 @export var primary_fridge_path: NodePath = NodePath("")
 @export var secondary_fridge_path: NodePath = NodePath("Stolovaya/InteractableObjects/Fridge")
 
-var _door_to_bathroom: Node = null
+var _door_to_bathroom: Door = null
 var _fridges: Array[InteractiveObject] = []
 
 func _ready() -> void:
@@ -15,7 +14,7 @@ func _ready() -> void:
 	call_deferred("_wire_bathroom_redirect")
 
 func _wire_bathroom_redirect() -> void:
-	_door_to_bathroom = get_node_or_null(door_to_bathroom_path)
+	_door_to_bathroom = get_node_or_null(door_to_bathroom_path) as Door
 	_fridges.clear()
 	_register_fridge(primary_fridge_path)
 	_register_fridge(secondary_fridge_path)
@@ -48,9 +47,8 @@ func _on_fridge_interacted_changed() -> void:
 func _update_bathroom_door_target() -> void:
 	if _door_to_bathroom == null:
 		return
-	var target := TO_BEDROOM_TARGET if _is_fridge_interacted() else TO_BATHROOM_DEFAULT_TARGET
-	if _door_to_bathroom.has_method("set_target_marker_path"):
-		_door_to_bathroom.call("set_target_marker_path", target)
+	var target := door_to_bedroom_target if _is_fridge_interacted() else door_to_bathroom_default_target
+	_door_to_bathroom.set_target_marker_path(target)
 
 func _is_fridge_interacted() -> bool:
 	if CycleState != null and CycleState.has_method("is_fridge_interacted") and CycleState.is_fridge_interacted():

@@ -2,11 +2,19 @@ extends "res://levels/cycles/level.gd"
 
 const BASEMENT_LOCAL_BOUNDS := Rect2(6050.0, -320.0, 9150.0, 900.0)
 const BASEMENT_DARKNESS_COLOR := Color(0.007843138, 0.007843138, 0.011764706, 1.0)
-const TO202_DEFAULT_TARGET := NodePath("../../../202/InteractableObjects/Door(In202)")
-const TO202_BEDROOM_TARGET := NodePath("../../../../Bedroom/InteractableObjects/Door(InBedroom)")
 const CYCLE_START_SUBTITLE := "Как же темно.. наверно, генератор сдох"
 const FRIDGE_LOCKED_MESSAGE_RU := "Сначала запусти генератор."
 const FRIDGE_LOCKED_MESSAGE_EN := "Start the generator first."
+
+@export_group("Level Wiring")
+@export var generator_path: NodePath = NodePath("Generator")
+@export var darkness_path: NodePath = NodePath("Darkness")
+@export var player_path: NodePath = NodePath("Player")
+@export var basement_path: NodePath = NodePath("Basement")
+@export var fridge_path: NodePath = NodePath("6thLevel/604/InteractableObjects/Fridge")
+@export var door_to202_path: NodePath = NodePath("2thLevel/2thHall/InteractableObjects/Door(To202)")
+@export var door_to202_default_target: NodePath = NodePath("../../../202/InteractableObjects/Door(In202)")
+@export var door_to202_bedroom_target: NodePath = NodePath("../../../../Bedroom/InteractableObjects/Door(InBedroom)")
 
 var _darkness_node: CanvasModulate = null
 var _player_node: Node2D = null
@@ -14,17 +22,17 @@ var _basement_node: Node2D = null
 var _default_darkness_color: Color = Color(1.0, 1.0, 1.0, 1.0)
 var _is_player_in_basement: bool = false
 var _generator_node: InteractiveObject = null
-var _fridge_node: Node = null
-var _door_to_202_node: Node = null
+var _fridge_node: Fridge = null
+var _door_to_202_node: Door = null
 
 func _ready() -> void:
 	show_start_subtitle = true
 	start_subtitle_text = CYCLE_START_SUBTITLE
-	_generator_node = get_node_or_null("Generator") as InteractiveObject
+	_generator_node = get_node_or_null(generator_path) as InteractiveObject
 	super._ready()
-	_darkness_node = get_node_or_null("Darkness") as CanvasModulate
-	_player_node = get_node_or_null("Player") as Node2D
-	_basement_node = get_node_or_null("Basement") as Node2D
+	_darkness_node = get_node_or_null(darkness_path) as CanvasModulate
+	_player_node = get_node_or_null(player_path) as Node2D
+	_basement_node = get_node_or_null(basement_path) as Node2D
 	if _darkness_node != null:
 		_default_darkness_color = _darkness_node.color
 	_update_basement_darkness(true)
@@ -48,16 +56,15 @@ func _update_basement_darkness(force: bool = false) -> void:
 	_darkness_node.color = BASEMENT_DARKNESS_COLOR if is_in_basement else _default_darkness_color
 
 func _wire_level12_dependencies() -> void:
-	_generator_node = get_node_or_null("Generator") as InteractiveObject
-	_fridge_node = get_node_or_null("6thLevel/604/InteractableObjects/Fridge")
-	_door_to_202_node = get_node_or_null("2thLevel/2thHall/InteractableObjects/Door(To202)")
+	_generator_node = get_node_or_null(generator_path) as InteractiveObject
+	_fridge_node = get_node_or_null(fridge_path) as Fridge
+	_door_to_202_node = get_node_or_null(door_to202_path) as Door
 
-	if _generator_node != null and _fridge_node != null and _fridge_node.has_method("set_dependency_object"):
-		_fridge_node.call("set_dependency_object", _generator_node)
-		_fridge_node.call("set_dependency_condition", InteractiveObject.DependencyCondition.COMPLETED)
+	if _generator_node != null and _fridge_node != null:
+		_fridge_node.set_dependency_object(_generator_node)
+		_fridge_node.set_dependency_condition(InteractiveObject.DependencyCondition.COMPLETED)
 		_update_fridge_locked_message()
-		if _fridge_node.has_method("refresh_visual_state"):
-			_fridge_node.call("refresh_visual_state")
+		_fridge_node.refresh_visual_state()
 
 	if SettingsManager != null and SettingsManager.has_signal("language_changed"):
 		var on_language_changed := Callable(self, "_on_language_changed")
@@ -76,7 +83,7 @@ func _wire_level12_dependencies() -> void:
 
 func should_show_start_subtitle() -> bool:
 	if _generator_node == null:
-		_generator_node = get_node_or_null("Generator") as InteractiveObject
+		_generator_node = get_node_or_null(generator_path) as InteractiveObject
 	return not _is_generator_completed()
 
 func _is_generator_completed() -> bool:
@@ -97,8 +104,7 @@ func _update_to202_target() -> void:
 	if _door_to_202_node == null:
 		return
 	var should_open_bedroom := CycleState != null and bool(CycleState.has_eaten_this_cycle())
-	if _door_to_202_node.has_method("set_target_marker_path"):
-		_door_to_202_node.call("set_target_marker_path", TO202_BEDROOM_TARGET if should_open_bedroom else TO202_DEFAULT_TARGET)
+	_door_to_202_node.set_target_marker_path(door_to202_bedroom_target if should_open_bedroom else door_to202_default_target)
 
 func _update_fridge_locked_message() -> void:
 	if _fridge_node == null:

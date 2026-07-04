@@ -26,7 +26,8 @@
 11. Не оставляй inherited door/interactable config overrides как `null`: для typed defaults используй явные значения вроде `false`, `""` или `NodePath("")`. Это особенно важно для `is_locked`, `required_key_id`, `interact_area_node`, `target_marker` и `one_shot`, потому что `null` скрывает фактическую семантику сцены.
 12. Если используешь level utility scripts вроде лебёдки, corridor distortion или `TargetMonsterSpawner`, не оставляй обязательные `NodePath` в уме: текущие пути уже проверяются `test_scene_nodepath_contracts.gd`, а для новых utility scripts добавляй аналогичный focused contract.
 13. Для event/distortion музыки передавай scene-owned `Node` как `source` в `MusicManager.start_event_music(...)` / `start_distortion_music(...)`: manager снимет registry/stack entry при `tree_exited`, а обычный enter/exit flow всё равно должен явно вызывать stop.
-14. Если уровень использует крупные STU-пути, добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
+14. Если уровень использует крупные STU-пути или dynamic door redirects, держи route/wiring paths в exported `NodePath`/target-полях scene script-а и добавь focused path contract рядом с `test_stu_level_path_contracts.gd` вместо надежды на ручной просмотр `.tscn`.
+15. В level scripts не вызывай публичный API двери через `has_method("set_locked")` / `call("set_target_marker_path", ...)`, если путь обязан вести к двери. Типизируй узел как `Door`, а validator пусть проверяет, что exported path действительно резолвится в `Door`.
 
 ## Новый Интерактив
 
