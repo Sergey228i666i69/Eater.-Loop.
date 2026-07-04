@@ -6,7 +6,7 @@
 
 ## Короткий Вердикт
 
-Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 113 тестов.
+Проект не выглядит разваленным. У него понятный entrypoint, явные autoload-и, рабочий локальный тестовый слой, Git LFS для ассетов, CI-проверки, `InteractionManager`, `SceneContext`, checkpoint-восстановление и набор контрактных тестов. После текущего remediation pass parser-only и полный suite проходили, полный suite содержит 114 тестов.
 
 Основная проблема уже не в "игра не запускается", а в дальнейшей поддерживаемости:
 
@@ -52,7 +52,7 @@
 - Input-device detection централизован в `global/input_device_utils.gd` и переиспользуется `GameDirector`, `InteractionPrompts` и `MainMenu`.
 - `InteractiveObject` получил typed `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`; final branch и completed dependencies переведены на success outcome.
 - `PauseManager` получил owner-token API; pause menu, UI notes/hints, minigames и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
-- Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`: критичные interactable paths, utility-level paths для лебёдки/corridor distortion/`TargetMonsterSpawner`, active content scene exported non-empty `NodePath`/`Array[NodePath]` resolving, playable level root contract, cycle-level metadata/Player instance/Player export ranges/bed transitions/bed target scene types/root exported `*_path` wiring и typed root path expectations покрыты `test_level_authoring_contracts.gd`, lab laptop IDs/timer settings и fridge required lab IDs покрыты `test_lab_authoring_contracts.gd`, feeding/code-lock/final fridge configs покрыты `test_fridge_authoring_contracts.gd`, STU exported route/wiring paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`, configured `TriggerSetProperty` target/property wiring покрыт `test_trigger_set_property_contracts.gd`, а key-door/search-key wiring и stable scene-relative paths для checkpoint participants покрыты `test_scene_dependency_contracts.gd`.
+- Scene NodePath contracts покрыты `test_scene_nodepath_contracts.gd`: критичные interactable paths, utility-level paths для лебёдки/corridor distortion/`TargetMonsterSpawner`, active content scene exported non-empty `NodePath`/`Array[NodePath]` resolving, playable level root contract, cycle-level metadata/Player instance/Player export ranges/bed transitions/bed target scene types/root exported `*_path` wiring и typed root path expectations покрыты `test_level_authoring_contracts.gd`, lab laptop IDs/timer settings и fridge required lab IDs покрыты `test_lab_authoring_contracts.gd`, feeding/code-lock/final fridge configs покрыты `test_fridge_authoring_contracts.gd`, STU exported route/wiring paths и dynamic door targets покрыты `test_stu_level_path_contracts.gd`, configured `TriggerSetProperty` target/property wiring покрыт `test_trigger_set_property_contracts.gd`, managed `SearchSpot` minigame/key/trash configs покрыты `test_search_key_authoring_contracts.gd`, а key-door/search-key wiring и stable scene-relative paths для checkpoint participants покрыты `test_scene_dependency_contracts.gd`.
 - Убраны две key-door ловушки: `level_09_crazy` больше не требует несуществующий `lebedka_key` и не держит пустой `SearchKeyManager`, а `level_12_STU_2` больше не запирает игрока в 604 через `key_6level` без источника ключа.
 - Пустые target marker STU-двери, которые должны быть недоступны, явно locked; `level_13_stu_3.gd` сделал отсутствующий primary fridge path явным optional default.
 - `level_13_STU_3` cafeteria fridge больше не остаётся частично настроенным: после lab-gate у него есть feeding minigame scene, face/background/music/sfx и food config.
@@ -116,6 +116,7 @@
 - `tests/cases/test_level_authoring_contracts.gd` валидирует cycle-level metadata, ровно один Player instance, безопасные диапазоны Player export-полей движения/выносливости/фонарика/шагов, наличие bed transition, loadable `next_level_path`, отсутствие bed self-loop, target scene type только cycle-level/ending, root-level conditional respawn paths, root exported `*_path` resolving/type expectations и непустой текст включённых стартовых hint/subtitle.
 - `tests/cases/test_lab_authoring_contracts.gd` валидирует lab laptop `time_limit`/`penalty_time`, timed-lab minigame scene contract, уникальные `lab_completion_id` там, где сцена требует явные lab IDs, и соответствие `Fridge.required_lab_completion_ids` реальным ноутбукам в той же сцене.
 - `tests/cases/test_fridge_authoring_contracts.gd` валидирует active level feeding/code-lock/final fridge configs, включая minigame signals/setup methods, food scenes, face/background и code-lock scene.
+- `tests/cases/test_search_key_authoring_contracts.gd` валидирует managed `SearchSpot` configs: minigame scene instantiates and exposes setup/layout API, key texture is set, trash textures are non-empty Texture2D entries, trash range is sane, and minigame keeps `SearchArea/KeyButton` plus `SearchArea/TrashContainer`.
 - `tests/cases/test_stu_level_path_contracts.gd` валидирует STU exported route/wiring paths and dynamic door targets.
 - `tests/cases/test_localization_contracts.gd` теперь покрывает больше player-facing export-полей и script literals: death/ending UI, note/obstacle prompts, timed lab dialogue exports, key names, money reward reasons, gamepad hints, default gamepad hints, запрет новых ASCII phrase translit keys для русских строк, static `.tscn` non-Cyrillic text contract и прямые GDScript UI call-literals.
 - STU doors with intentionally empty targets are now explicitly locked.
@@ -205,7 +206,7 @@
 
 Статус: закрыто.
 
-- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (113)`.
+- `docs/audit_tooling_assets_tests.md` обновлён под текущий suite: `OK: all tests passed (114)`.
 - `docs/level_end_endings.md` обновлён под `res://levels/cycles/level_14_end.tscn`, `level_14_end.gd` и inherited `level_11_end.gd`.
 - `docs/architecture_overview.md` дополнил текущие контракты SceneContext/pause, music idempotency, flashlight transition blocking и новые regression-тесты.
 

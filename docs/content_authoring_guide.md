@@ -41,7 +41,8 @@
 5. Для данных результата, которые могут понадобиться другим объектам (`reward_type`, `key_id`, item/reward/branch data), используй `InteractionResultBuilder.with_payload(...)`; для выдачи ключа используй готовый `InteractionResultBuilder.key_reward(key_id)`. `payload` зарезервирован как Dictionary; произвольные совместимые top-level ключи допускаются только для старых локальных данных. Если появляется новый тип reward/item/branch payload, сначала добавь constants/helper в `InteractionResultBuilder` и focused test, затем используй его в интерактивах.
 6. Если объект показывает prompt не из своей позиции, дай стабильный `get_prompt_world_position()` или корректный prompt anchor.
 7. Если дверь требует `required_key_id`, в этой же сцене должен быть источник такого ключа: `SearchSpot.key_id`, `Key.key_id` или `Note.reward_key_id`. Если используешь `SearchKeyManager`, его `search_spots` должен быть непустым и все paths должны резолвиться.
-8. Все exported `NodePath` для критичных детей должны либо быть пустыми и optional, либо резолвиться. Для новых обязательных child/path contracts добавляй проверку в `test_scene_nodepath_contracts.gd`.
+8. Managed `SearchSpot` должен быть полноценной точкой поиска: `minigame_scene` инстанцируется и держит `setup(config)`, `get_layout_state()`, `SearchArea/KeyButton`, `SearchArea/TrashContainer`; `key_id` непустой, `key_texture` задан, `trash_textures` непустой и `trash_min`/`trash_max` образуют валидный видимый диапазон.
+9. Все exported `NodePath` для критичных детей должны либо быть пустыми и optional, либо резолвиться. Для новых обязательных child/path contracts добавляй проверку в `test_scene_nodepath_contracts.gd`.
 
 ## Свет, Генератор И Враги
 
@@ -88,7 +89,7 @@
 - trigger target path or property contract;
 - exported content scene `NodePath` resolving contract;
 - utility-level condition/spawn path contract;
-- key-door source or search manager contract;
+- key-door source, search manager or managed `SearchSpot` config contract;
 - inherited scene override must use explicit typed defaults instead of `null`;
 - fridge feeding/code-lock/final minigame config contract;
 - state должен сохраняться в checkpoint/save;

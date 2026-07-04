@@ -7,7 +7,7 @@
 - Godot: `4.6.1.stable`.
 - `godot --headless --check-only -s res://tests/run_tests.gd` прошёл.
 - Первичный финальный прогон `bash tests/run_tests.sh` завершался с exit code `1`.
-- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 113 тестов.
+- После ремонтных проходов parser-only и полный suite проходят; текущий полный suite содержит 114 тестов.
 - Tooling-агент ранее видел exit code `2` и 2 failures; после создания документации повторно воспроизводился 1 failure. После последующих runtime-ремонтов эти падения не воспроизводятся.
 - Первичный полный export/build не запускался, чтобы не писать в output paths и импорт-кэш; после ремонта добавлен CI debug export smoke.
 
@@ -43,7 +43,7 @@
 
 Tooling-агент ранее также наблюдал `test_audio_menu_to_level01_bedroom_runtime.gd`: ambient playback не остановлен при bedroom suppression, проверка около строки 46. Последующие полные прогоны это не воспроизводят, поэтому пункт остался историческим наблюдением, а не текущим known failure.
 
-Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (113)`.
+Текущий expected result: `bash tests/run_tests.sh` завершается `OK: all tests passed (114)`.
 
 ## Resolved: `lamp_switch` Удалён Из Input Map, Но Код Его Использует
 
@@ -78,7 +78,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 
 - [`tests/run_tests.gd`](../tests/run_tests.gd);
 - [`tests/run_tests.sh`](../tests/run_tests.sh);
-- 113 тестов.
+- 114 тестов.
 
 Добавлено:
 
@@ -97,7 +97,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Generic active content scene contract для exported non-empty `NodePath`/`Array[NodePath]` values.
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.
 - Trigger target/property contract для configured `TriggerSetProperty` и `PropertyChange`.
-- Key-door/search-key contract для required key sources и resolving `SearchKeyManager.search_spots`.
+- Key-door/search-key contract для required key sources, resolving `SearchKeyManager.search_spots` и managed `SearchSpot` minigame/key/trash configs.
 - Scene typed override hygiene contract для явных door/interactable defaults вместо inherited `null`.
 - Checkpoint participant stable-path contract для active scenes: custom checkpoint nodes must resolve to non-empty scene-relative paths without generated `@...` segments.
 - Checkpoint scene snapshot contract для dynamic runtime participants и removed participant state.
