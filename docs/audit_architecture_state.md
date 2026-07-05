@@ -74,7 +74,7 @@
 
 Примеры: [`player/ui_message.gd`](../player/ui_message.gd), около строк 65, 415, 460.
 
-Статус: notes/hints больше не восстанавливают `get_tree().paused` через локальный previous-bool, а используют pause tokens `PauseManager`. Fade/tween/token state вынесен в `player/ui_fade_controller.gd`, при этом публичный `UIMessage` facade сохранён. Остальная перегрузка UI/navigation/prompts остаётся.
+Статус: notes/hints больше не восстанавливают `get_tree().paused` через локальный previous-bool или fallback, а используют стабильный token API `PauseManager`; архитектурный тест запрещает возвращать `UIMessage` к прямому `tree.paused` ownership. Fade/tween/token state вынесен в `player/ui_fade_controller.gd`, при этом публичный `UIMessage` facade сохранён. Остальная перегрузка UI/navigation/prompts остаётся.
 
 Ремонт: разделить message/prompt layer, transition service и scene navigation.
 

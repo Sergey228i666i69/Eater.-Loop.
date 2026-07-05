@@ -547,43 +547,33 @@ func _finish_note_hide_transition() -> void:
 	_flush_queued_subtitle()
 
 func _clear_pause_for_scene_transition() -> void:
-	if PauseManager != null and PauseManager.has_method("clear_all_pause_requests"):
+	if PauseManager != null:
 		PauseManager.clear_all_pause_requests()
-	else:
-		get_tree().paused = false
 
 func _request_note_pause() -> void:
 	if _note_pause_requested:
 		return
 	_note_pause_requested = true
-	if PauseManager != null and PauseManager.has_method("request_pause"):
+	if PauseManager != null:
 		PauseManager.request_pause(self, "note")
-	else:
-		get_tree().paused = true
 
 func _release_note_pause() -> void:
 	if not _note_pause_requested:
 		return
 	_note_pause_requested = false
-	if PauseManager != null and PauseManager.has_method("release_pause"):
+	if PauseManager != null:
 		PauseManager.release_pause(self, "note")
-	else:
-		get_tree().paused = false
 
 func _request_hint_pause() -> void:
 	if _hint_pause_requested:
 		return
 	_hint_pause_requested = true
-	if PauseManager != null and PauseManager.has_method("request_pause"):
+	if PauseManager != null:
 		PauseManager.request_pause(self, "hint")
-	else:
-		get_tree().paused = true
 
 func _release_hint_pause() -> void:
 	if not _hint_pause_requested:
 		return
 	_hint_pause_requested = false
-	if PauseManager != null and PauseManager.has_method("release_pause"):
+	if PauseManager != null:
 		PauseManager.release_pause(self, "hint")
-	else:
-		get_tree().paused = false

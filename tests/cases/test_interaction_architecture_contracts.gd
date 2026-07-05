@@ -62,6 +62,7 @@ const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
 const LEVEL_14_END_PATH := "res://levels/cycles/level_14_end.gd"
 const PLAYER_PATH := "res://player/player.gd"
+const UI_MESSAGE_PATH := "res://player/ui_message.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const FINAL_ENDING_FRIDGE_PATH := "res://objects/interactable/fridge/final_ending_fridge.gd"
@@ -200,6 +201,13 @@ const FORBIDDEN_PLAYER_PATTERNS := [
 	"UIMessage.call(\"is_screen_dark\"",
 	"CycleState.has_method(\"has_flashlight_for_current_cycle\")",
 	"GameState.has_method(\"is_flashlight_unlocked\")"
+]
+const FORBIDDEN_UI_MESSAGE_PAUSE_FALLBACK_PATTERNS := [
+	"PauseManager.has_method(\"clear_all_pause_requests\")",
+	"PauseManager.has_method(\"request_pause\")",
+	"PauseManager.has_method(\"release_pause\")",
+	"get_tree().paused = true",
+	"get_tree().paused = false"
 ]
 const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"is_screen_dark\")",
@@ -433,6 +441,14 @@ func run() -> Array[String]:
 	assert_true(player_content != "", "Failed to read script: %s" % PLAYER_PATH)
 	for pattern in FORBIDDEN_PLAYER_PATTERNS:
 		assert_true(player_content.find(pattern) == -1, "Player must delegate extracted state instead of owning pattern: %s" % pattern)
+
+	var ui_message_content := FileAccess.get_file_as_string(UI_MESSAGE_PATH)
+	assert_true(ui_message_content != "", "Failed to read script: %s" % UI_MESSAGE_PATH)
+	for pattern in FORBIDDEN_UI_MESSAGE_PAUSE_FALLBACK_PATTERNS:
+		assert_true(
+			ui_message_content.find(pattern) == -1,
+			"UIMessage modal pause ownership must go through stable PauseManager token API without local tree.paused fallbacks: %s" % pattern
+		)
 
 	var fridge_content := FileAccess.get_file_as_string(FRIDGE_PATH)
 	assert_true(fridge_content.find("FridgeCompletionSessionScript.save_after_feeding") != -1, "Fridge must delegate post-feeding save policy")
