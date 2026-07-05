@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://btplbasicinter"]
+
+[ext_resource type="Script" uid="uid://cgs35voeng85l" path="res://objects/interactable/interactive_object.gd" id="1_interactive"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_template"]
+size = Vector2(96, 96)
+
+[node name="BasicInteractiveTemplate" type="Area2D"]
+script = ExtResource("1_interactive")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_template")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
