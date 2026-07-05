@@ -36,6 +36,7 @@
 ### 2.1 Переходы сцен
 
 - Меню/интеракции переключают сцену через `UIMessage.change_scene_with_fade*`.
+- Menu/settings flow считает `SceneContext`, `GameState`, `UIMessage`, `PauseManager` и `SettingsManager` стабильными autoload facades: menu marking, Continue state/path, credits transition, exit cleanup и language reads используют прямые публичные вызовы с `null` guards.
 - Sleep transition у `Bed` тоже идёт через единый `UIMessage.change_scene_with_fade_delay(...)`: next scene загружается до затемнения, поэтому misconfigured bed не оставляет экран чёрным.
 - `CycleLevel` использует `SceneContext`, `GameState`, `CycleState` и `UIMessage` как стабильные facade для gameplay marking, checkpoint restore/capture, default flashlight, fridge checkpoint spawn, стартовых subtitle и respawn blackout, без локальных `has_method/call` probes.
 - При переходе в игровую сцену `GameDirector` перенастраивает фазу/таймер.

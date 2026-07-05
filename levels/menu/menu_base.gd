@@ -29,7 +29,7 @@ class_name MenuBase
 @onready var _sfx_player: AudioStreamPlayer = _resolve_sfx_player()
 
 func _ready() -> void:
-	if SceneContext != null and SceneContext.has_method("mark_menu_scene"):
+	if SceneContext != null:
 		SceneContext.mark_menu_scene(self)
 	_apply_theme()
 	_wire_buttons()

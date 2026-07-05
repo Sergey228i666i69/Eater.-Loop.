@@ -256,10 +256,8 @@ func _exit_to_menu() -> void:
 
 func _exit_game() -> void:
 	_stop_menu_music()
-	if PauseManager != null and PauseManager.has_method("clear_all_pause_requests"):
+	if PauseManager != null:
 		PauseManager.clear_all_pause_requests()
-	else:
-		get_tree().paused = false
 	get_tree().quit()
 
 func _show_confirm(message: String, action: Callable) -> void:

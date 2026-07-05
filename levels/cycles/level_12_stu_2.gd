@@ -113,6 +113,6 @@ func _update_fridge_locked_message() -> void:
 	_fridge_node.set("locked_message", message)
 
 func _is_russian_language() -> bool:
-	if SettingsManager != null and SettingsManager.has_method("get_language"):
+	if SettingsManager != null:
 		return String(SettingsManager.get_language()) == "ru"
 	return TranslationServer.get_locale().to_lower().begins_with("ru")

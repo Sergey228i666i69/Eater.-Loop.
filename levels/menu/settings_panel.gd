@@ -83,7 +83,7 @@ func _refresh_language_items() -> void:
 	if _language_option == null:
 		return
 	var selected_language := "en"
-	if SettingsManager and SettingsManager.has_method("get_language"):
+	if SettingsManager != null:
 		selected_language = String(SettingsManager.get_language())
 	var current_index := 0
 	_language_option.clear()

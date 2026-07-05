@@ -89,6 +89,11 @@ const ENEMY_LIGHT_ONLY_PATH := "res://enemies/light_only/enemy_light_only.gd"
 const FEED_MINIGAME_PATH := "res://levels/minigames/feeding/feed_minigame.gd"
 const FEED_DETACH_HANDS_PATH := "res://levels/minigames/feeding/feed_minigame_detach_hands.gd"
 const FINAL_FEED_MINIGAME_PATH := "res://levels/minigames/feeding/final_feed_minigame.gd"
+const MENU_BASE_PATH := "res://levels/menu/menu_base.gd"
+const MAIN_MENU_PATH := "res://levels/menu/main_menu.gd"
+const PAUSE_MENU_PATH := "res://levels/menu/pause_menu.gd"
+const SETTINGS_PANEL_PATH := "res://levels/menu/settings_panel.gd"
+const LEVEL_12_STU_2_PATH := "res://levels/cycles/level_12_stu_2.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -280,6 +285,26 @@ const FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES := {
 		"UIMessage.has_method(\"play_sfx\")",
 	],
 }
+const FORBIDDEN_MENU_STABLE_FACADE_PROBES := {
+	MENU_BASE_PATH: [
+		"SceneContext.has_method(\"mark_menu_scene\")",
+	],
+	MAIN_MENU_PATH: [
+		"GameState.has_method(\"has_active_run_state\")",
+		"GameState.has_method(\"get_last_scene_path\")",
+		"UIMessage.has_method(\"change_scene_with_fade\")",
+	],
+	PAUSE_MENU_PATH: [
+		"PauseManager.has_method(\"clear_all_pause_requests\")",
+		"get_tree().paused = false",
+	],
+	SETTINGS_PANEL_PATH: [
+		"SettingsManager.has_method(\"get_language\")",
+	],
+	LEVEL_12_STU_2_PATH: [
+		"SettingsManager.has_method(\"get_language\")",
+	],
+}
 const FORBIDDEN_UTILITY_STABLE_FACADE_PROBES := {
 	CRAZY_LEVEL_EVENT_PATH: [
 		"GameDirector.has_method(\"ensure_timer_running\")",
@@ -445,6 +470,13 @@ func run() -> Array[String]:
 					assert_true(
 						content.find(pattern) == -1,
 						"Feeding minigames must use stable facades and local FoodItem state directly instead of dead/stringly method probes: %s (%s)" % [path, pattern]
+					)
+
+			if FORBIDDEN_MENU_STABLE_FACADE_PROBES.has(path):
+				for pattern in FORBIDDEN_MENU_STABLE_FACADE_PROBES[path]:
+					assert_true(
+						content.find(pattern) == -1,
+						"Menu/settings flow must use stable autoload facades directly instead of stringly method probes or local pause fallbacks: %s (%s)" % [path, pattern]
 					)
 
 			assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)

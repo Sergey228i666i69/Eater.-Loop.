@@ -122,7 +122,7 @@ func _connect_buttons() -> void:
 
 func _update_continue_state() -> void:
 	var can_continue := false
-	if GameState != null and GameState.has_method("has_active_run_state") and GameState.has_method("get_last_scene_path"):
+	if GameState != null:
 		can_continue = GameState.has_active_run_state() and GameState.get_last_scene_path() != ""
 	_continue_button.disabled = not can_continue
 
@@ -151,7 +151,7 @@ func _on_settings_pressed() -> void:
 func _on_credits_pressed() -> void:
 	if ending_credits_scene != null:
 		_stop_menu_music()
-		if UIMessage != null and UIMessage.has_method("change_scene_with_fade"):
+		if UIMessage != null:
 			await UIMessage.change_scene_with_fade(ending_credits_scene, 0.6, true)
 		else:
 			get_tree().change_scene_to_packed(ending_credits_scene)
@@ -191,8 +191,7 @@ func _start_continue() -> void:
 	if GameState == null:
 		return
 	var scene_path := ""
-	if GameState.has_method("get_last_scene_path"):
-		scene_path = String(GameState.get_last_scene_path())
+	scene_path = String(GameState.get_last_scene_path())
 	if scene_path == "":
 		return
 	var scene := load(scene_path) as PackedScene
