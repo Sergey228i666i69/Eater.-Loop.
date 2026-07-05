@@ -29,6 +29,8 @@ var _gamepad_selected_word: String = ""
 const COLOR_KEYWORD := Color(0.337255, 0.611765, 0.839216)
 const STATUS_TEMPLATE := " SQL | UTF-8 | ВРЕМЯ: %.1f сек | LN 1, COL 1"
 const MONO_FONT_NAMES := ["JetBrains Mono", "Menlo", "Consolas", "Courier New", "Courier"]
+const SqlDropSlotScript := preload("res://levels/minigames/labs/sql/drag_slot.gd")
+const SqlDragWordScript := preload("res://levels/minigames/labs/sql/drag_word.gd")
 
 @onready var drag_layer: Control = $DragLayer
 @onready var query_container: HBoxContainer = $Layout/MainContent/EditorArea/QueryEditor/QueryFlow
@@ -73,7 +75,13 @@ func load_task(index):
 	for item in data["template"]:
 		if item == null:
 			# Это слот
-			var slot = slot_scene.instantiate()
+			var raw_slot := slot_scene.instantiate()
+			var slot := raw_slot as SqlDropSlotScript
+			if slot == null:
+				push_error("SqlMinigame: slot_scene must instantiate as SqlDropSlot.")
+				if raw_slot != null:
+					raw_slot.free()
+				continue
 			# Передаем правильный ответ в слот (важно для вашего drag_slot.gd, так как он проверяет expected_text)
 			if correct_index < data["correct"].size():
 				slot.expected_text = data["correct"][correct_index]
@@ -81,8 +89,7 @@ func load_task(index):
 			
 			query_container.add_child(slot)
 			# Подписываемся на сигнал падения слова
-			if slot.has_signal("word_dropped"):
-				slot.word_dropped.connect(check_answer)
+			slot.word_dropped.connect(check_answer)
 		else:
 			# Это статический текст
 			var keyword = Label.new()
@@ -95,10 +102,15 @@ func load_task(index):
 			
 	# Создание слов для выбора
 	for word_text in data["pool"]:
-		var word = word_scene.instantiate()
+		var raw_word := word_scene.instantiate()
+		var word := raw_word as SqlDragWordScript
+		if word == null:
+			push_error("SqlMinigame: word_scene must instantiate as SqlDragWord.")
+			if raw_word != null:
+				raw_word.free()
+			continue
 		word.text_value = word_text
-		if word.has_method("set_drag_context"):
-			word.set_drag_context(drag_layer)
+		word.set_drag_context(drag_layer)
 		pool_container.add_child(word)
 	_register_gamepad_scheme()
 		
@@ -110,19 +122,16 @@ func check_answer(_arg = null):
 	if _is_finished: return
 
 	var data = tasks[current_task_index]
-	var slots = []
-	
-	# --- ВАЖНОЕ ИСПРАВЛЕНИЕ: Ищем слоты по методу "set_word", который есть в drag_slot.gd ---
-	for child in query_container.get_children():
-		if not child.is_queued_for_deletion() and child.has_method("set_word"):
-			slots.append(child)
+	var slots := _get_all_gamepad_target_slots()
 	
 	var correct_matches = 0
 	var _filled_count = 0
 	
 	# Проверяем содержимое слотов
 	for i in range(slots.size()):
-		var slot = slots[i]
+		var slot := slots[i] as SqlDropSlotScript
+		if slot == null:
+			continue
 		var slot_text = ""
 		
 		if "current_text" in slot:
@@ -220,7 +229,8 @@ func _get_gamepad_target_nodes() -> Array[Node]:
 		return slots
 	var nodes: Array[Node] = []
 	for slot in slots:
-		if slot.has_method("can_accept_word") and bool(slot.call("can_accept_word", _gamepad_selected_word)):
+		var drop_slot := slot as SqlDropSlotScript
+		if drop_slot != null and drop_slot.can_accept_word(_gamepad_selected_word):
 			nodes.append(slot)
 	return nodes
 
@@ -229,8 +239,9 @@ func _get_all_gamepad_target_slots() -> Array[Node]:
 	for child in query_container.get_children():
 		if child == null or child.is_queued_for_deletion():
 			continue
-		if child.has_method("set_word") and child.has_method("can_accept_word"):
-			nodes.append(child)
+		var slot := child as SqlDropSlotScript
+		if slot != null:
+			nodes.append(slot)
 	return nodes
 
 func _on_gamepad_pick(source: Node, _context: Dictionary) -> void:
@@ -242,14 +253,15 @@ func _on_gamepad_cancel_pick(_source: Node, _context: Dictionary) -> void:
 func _on_gamepad_place(source: Node, target: Node, _context: Dictionary) -> bool:
 	if source == null or target == null:
 		return false
-	if not target.has_method("can_accept_word") or not target.has_method("set_word"):
+	var slot := target as SqlDropSlotScript
+	if slot == null:
 		return false
 	var word_text := _extract_word_from_source(source)
 	if word_text == "":
 		return false
-	if not target.can_accept_word(word_text):
+	if not slot.can_accept_word(word_text):
 		return false
-	target.set_word(word_text)
+	slot.set_word(word_text)
 	_gamepad_selected_word = ""
 	check_answer()
 	return true
@@ -260,17 +272,19 @@ func _on_gamepad_placed(_source: Node, _target: Node, _context: Dictionary) -> v
 func _on_gamepad_secondary(active: Node, _context: Dictionary) -> bool:
 	if active == null:
 		return false
-	if not active.has_method("clear_word"):
+	var slot := active as SqlDropSlotScript
+	if slot == null:
 		return false
-	active.clear_word()
+	slot.clear_word()
 	check_answer()
 	return true
 
 func _extract_word_from_source(source: Node) -> String:
 	if source == null:
 		return ""
-	if "text_value" in source:
-		return String(source.text_value)
+	var word := source as SqlDragWordScript
+	if word != null:
+		return String(word.text_value)
 	if source is Button:
 		return String((source as Button).text)
 	return ""

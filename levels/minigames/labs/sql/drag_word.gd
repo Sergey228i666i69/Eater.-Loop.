@@ -1,4 +1,7 @@
 extends Button
+class_name SqlDragWord
+
+const SqlDropSlotScript := preload("res://levels/minigames/labs/sql/drag_slot.gd")
 
 var text_value: String = ""
 var grab_radius: float = 60.0
@@ -69,12 +72,13 @@ func _is_point_over_self(point: Vector2) -> bool:
 	var rect := get_global_rect()
 	return rect.has_point(point)
 
-func _find_drop_slot() -> Node:
+func _find_drop_slot() -> SqlDropSlotScript:
 	var hovered := get_viewport().gui_get_hovered_control()
 	var node: Node = hovered
 	while node != null:
-		if node.has_method("set_word") and node.has_method("can_accept_word"):
-			return node
+		var slot := node as SqlDropSlotScript
+		if slot != null:
+			return slot
 		node = node.get_parent()
 	return null
 

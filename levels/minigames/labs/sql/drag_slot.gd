@@ -1,4 +1,5 @@
 extends PanelContainer
+class_name SqlDropSlot
 
 signal word_dropped
 
