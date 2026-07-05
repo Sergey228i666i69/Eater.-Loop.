@@ -92,6 +92,7 @@
 Статус: закрыто.
 
 - `levels/menu/pause_manager.gd` теперь владеет pause tokens через `request_pause(...)`, `release_pause(...)`, `release_all_pauses_for(...)` и `clear_all_pause_requests()`.
+- `PauseManager` типизирует дочерний `PauseMenu` из `pause_menu_scene` и вызывает `open_menu()`, `close_menu()` и `request_resume()` напрямую, без stringly `has_method/call` fallback-ов.
 - Pause menu, `UIMessage` notes/hints, `MinigameController` и death screen в `GameDirector` запрашивают/освобождают свои owner tokens.
 - `UIMessage.change_scene_with_fade(..., unpause_after=true)` очищает все pause requests для выхода в меню/ending transitions.
 - `Bed._try_sleep` больше не делает ручной fade перед `UIMessage.change_scene_with_fade_delay(...)`: next scene валидируется до затемнения, а transition идёт одним общим UIMessage path.

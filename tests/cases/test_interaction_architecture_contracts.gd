@@ -244,7 +244,9 @@ const FORBIDDEN_UI_MESSAGE_PAUSE_FALLBACK_PATTERNS := [
 const FORBIDDEN_PAUSE_MANAGER_STABLE_FACADE_PROBES := [
 	"MinigameController.has_method(\"set_pause_menu_open\")",
 	"MinigameController.has_method(\"is_pause_menu_allowed\")",
-	"MinigameController.has_method(\"is_cancel_action_allowed\")"
+	"MinigameController.has_method(\"is_cancel_action_allowed\")",
+	"_pause_menu.has_method(",
+	"_pause_menu.call("
 ]
 const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"is_screen_dark\")",

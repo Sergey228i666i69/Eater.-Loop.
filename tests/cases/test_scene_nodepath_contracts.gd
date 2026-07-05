@@ -7,7 +7,9 @@ const OBJECT_DIR := "res://objects"
 const INTERACTABLE_DIR := "res://objects/interactable"
 const ENEMY_DIR := "res://enemies"
 const BASIC_INTERACTIVE_TEMPLATE_SCENE := "res://objects/interactable/templates/basic_interactive_template.tscn"
+const PAUSE_MENU_SCENE := "res://levels/menu/pause_menu.tscn"
 const INTERACTIVE_OBJECT_SCRIPT := "res://objects/interactable/interactive_object.gd"
+const PAUSE_MENU_SCRIPT := "res://levels/menu/pause_menu.gd"
 const PLAYER_SCENES := [
 	"res://player/player.tscn",
 ]
@@ -32,6 +34,7 @@ const SCENE_AUDIO_BUSES := {
 
 func run() -> Array[String]:
 	_test_basic_interactive_template_contract()
+	_test_pause_menu_scene_contract()
 	_test_unlocked_level_doors_have_resolving_targets()
 	_test_blockpost_child_contracts()
 	_test_level_money_interactables_resolve_money_systems()
@@ -50,6 +53,16 @@ func _test_basic_interactive_template_contract() -> void:
 	assert_true(root.get_node_or_null("CollisionShape2D") is CollisionShape2D, "Basic interactive template must keep CollisionShape2D child")
 	assert_true(root.get_node_or_null("Sprite2D") is Sprite2D, "Basic interactive template must keep Sprite2D child")
 	assert_true(_has_property(root, "prompt_text"), "Basic interactive template must expose prompt_text")
+	root.free()
+
+func _test_pause_menu_scene_contract() -> void:
+	var root := _instantiate_scene(PAUSE_MENU_SCENE)
+	if root == null:
+		return
+	var pause_menu := root.get_node_or_null("PauseMenu")
+	assert_true(pause_menu != null, "Pause menu scene must keep a PauseMenu child for PauseManager")
+	if pause_menu != null:
+		assert_true(_script_path(pause_menu) == PAUSE_MENU_SCRIPT, "PauseMenu child must use pause_menu.gd for PauseManager typed lifecycle calls")
 	root.free()
 
 func _test_unlocked_level_doors_have_resolving_targets() -> void:

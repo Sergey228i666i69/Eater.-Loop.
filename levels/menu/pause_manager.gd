@@ -2,8 +2,10 @@ extends Node
 
 @export var pause_menu_scene: PackedScene = preload("res://levels/menu/pause_menu.tscn")
 
+const PauseMenuScript := preload("res://levels/menu/pause_menu.gd")
+
 var _pause_menu_layer: Node
-var _pause_menu: Node
+var _pause_menu: PauseMenuScript
 var _is_open: bool = false
 var _pause_blockers: Dictionary = {}
 var _pause_requests: Dictionary = {}
@@ -18,8 +20,8 @@ func _input(event: InputEvent) -> void:
 	if not pause_requested and not keyboard_escape_requested:
 		return
 	if _is_open:
-		if _pause_menu and _pause_menu.has_method("request_resume"):
-			_pause_menu.call("request_resume")
+		if is_instance_valid(_pause_menu):
+			_pause_menu.request_resume()
 		else:
 			_request_resume()
 		get_viewport().set_input_as_handled()
@@ -41,16 +43,16 @@ func _open_menu() -> void:
 	if pause_menu_scene == null:
 		return
 	_ensure_menu_instance()
-	if _pause_menu and _pause_menu.has_method("open_menu"):
-		_pause_menu.call("open_menu")
+	if is_instance_valid(_pause_menu):
+		_pause_menu.open_menu()
 	request_pause(self, "pause_menu")
 	_is_open = true
 	if MinigameController != null:
 		MinigameController.set_pause_menu_open(true)
 
 func _request_resume() -> void:
-	if _pause_menu and _pause_menu.has_method("close_menu"):
-		_pause_menu.call("close_menu")
+	if is_instance_valid(_pause_menu):
+		_pause_menu.close_menu()
 	release_pause(self, "pause_menu")
 	_is_open = false
 	if MinigameController != null:
@@ -64,9 +66,11 @@ func _ensure_menu_instance() -> void:
 	if parent == null:
 		parent = get_tree().root
 	parent.add_child(_pause_menu_layer)
-	_pause_menu = _pause_menu_layer.get_node_or_null("PauseMenu")
-	if _pause_menu and _pause_menu.has_signal("resume_requested"):
-		_pause_menu.connect("resume_requested", _request_resume)
+	_pause_menu = _pause_menu_layer.get_node_or_null("PauseMenu") as PauseMenuScript
+	if _pause_menu == null:
+		push_warning("PauseManager pause_menu_scene requires a PauseMenu child using pause_menu.gd.")
+	elif not _pause_menu.resume_requested.is_connected(_request_resume):
+		_pause_menu.resume_requested.connect(_request_resume)
 	_pause_menu_layer.tree_exiting.connect(func():
 		_pause_menu_layer = null
 		_pause_menu = null
