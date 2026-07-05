@@ -2,7 +2,7 @@ extends Node
 
 const MusicPauseReasonStateScript = preload("res://levels/music_pause_reason_state.gd")
 const MusicStackStateScript = preload("res://levels/music_stack_state.gd")
-const MusicAmbientSuppressionStateScript = preload("res://levels/music_ambient_suppression_state.gd")
+const MusicAmbientCoordinatorScript = preload("res://levels/music_ambient_coordinator.gd")
 const MusicScopedSourceRegistryScript = preload("res://levels/music_scoped_source_registry.gd")
 
 ## MusicManager — единый слой управления музыкой.
@@ -115,7 +115,7 @@ var _base_pause_stream: AudioStream
 var _base_pause_position: float = 0.0
 var _base_pause_was_playing: bool = false
 var _ambient_suppression_sources: Dictionary = {}
-var _ambient_suppression_state = MusicAmbientSuppressionStateScript.new(_ambient_suppression_sources)
+var _ambient_coordinator = MusicAmbientCoordinatorScript.new(_ambient_suppression_sources)
 var _pending_ambient_stream: AudioStream
 var _pending_ambient_volume_db: float = 999.0
 var _pending_ambient_fade_time: float = -1.0
@@ -460,7 +460,7 @@ func resume_all_music(fade_time: float = -1.0) -> void:
 func set_ambient_music_suppressed(source: Object, suppressed: bool, fade_time: float = -1.0) -> void:
 	if source == null:
 		return
-	var changed := _ambient_suppression_state.set_suppressed(
+	var changed := _ambient_coordinator.set_suppressed(
 		source,
 		suppressed,
 		self,
@@ -468,7 +468,7 @@ func set_ambient_music_suppressed(source: Object, suppressed: bool, fade_time: f
 	)
 	if not changed:
 		return
-	if _ambient_suppression_state.is_active():
+	if _ambient_coordinator.is_suppressed():
 		var stopped_ambient := _capture_active_ambient_as_pending(fade_time)
 		if _base_pause_active:
 			_base_pause_restore_db = _get_base_target_volume_db(_current_source_kind)
@@ -486,10 +486,10 @@ func set_ambient_music_suppressed(source: Object, suppressed: bool, fade_time: f
 	_sync_base_music_output(fade_time)
 
 func is_ambient_music_suppressed() -> bool:
-	return _ambient_suppression_state.is_active()
+	return _ambient_coordinator.is_suppressed()
 
 func _on_ambient_suppression_source_exited(source_id: int) -> void:
-	if not _ambient_suppression_state.unregister_id(source_id):
+	if not _ambient_coordinator.unregister_id(source_id):
 		return
 	var played_pending := _play_pending_ambient_if_possible(0.0)
 	if _base_pause_active:
@@ -529,14 +529,12 @@ func _release_scoped_music_source(source_id: int, fade_time: float) -> void:
 	remove_music_from_stack_by_source_id(source_id)
 
 func _set_pending_ambient_request(stream: AudioStream, mixed_volume_db: float, fade_time: float) -> void:
-	_pending_ambient_stream = stream
-	_pending_ambient_volume_db = mixed_volume_db
-	_pending_ambient_fade_time = fade_time
+	_ambient_coordinator.set_pending(stream, mixed_volume_db, fade_time)
+	_sync_pending_ambient_mirror()
 
 func _clear_pending_ambient_request() -> void:
-	_pending_ambient_stream = null
-	_pending_ambient_volume_db = 999.0
-	_pending_ambient_fade_time = -1.0
+	_ambient_coordinator.clear_pending()
+	_sync_pending_ambient_mirror()
 
 func _stop_active_ambient_if_playing() -> void:
 	if _current_source_kind != SOURCE_KIND_AMBIENT:
@@ -567,20 +565,21 @@ func _capture_active_ambient_as_pending(fade_time: float = -1.0) -> bool:
 	return true
 
 func _play_pending_ambient_if_possible(fade_time_override: float = -1.0) -> bool:
-	if _pending_ambient_stream == null:
+	if not _ambient_coordinator.has_pending():
 		return false
 	if is_ambient_music_suppressed():
 		return false
 	var current_player := _resolve_base_output_player()
 	if current_player != null and current_player.playing:
-		if _current_source_kind == SOURCE_KIND_AMBIENT and _current_stream == _pending_ambient_stream:
+		if _current_source_kind == SOURCE_KIND_AMBIENT and _current_stream == _ambient_coordinator.pending_stream():
 			_clear_pending_ambient_request()
 			return true
 		return false
-	var stream := _pending_ambient_stream
-	var volume := _pending_ambient_volume_db
-	var pending_fade := _pending_ambient_fade_time
-	_clear_pending_ambient_request()
+	var request := _ambient_coordinator.consume_pending()
+	_sync_pending_ambient_mirror()
+	var stream := request.get("stream") as AudioStream
+	var volume := float(request.get("volume_db", 999.0))
+	var pending_fade := float(request.get("fade_time", -1.0))
 	var target_fade := pending_fade
 	if fade_time_override >= 0.0:
 		target_fade = fade_time_override
@@ -588,7 +587,7 @@ func _play_pending_ambient_if_possible(fade_time_override: float = -1.0) -> bool
 	return true
 
 func _resume_pending_ambient_if_idle() -> void:
-	if _pending_ambient_stream == null:
+	if not _ambient_coordinator.has_pending():
 		return
 	if _pause_menu_active or _base_pause_active:
 		return
@@ -1093,6 +1092,11 @@ func _sync_base_pause_mirror() -> void:
 func _sync_runner_global_pause_mirror() -> void:
 	_runner_global_pause_reasons = _runner_global_pause_state.get_reasons()
 	_runner_global_paused = _runner_global_pause_state.is_active()
+
+func _sync_pending_ambient_mirror() -> void:
+	_pending_ambient_stream = _ambient_coordinator.pending_stream()
+	_pending_ambient_volume_db = _ambient_coordinator.pending_volume_db()
+	_pending_ambient_fade_time = _ambient_coordinator.pending_fade_time()
 
 func _should_mute_base_for_chase() -> bool:
 	if not _runner_active or _runner_global_paused or _runner_paused:

@@ -98,7 +98,7 @@ Definition of done: типовые ошибки сцен падают тесто
    - оставить публичный фасад;
    - ~~вынести mix data/layout/magic constants в resources.~~ `MusicMixSettings` теперь владеет category offset resolution и clamp, а `MusicManager.resolve_mix_volume_db(...)` остаётся публичным фасадом.
    - ~~вынести pause reason bookkeeping из фасада.~~ `MusicPauseReasonState` теперь владеет reason-map для base/chase music pause, а `MusicManager` держит совместимый фасад и private mirror-поля для тестов.
-   - ~~вынести source lifecycle bookkeeping отдельными helper-ами.~~ `MusicAmbientSuppressionState` владеет ambient suppression sources, а `MusicScopedSourceRegistry` владеет event/distortion source metadata и `tree_exited` wiring.
+   - ~~вынести source lifecycle bookkeeping отдельными helper-ами.~~ `MusicAmbientCoordinator`/`MusicAmbientSuppressionState` владеют ambient suppression sources и pending resume request, а `MusicScopedSourceRegistry` владеет event/distortion source metadata и `tree_exited` wiring.
    - ~~вынести audio stack bookkeeping отдельным tested slice.~~ `MusicStackState` владеет push/pop/remove/clear состоянием стека, а `MusicManager` сохраняет публичный фасад и `_stack` mirror для runtime-тестов.
    - дальше дробить оставшийся playback/crossfade audio glue только отдельными tested slices.
 4. `MinigameController`:

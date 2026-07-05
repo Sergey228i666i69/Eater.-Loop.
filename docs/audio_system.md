@@ -119,9 +119,10 @@ Event/distortion music является scoped к переданному `source
 решает, когда делать `push_music(...)` и `pop_music(...)`.
 
 Ambient suppression (`set_ambient_music_suppressed`) остаётся публичным API
-`MusicManager`, но source tracking живёт в `MusicAmbientSuppressionState`: несколько
-silent-зон удерживают suppression до выхода последней, stale `WeakRef` источники
-чистятся, а `Node`-источники подключаются к `tree_exited`.
+`MusicManager`, но source tracking и pending ambient resume request живут в
+`MusicAmbientCoordinator`/`MusicAmbientSuppressionState`: несколько silent-зон
+удерживают suppression до выхода последней, stale `WeakRef` источники чистятся,
+а `Node`-источники подключаются к `tree_exited`.
 
 ### 4) Пауза и возобновление всей музыки
 
