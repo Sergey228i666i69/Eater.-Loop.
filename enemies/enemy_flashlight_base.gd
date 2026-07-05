@@ -31,12 +31,12 @@ func _is_flashlight_hitting() -> bool:
 	return _is_player_flashlight_hitting() or _is_external_reactive_light_hitting()
 
 func _is_player_flashlight_hitting() -> bool:
-	var player := _player
+	var player = _player
 	if player == null:
-		player = get_tree().get_first_node_in_group("player") as Node2D
-	if player != null and player.has_method("is_point_lit") and flashlight_requires_enabled:
+		player = get_tree().get_first_node_in_group("player")
+	if player != null and flashlight_requires_enabled:
 		for probe_point in _get_flashlight_hit_points():
-			if bool(player.call("is_point_lit", probe_point)):
+			if bool(player.is_point_lit(probe_point)):
 				return true
 		return false
 

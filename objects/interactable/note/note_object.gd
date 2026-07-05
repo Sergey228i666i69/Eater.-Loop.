@@ -46,8 +46,8 @@ func _give_reward_key() -> void:
 	if key_id == "":
 		return
 
-	var player := get_interacting_player()
-	if player != null and player.has_method("add_key"):
+	var player = get_interacting_player()
+	if player != null:
 		player.add_key(key_id)
 
 	var subtitle_text := reward_subtitle.strip_edges()

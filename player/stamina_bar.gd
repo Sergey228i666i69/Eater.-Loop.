@@ -53,9 +53,9 @@ func _update_visibility() -> void:
 	_was_visible = should_show
 
 func _update_ratio(delta: float) -> void:
-	var player := _get_player()
+	var player = _get_player()
 	var target_ratio := 1.0
-	if player != null and player.has_method("get_stamina_ratio"):
+	if player != null:
 		target_ratio = float(player.get_stamina_ratio())
 	target_ratio = clamp(target_ratio, 0.0, 1.0)
 	if smoothing_speed <= 0.0:
@@ -72,14 +72,14 @@ func _apply_bar() -> void:
 	_bar.position = Vector2(0.0, top_offset)
 	_bar.size = Vector2(viewport_size.x * _ratio, max(1.0, bar_height))
 
-func _get_player() -> Node:
+func _get_player():
 	var player := get_tree().get_first_node_in_group("player")
 	return player if player is Node else null
 
 func _update_fade(delta: float) -> void:
-	var player := _get_player()
+	var player = _get_player()
 	var is_running := false
-	if player != null and player.has_method("is_running"):
+	if player != null:
 		is_running = bool(player.is_running())
 
 	var target_alpha := 1.0

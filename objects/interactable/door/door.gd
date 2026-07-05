@@ -73,11 +73,11 @@ func _try_use_door() -> void:
 		return
 	if is_locked:
 		if required_key_id != "":
-			var player_has_key: bool = player.has_method("has_key") and player.has_key(required_key_id)
+			var player_has_key: bool = player.has_key(required_key_id)
 			
 			if player_has_key:
 				is_locked = false
-				if consume_key_on_unlock and player.has_method("remove_key"):
+				if consume_key_on_unlock:
 					player.remove_key(required_key_id)
 				
 				UIMessage.show_notification("Дверь открылась.")
@@ -112,8 +112,7 @@ func _perform_transition() -> void:
 		_is_transitioning = false
 		return
 
-	if player.has_method("set_physics_process"):
-		player.set_physics_process(false)
+	player.set_physics_process(false)
 	
 	if target_marker.is_empty():
 		push_warning("Door: target_marker не задан.")
@@ -144,7 +143,7 @@ func _perform_transition() -> void:
 	await get_tree().create_timer(0.1).timeout
 	await UIMessage.fade_in(0.4)
 	
-	if is_instance_valid(player) and player.has_method("set_physics_process"):
+	if is_instance_valid(player):
 		player.set_physics_process(true)
 
 	if not is_completed:

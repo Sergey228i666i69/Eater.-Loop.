@@ -46,9 +46,9 @@ func _on_interact() -> void:
 	
 	var player := get_interacting_player()
 	var player_physics_was_active: bool = false
-	if is_instance_valid(player) and player.has_method("is_physics_processing"):
+	if is_instance_valid(player):
 		player_physics_was_active = bool(player.is_physics_processing())
-	if is_instance_valid(player) and player.has_method("set_physics_process"):
+	if is_instance_valid(player):
 		player.set_physics_process(false)
 
 	if UIMessage != null:
@@ -67,7 +67,7 @@ func _on_interact() -> void:
 	else:
 		await get_tree().create_timer(max(0.0, fade_in_duration)).timeout
 
-	if is_instance_valid(player) and player.has_method("set_physics_process"):
+	if is_instance_valid(player):
 		player.set_physics_process(player_physics_was_active)
 	
 	_is_using = false

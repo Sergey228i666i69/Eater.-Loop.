@@ -62,14 +62,20 @@ const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
 const LEVEL_14_END_PATH := "res://levels/cycles/level_14_end.gd"
 const PLAYER_PATH := "res://player/player.gd"
+const STAMINA_BAR_PATH := "res://player/stamina_bar.gd"
+const FLASHLIGHT_BAR_PATH := "res://player/flashlight_bar.gd"
 const UI_MESSAGE_PATH := "res://player/ui_message.gd"
 const PAUSE_MANAGER_PATH := "res://levels/menu/pause_manager.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const FINAL_ENDING_FRIDGE_PATH := "res://objects/interactable/fridge/final_ending_fridge.gd"
 const PICKUP_FLASHLIGHT_PATH := "res://objects/interactable/flashlight/pickup_flashlight.gd"
+const KEY_PATH := "res://objects/interactable/key/key.gd"
+const NOTE_OBJECT_PATH := "res://objects/interactable/note/note_object.gd"
+const DOOR_PATH := "res://objects/interactable/door/door.gd"
 const LAPTOP_PATH := "res://objects/interactable/notebook/laptop.gd"
 const LEBEDKA_PATH := "res://objects/interactable/lebedka/lebedka.gd"
+const SEARCH_KEY_MINIGAME_PATH := "res://levels/minigames/search_key/search_minigame.gd"
 const INTERACTIVE_OBJECT_PATH := "res://objects/interactable/interactive_object.gd"
 const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
@@ -87,6 +93,7 @@ const LEVEL_11_END_PATH := "res://levels/cycles/level_11_end.gd"
 const ENDING_SCREEN_PATH := "res://levels/endings/ending_screen.gd"
 const ENDING_CREDITS_PATH := "res://levels/endings/ending_credits.gd"
 const ENEMY_BASE_PATH := "res://enemies/enemy.gd"
+const ENEMY_FLASHLIGHT_BASE_PATH := "res://enemies/enemy_flashlight_base.gd"
 const ENEMY_LIGHT_ONLY_PATH := "res://enemies/light_only/enemy_light_only.gd"
 const FEED_MINIGAME_PATH := "res://levels/minigames/feeding/feed_minigame.gd"
 const FEED_DETACH_HANDS_PATH := "res://levels/minigames/feeding/feed_minigame_detach_hands.gd"
@@ -290,6 +297,10 @@ const FORBIDDEN_ENEMY_STABLE_FACADE_PROBES := {
 		"MinigameController.has_method(\"has_active_minigame\")",
 		"MinigameController.has_method(\"should_block_player_movement\")",
 	],
+	ENEMY_FLASHLIGHT_BASE_PATH: [
+		"player.has_method(\"is_point_lit\")",
+		"player.call(\"is_point_lit\"",
+	],
 	ENEMY_LIGHT_ONLY_PATH: [
 		"GameDirector.has_method(\"trigger_light_only_jump_effect\")",
 	],
@@ -404,6 +415,35 @@ const FORBIDDEN_OBJECT_STABLE_FACADE_PROBES := {
 		"CycleState.has_method(\"mark_lab_completed\")",
 	],
 }
+const FORBIDDEN_PLAYER_CONTRACT_PROBES := {
+	DOOR_PATH: [
+		"player.has_method(\"has_key\")",
+		"player.has_method(\"remove_key\")",
+		"player.has_method(\"set_physics_process\")",
+	],
+	KEY_PATH: [
+		"player.has_method(\"add_key\")",
+	],
+	NOTE_OBJECT_PATH: [
+		"player.has_method(\"add_key\")",
+	],
+	LEBEDKA_PATH: [
+		"player.has_method(\"is_physics_processing\")",
+		"player.has_method(\"set_physics_process\")",
+	],
+	SEARCH_KEY_MINIGAME_PATH: [
+		"player.has_method(\"add_key\")",
+	],
+	STAMINA_BAR_PATH: [
+		"player.has_method(\"get_stamina_ratio\")",
+		"player.has_method(\"is_running\")",
+	],
+	FLASHLIGHT_BAR_PATH: [
+		"player.has_method(\"has_flashlight_available\")",
+		"player.has_method(\"get_flashlight_charge_ratio\")",
+		"player.has_method(\"is_flashlight_enabled\")",
+	],
+}
 
 func run() -> Array[String]:
 	var scripts: Array[String] = []
@@ -477,6 +517,13 @@ func run() -> Array[String]:
 				assert_true(
 					content.find(pattern) == -1,
 					"Content objects must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
+
+		if FORBIDDEN_PLAYER_CONTRACT_PROBES.has(path):
+			for pattern in FORBIDDEN_PLAYER_CONTRACT_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Player-dependent content/HUD scripts must use the stable Player facade directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
 		if FORBIDDEN_ENEMY_STABLE_FACADE_PROBES.has(path):

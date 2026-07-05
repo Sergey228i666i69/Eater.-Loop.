@@ -202,8 +202,8 @@ func get_layout_state() -> Dictionary:
 	return state
 
 func _on_key_pressed() -> void:
-	var player := get_tree().get_first_node_in_group("player")
-	if player and player.has_method("add_key"):
+	var player = get_tree().get_first_node_in_group("player")
+	if player != null:
 		player.add_key(key_id)
 	if UIMessage:
 		UIMessage.show_notification("Найден ключ!")

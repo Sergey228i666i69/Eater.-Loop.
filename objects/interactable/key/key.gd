@@ -16,7 +16,7 @@ func _on_interact() -> void:
 
 func _pickup() -> void:
 	var player = get_interacting_player()
-	if player != null and player.has_method("add_key"):
+	if player != null:
 		player.add_key(key_id)
 
 	UIMessage.show_notification(tr("%s: %s") % [tr(pickup_message), tr(key_name)])

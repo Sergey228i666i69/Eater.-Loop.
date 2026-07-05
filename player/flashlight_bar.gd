@@ -112,8 +112,8 @@ func _make_texture_rect(texture: Texture2D) -> TextureRect:
 func _update_visibility() -> void:
 	var scene := get_tree().current_scene
 	var should_show := SceneContext != null and SceneContext.is_gameplay_scene(scene)
-	var player := _get_player()
-	if player != null and player.has_method("has_flashlight_available"):
+	var player = _get_player()
+	if player != null:
 		should_show = should_show and bool(player.has_flashlight_available())
 	if should_show and not _was_visible:
 		_idle_time = hide_delay
@@ -122,7 +122,7 @@ func _update_visibility() -> void:
 	_was_visible = should_show
 
 func _bind_player_if_needed() -> void:
-	var player := _get_player()
+	var player = _get_player()
 	if player == _bound_player:
 		return
 
@@ -145,9 +145,9 @@ func _bind_player_if_needed() -> void:
 			_bound_player.connect(&"flashlight_activation_denied", callback_denied)
 
 func _update_ratio(delta: float) -> void:
-	var player := _get_player()
+	var player = _get_player()
 	var target_ratio := 1.0
-	if player != null and player.has_method("get_flashlight_charge_ratio"):
+	if player != null:
 		target_ratio = float(player.get_flashlight_charge_ratio())
 	target_ratio = clampf(target_ratio, 0.0, 1.0)
 	if smoothing_speed <= 0.0:
@@ -167,9 +167,9 @@ func _update_feedback_timers(delta: float) -> void:
 		_denied_time_left = maxf(0.0, _denied_time_left - delta)
 
 func _update_fade(delta: float) -> void:
-	var player := _get_player()
+	var player = _get_player()
 	var flashlight_on := false
-	if player != null and player.has_method("is_flashlight_enabled"):
+	if player != null:
 		flashlight_on = bool(player.is_flashlight_enabled())
 
 	var is_active := flashlight_on or _ready_time_left > 0.0 or _denied_time_left > 0.0
@@ -222,9 +222,9 @@ func _apply_fill_clip() -> void:
 	_fill_rect.position = Vector2(0.0, -top_crop)
 
 func _apply_rays_state() -> void:
-	var player := _get_player()
+	var player = _get_player()
 	var flashlight_on := false
-	if player != null and player.has_method("is_flashlight_enabled"):
+	if player != null:
 		flashlight_on = bool(player.is_flashlight_enabled())
 	_rays_rect.visible = flashlight_on or _ready_time_left > 0.0
 
@@ -243,7 +243,7 @@ func _get_source_texture_size() -> Vector2:
 		return body_texture.get_size()
 	return Vector2(128.0, 128.0)
 
-func _get_player() -> Node:
+func _get_player():
 	var player := get_tree().get_first_node_in_group("player")
 	return player if player is Node else null
 
