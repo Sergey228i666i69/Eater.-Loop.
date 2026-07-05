@@ -1,0 +1,68 @@
+[gd_scene load_steps=13 format=3 uid="uid://bfeedfridgetpl"]
+
+[ext_resource type="Script" uid="uid://cu5ad7tdqmepr" path="res://objects/interactable/fridge/fridge.gd" id="1_fridge"]
+[ext_resource type="Texture2D" uid="uid://dk25q3reeyq1p" path="res://objects/interactable/fridge/sprites/ClosedFridge.png" id="2_closed"]
+[ext_resource type="Texture2D" uid="uid://ck6tq35q10qce" path="res://objects/interactable/fridge/sprites/OpenFridge.png" id="3_open"]
+[ext_resource type="AudioStream" uid="uid://cxl0npdtqanaw" path="res://objects/interactable/fridge/audio/OpenFridgeE.wav" id="4_open_sfx"]
+[ext_resource type="AudioStream" uid="uid://bedg28hlpja2w" path="res://objects/interactable/fridge/audio/FridgeNoiseE.wav" id="5_noise"]
+[ext_resource type="PackedScene" uid="uid://cgir8at2gjnkc" path="res://levels/minigames/feeding/feed_minigame.tscn" id="6_feed_game"]
+[ext_resource type="PackedScene" uid="uid://bx5bjpmgnq1d5" path="res://levels/minigames/feeding/food/cookie/food_cookie_1.tscn" id="7_food"]
+[ext_resource type="Texture2D" uid="uid://b1ui73qxfq1r7" path="res://levels/minigames/feeding/andreys_faces/HappyEat.png" id="8_face"]
+[ext_resource type="Texture2D" uid="uid://b1pqal5xx0hvr" path="res://levels/minigames/feeding/BackgroundBasic.png" id="9_bg"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fridge"]
+size = Vector2(188, 370)
+
+[sub_resource type="Gradient" id="Gradient_light"]
+offsets = PackedFloat32Array(0, 0.8534202, 1)
+colors = PackedColorArray(0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_light"]
+gradient = SubResource("Gradient_light")
+
+[node name="FeedingFridgeTemplate" type="Area2D"]
+script = ExtResource("1_fridge")
+minigame_scene = ExtResource("6_feed_game")
+food_scenes = Array[PackedScene]([ExtResource("7_food")])
+andrey_face = ExtResource("8_face")
+food_count = 6
+background_texture = ExtResource("9_bg")
+unique_intro_once_per_run = false
+open_sound = ExtResource("4_open_sfx")
+noise_sound = ExtResource("5_noise")
+use_locked_visual_after_eating = true
+locked_sprite = ExtResource("2_closed")
+available_sprite = ExtResource("3_open")
+sprite_node = NodePath("Sprite2D")
+available_light_node = NodePath("PointLight2D")
+available_light_node_secondary = NodePath("PointLight2D2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_fridge")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.7364341, 0.7364341)
+texture = ExtResource("3_open")
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+position = Vector2(-72, 0)
+scale = Vector2(0.75128275, 5.546401)
+shadow_enabled = true
+shadow_filter_smooth = 24.4
+texture = SubResource("GradientTexture2D_light")
+
+[node name="PointLight2D2" type="PointLight2D" parent="."]
+light_mask = 3
+visibility_layer = 3
+position = Vector2(-135, 0)
+scale = Vector2(0.7293383, 5.756114)
+energy = 0.3
+range_item_cull_mask = 3
+shadow_enabled = true
+shadow_filter_smooth = 24.4
+texture = SubResource("GradientTexture2D_light")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("5_noise")
+bus = &"Sounds"
+volume_db = -20.5

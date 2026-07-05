@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
+const LAB_LAPTOP_TEMPLATE_SCENE := "res://objects/interactable/templates/lab_laptop_template.tscn"
 const LAPTOP_SCRIPT := "res://objects/interactable/notebook/laptop.gd"
 const FRIDGE_SCRIPT := "res://objects/interactable/fridge/fridge.gd"
 const TIMED_LAB_BASE_SCRIPT := "res://levels/minigames/labs/timed_lab_minigame_base.gd"
@@ -11,11 +12,22 @@ const TIMED_LAB_BASE_STRINGLY_UI_PATTERNS := [
 
 func run() -> Array[String]:
 	_test_timed_lab_base_uses_stable_ui_facade()
+	_test_lab_laptop_template_is_valid()
 	_test_laptop_lab_settings_are_valid()
 	_test_laptop_minigame_scenes_match_lab_contract()
 	_test_multi_lab_scenes_use_unique_ids()
 	_test_required_lab_ids_have_laptop_sources()
 	return get_failures()
+
+func _test_lab_laptop_template_is_valid() -> void:
+	var root := _instantiate_scene(LAB_LAPTOP_TEMPLATE_SCENE)
+	if root == null:
+		return
+	assert_true(_script_path(root) == LAPTOP_SCRIPT, "Lab laptop template root must use Laptop script")
+	_assert_laptop_lab_settings(LAB_LAPTOP_TEMPLATE_SCENE, root, root)
+	_assert_laptop_minigame_contract(LAB_LAPTOP_TEMPLATE_SCENE, root, root)
+	assert_true(str(root.get("lab_completion_id")).strip_edges() != "", "Lab laptop template must set lab_completion_id")
+	root.free()
 
 func _test_timed_lab_base_uses_stable_ui_facade() -> void:
 	var content := FileAccess.get_file_as_string(TIMED_LAB_BASE_SCRIPT)
@@ -32,8 +44,7 @@ func _test_laptop_lab_settings_are_valid() -> void:
 		if root == null:
 			continue
 		for laptop in _collect_lab_laptops(root):
-			assert_true(float(laptop.get("time_limit")) > 0.0, "Laptop time_limit must be positive: %s:%s" % [path, root.get_path_to(laptop)])
-			assert_true(float(laptop.get("penalty_time")) >= 0.0, "Laptop penalty_time must be non-negative: %s:%s" % [path, root.get_path_to(laptop)])
+			_assert_laptop_lab_settings(path, root, laptop)
 		root.free()
 
 func _test_laptop_minigame_scenes_match_lab_contract() -> void:
@@ -42,18 +53,25 @@ func _test_laptop_minigame_scenes_match_lab_contract() -> void:
 		if root == null:
 			continue
 		for laptop in _collect_lab_laptops(root):
-			var minigame_scene := _get_packed_scene(laptop, "minigame_scene")
-			var game := minigame_scene.instantiate() if minigame_scene != null else null
-			assert_true(game != null, "Laptop minigame_scene must instantiate: %s:%s" % [path, root.get_path_to(laptop)])
-			if game == null:
-				continue
-			assert_true(game is TimedLabMinigameBase, "Laptop minigame_scene must extend TimedLabMinigameBase: %s:%s" % [path, root.get_path_to(laptop)])
-			assert_true(game.has_signal("task_completed"), "Laptop minigame_scene must expose task_completed signal: %s:%s" % [path, root.get_path_to(laptop)])
-			assert_true(_has_property(game, "time_limit"), "Laptop minigame_scene must expose time_limit: %s:%s" % [path, root.get_path_to(laptop)])
-			assert_true(_has_property(game, "penalty_time"), "Laptop minigame_scene must expose penalty_time: %s:%s" % [path, root.get_path_to(laptop)])
-			assert_true(_has_property(game, "lab_completion_id"), "Laptop minigame_scene must expose lab_completion_id: %s:%s" % [path, root.get_path_to(laptop)])
-			game.free()
+			_assert_laptop_minigame_contract(path, root, laptop)
 		root.free()
+
+func _assert_laptop_lab_settings(path: String, root: Node, laptop: Node) -> void:
+	assert_true(float(laptop.get("time_limit")) > 0.0, "Laptop time_limit must be positive: %s:%s" % [path, root.get_path_to(laptop)])
+	assert_true(float(laptop.get("penalty_time")) >= 0.0, "Laptop penalty_time must be non-negative: %s:%s" % [path, root.get_path_to(laptop)])
+
+func _assert_laptop_minigame_contract(path: String, root: Node, laptop: Node) -> void:
+	var minigame_scene := _get_packed_scene(laptop, "minigame_scene")
+	var game := minigame_scene.instantiate() if minigame_scene != null else null
+	assert_true(game != null, "Laptop minigame_scene must instantiate: %s:%s" % [path, root.get_path_to(laptop)])
+	if game == null:
+		return
+	assert_true(game is TimedLabMinigameBase, "Laptop minigame_scene must extend TimedLabMinigameBase: %s:%s" % [path, root.get_path_to(laptop)])
+	assert_true(game.has_signal("task_completed"), "Laptop minigame_scene must expose task_completed signal: %s:%s" % [path, root.get_path_to(laptop)])
+	assert_true(_has_property(game, "time_limit"), "Laptop minigame_scene must expose time_limit: %s:%s" % [path, root.get_path_to(laptop)])
+	assert_true(_has_property(game, "penalty_time"), "Laptop minigame_scene must expose penalty_time: %s:%s" % [path, root.get_path_to(laptop)])
+	assert_true(_has_property(game, "lab_completion_id"), "Laptop minigame_scene must expose lab_completion_id: %s:%s" % [path, root.get_path_to(laptop)])
+	game.free()
 
 func _test_multi_lab_scenes_use_unique_ids() -> void:
 	for path in _list_level_scenes():

@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
+const FEEDING_FRIDGE_TEMPLATE_SCENE := "res://objects/interactable/templates/feeding_fridge_template.tscn"
 const FRIDGE_SCRIPT := "res://objects/interactable/fridge/fridge.gd"
 const FINAL_FRIDGE_SCRIPT := "res://objects/interactable/fridge/final_ending_fridge.gd"
 const FridgeFeedingSessionScript := preload("res://objects/interactable/fridge/fridge_feeding_session.gd")
@@ -12,10 +13,19 @@ func run() -> Array[String]:
 	_test_fridge_feeding_session_uses_typed_minigames()
 	_test_final_fridge_uses_typed_final_minigame()
 	_test_feeding_minigames_use_typed_food_items()
+	_test_feeding_fridge_template_is_valid()
 	_test_feeding_fridges_have_complete_configs()
 	_test_code_locked_fridges_have_lock_contracts()
 	_test_final_fridges_have_final_feeding_contracts()
 	return get_failures()
+
+func _test_feeding_fridge_template_is_valid() -> void:
+	var root := _instantiate_scene(FEEDING_FRIDGE_TEMPLATE_SCENE)
+	if root == null:
+		return
+	assert_true(_script_path(root) == FRIDGE_SCRIPT, "Feeding fridge template root must use Fridge script")
+	_assert_feeding_config(FEEDING_FRIDGE_TEMPLATE_SCENE, root, root)
+	root.free()
 
 func _test_fridge_feeding_session_uses_typed_minigames() -> void:
 	var content := FileAccess.get_file_as_string("res://objects/interactable/fridge/fridge_feeding_session.gd")

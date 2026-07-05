@@ -1,0 +1,54 @@
+[gd_scene load_steps=10 format=3 uid="uid://blablaptoptempl"]
+
+[ext_resource type="Texture2D" uid="uid://bjvemva0egbb6" path="res://objects/interactable/notebook/NotebookOn.png" id="1_on"]
+[ext_resource type="Script" uid="uid://b56d1j6fxyjxs" path="res://objects/interactable/notebook/laptop.gd" id="2_laptop"]
+[ext_resource type="Texture2D" uid="uid://de1t1kxuo8uay" path="res://objects/interactable/notebook/NotebookOff.png" id="3_off"]
+[ext_resource type="PackedScene" uid="uid://d4k8r7hh7qfse" path="res://levels/minigames/labs/LLM/llm_minigame.tscn" id="4_lab_game"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_laptop"]
+size = Vector2(132, 136)
+
+[sub_resource type="Gradient" id="Gradient_primary"]
+colors = PackedColorArray(0.92156863, 0.9411765, 0.9411765, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_primary"]
+gradient = SubResource("Gradient_primary")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.75, 0)
+
+[sub_resource type="Gradient" id="Gradient_secondary"]
+colors = PackedColorArray(0.92156863, 0.9411765, 0.9411765, 1, 0.92156863, 0.9411765, 0.9411765, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_secondary"]
+gradient = SubResource("Gradient_secondary")
+
+[node name="LabLaptopTemplate" type="Area2D"]
+script = ExtResource("2_laptop")
+minigame_scene = ExtResource("4_lab_game")
+time_limit = 45.0
+penalty_time = 10.0
+lab_completion_id = "template_lab"
+locked_sprite = ExtResource("3_off")
+available_sprite = ExtResource("1_on")
+sprite_node = NodePath("Sprite2D")
+available_light_node = NodePath("PointLight2D")
+available_light_node_secondary = NodePath("PointLight2D2")
+prompt_text = "Сделать лабораторную"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_laptop")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = 1
+scale = Vector2(0.263689, 0.263689)
+texture = ExtResource("1_on")
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+position = Vector2(0, 28)
+scale = Vector2(2.526802, 1.3489764)
+texture = SubResource("GradientTexture2D_primary")
+
+[node name="PointLight2D2" type="PointLight2D" parent="."]
+scale = Vector2(1.686933, 0.88606596)
+texture = SubResource("GradientTexture2D_secondary")
