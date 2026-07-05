@@ -570,18 +570,14 @@ func _is_death_sequence_active() -> bool:
 func _request_death_pause() -> void:
 	if not _get_death_sequence_state().mark_pause_requested():
 		return
-	if PauseManager != null and PauseManager.has_method("request_pause"):
+	if PauseManager != null:
 		PauseManager.request_pause(self, "death_screen")
-	elif get_tree():
-		get_tree().paused = true
 
 func _release_death_pause() -> void:
 	if not _get_death_sequence_state().mark_pause_released():
 		return
-	if PauseManager != null and PauseManager.has_method("release_pause"):
+	if PauseManager != null:
 		PauseManager.release_pause(self, "death_screen")
-	elif get_tree():
-		get_tree().paused = false
 
 func _configure_light_only_jump_material() -> void:
 	_get_distortion_overlay_coordinator().configure_light_only_jump_material(light_only_jump_noise_speed, light_only_jump_glitch_amount)
@@ -767,11 +763,11 @@ func _update_overlay_layer() -> void:
 	if _overlay_layer_coordinator == null:
 		_overlay_layer_coordinator = OverlayLayerCoordinator.new()
 	var pause_menu_open := false
-	if PauseManager and PauseManager.has_method("is_pause_menu_open"):
+	if PauseManager != null:
 		pause_menu_open = PauseManager.is_pause_menu_open()
 	var tree_paused := get_tree() != null and get_tree().paused
 	var active_minigame_layer := OverlayLayerCoordinator.DEFAULT_OVERLAY_LAYER
-	if MinigameController and MinigameController.has_method("get_active_minigame_layer"):
+	if MinigameController != null:
 		active_minigame_layer = MinigameController.get_active_minigame_layer()
 	_overlay_layer_coordinator.apply_layer(_overlay_layer, tree_paused, pause_menu_open, _get_distortion_gate().is_minigame_active(), active_minigame_layer)
 

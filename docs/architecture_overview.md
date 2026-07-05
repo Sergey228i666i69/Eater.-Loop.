@@ -55,6 +55,7 @@
 - `PauseManager` является владельцем `get_tree().paused` для модальных игровых систем.
 - Notes/hints и scene-transition unpause в `UIMessage` используют стабильный token facade `PauseManager` напрямую; модальный UI не должен восстанавливать `get_tree().paused` через локальные fallback-и.
 - `PauseManager` считает `MinigameController` стабильным autoload-соседом и вызывает pause/cancel/menu-state facade напрямую, без `has_method` probes.
+- `GameDirector` death screen тоже использует `PauseManager` token facade напрямую и не должен сам выставлять `get_tree().paused`; overlay layer читает `PauseManager`/`MinigameController` через стабильные facade-вызовы.
 - Модальные системы должны использовать `request_pause(owner, reason)` и `release_pause(owner, reason)`, а не локально восстанавливать previous bool.
 - Pause menu, notes/hints, pause-game minigames и death screen держат отдельные owner tokens.
 - `clear_all_pause_requests()` допустим для hard transition-ов вроде выхода в меню через `change_scene_with_fade(..., unpause_after=true)`.

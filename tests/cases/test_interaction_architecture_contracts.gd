@@ -134,7 +134,13 @@ const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"CycleState.is_normal_phase",
 	"CycleState.is_distorted_phase",
 	"CycleState.Phase",
-	"Timer.new()"
+	"Timer.new()",
+	"PauseManager.has_method(\"request_pause\")",
+	"PauseManager.has_method(\"release_pause\")",
+	"PauseManager.has_method(\"is_pause_menu_open\")",
+	"MinigameController.has_method(\"get_active_minigame_layer\")",
+	"get_tree().paused = true",
+	"get_tree().paused = false"
 ]
 const FORBIDDEN_GAME_STATE_FIELD_PATTERNS := [
 	"GameState.last_scene_path",
