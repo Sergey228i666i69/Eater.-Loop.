@@ -1,6 +1,17 @@
 extends "res://tests/test_case.gd"
 
 const DeathRetryCoordinator = preload("res://levels/game_director_death_retry_coordinator.gd")
+const DEATH_RETRY_COORDINATOR_PATH := "res://levels/game_director_death_retry_coordinator.gd"
+const FORBIDDEN_DEATH_RETRY_FACADE_PROBES := [
+	"has_method(",
+	"has_method(\"restore_respawn_checkpoint\")",
+	"has_method(\"restore_autosave_run\")",
+	"has_method(\"reset_cycle_state\")",
+	"has_method(\"queue_respawn_blackout\")",
+	"has_method(\"set_screen_dark\")",
+	"has_method(\"fade_out\")",
+	"METHOD_RESTORE_AUTOSAVE",
+]
 
 class RespawnGameState:
 	extends RefCounted
@@ -9,16 +20,6 @@ class RespawnGameState:
 	var should_restore: bool = true
 
 	func restore_respawn_checkpoint() -> bool:
-		restore_calls += 1
-		return should_restore
-
-class AutosaveGameState:
-	extends RefCounted
-
-	var restore_calls: int = 0
-	var should_restore: bool = true
-
-	func restore_autosave_run() -> bool:
 		restore_calls += 1
 		return should_restore
 
@@ -41,15 +42,6 @@ class DarkUIMessage:
 
 	func set_screen_dark(value: bool) -> void:
 		dark_values.append(value)
-
-class FadeUIMessage:
-	extends RefCounted
-
-	var fade_calls: Array[float] = []
-
-	func fade_out(duration: float) -> void:
-		fade_calls.append(duration)
-		await Engine.get_main_loop().process_frame
 
 class RetryTransitionCallbacks:
 	extends RefCounted
@@ -75,10 +67,10 @@ class ReloadTreeProbe:
 
 func run() -> Array[String]:
 	await _test_respawn_checkpoint_wins_and_preserves_cycle_state()
-	await _test_autosave_fallback_is_used_when_respawn_method_is_missing()
-	await _test_missing_checkpoint_resets_cycle_and_uses_fade_fallback()
+	await _test_missing_checkpoint_resets_cycle_and_sets_dark_screen()
 	await _test_finish_retry_transition_hides_ui_releases_owners_and_schedules_reload()
 	await _test_run_retry_flow_prepares_and_finishes_transition()
+	_test_retry_coordinator_uses_stable_facades_directly()
 	return get_failures()
 
 func _test_respawn_checkpoint_wins_and_preserves_cycle_state() -> void:
@@ -95,33 +87,19 @@ func _test_respawn_checkpoint_wins_and_preserves_cycle_state() -> void:
 	assert_eq(cycle_state.blackout_calls, 1, "Death retry must queue respawn blackout")
 	assert_eq(ui_message.dark_values, [true], "Death retry must darken the screen before reload")
 
-func _test_autosave_fallback_is_used_when_respawn_method_is_missing() -> void:
-	var coordinator: RefCounted = DeathRetryCoordinator.new()
-	var game_state := AutosaveGameState.new()
-	var cycle_state := FakeCycleState.new()
-	var ui_message := DarkUIMessage.new()
-
-	var restored: bool = await coordinator.prepare_retry(game_state, cycle_state, ui_message)
-
-	assert_true(restored, "Death retry must fall back to autosave restore when respawn method is missing")
-	assert_eq(game_state.restore_calls, 1, "Autosave restore must be attempted exactly once")
-	assert_eq(cycle_state.reset_calls, 0, "Successful autosave fallback must not reset cycle state")
-	assert_eq(cycle_state.blackout_calls, 1, "Autosave fallback must still queue respawn blackout")
-	assert_eq(ui_message.dark_values, [true], "Autosave fallback must still darken the screen")
-
-func _test_missing_checkpoint_resets_cycle_and_uses_fade_fallback() -> void:
+func _test_missing_checkpoint_resets_cycle_and_sets_dark_screen() -> void:
 	var coordinator: RefCounted = DeathRetryCoordinator.new()
 	var game_state := RespawnGameState.new()
 	game_state.should_restore = false
 	var cycle_state := FakeCycleState.new()
-	var ui_message := FadeUIMessage.new()
+	var ui_message := DarkUIMessage.new()
 
 	var restored: bool = await coordinator.prepare_retry(game_state, cycle_state, ui_message)
 
 	assert_true(not restored, "Death retry must report failed restore when no checkpoint is available")
 	assert_eq(cycle_state.reset_calls, 1, "Failed retry restore must reset cycle state")
 	assert_eq(cycle_state.blackout_calls, 1, "Failed retry restore must still queue respawn blackout")
-	assert_eq(ui_message.fade_calls, [0.0], "Legacy UIMessage fallback must fade out instantly before reload")
+	assert_eq(ui_message.dark_values, [true], "Failed retry restore must darken the screen before reload")
 
 func _test_finish_retry_transition_hides_ui_releases_owners_and_schedules_reload() -> void:
 	var coordinator: RefCounted = DeathRetryCoordinator.new()
@@ -175,3 +153,12 @@ func _test_run_retry_flow_prepares_and_finishes_transition() -> void:
 	assert_eq(callbacks.calls, ["restore_camera", "release_cursor", "release_pause"], "Death retry flow must release owners in transition order")
 	assert_eq(tree.reload_calls, 1, "Death retry flow must defer one current-scene reload")
 	death_root.free()
+
+func _test_retry_coordinator_uses_stable_facades_directly() -> void:
+	var content := FileAccess.get_file_as_string(DEATH_RETRY_COORDINATOR_PATH)
+	assert_true(content != "", "Failed to read script: %s" % DEATH_RETRY_COORDINATOR_PATH)
+	for pattern in FORBIDDEN_DEATH_RETRY_FACADE_PROBES:
+		assert_true(
+			content.find(pattern) == -1,
+			"Death retry coordinator must use stable GameState/CycleState/UIMessage facades directly: %s" % pattern
+		)

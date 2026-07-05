@@ -2,6 +2,12 @@ extends "res://tests/test_case.gd"
 
 const DeathCursorCoordinator = preload("res://levels/game_director_death_cursor_coordinator.gd")
 const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
+const DEATH_CURSOR_COORDINATOR_PATH := "res://levels/game_director_death_cursor_coordinator.gd"
+const FORBIDDEN_CURSOR_MANAGER_PROBES := [
+	"has_method(",
+	"has_method(\"release_visible\")",
+	"has_method(\"request_visible\")",
+]
 
 class FakeCursorManager:
 	extends RefCounted
@@ -19,6 +25,7 @@ func run() -> Array[String]:
 	_test_gamepad_mode_releases_cursor_and_hides_focus_outline()
 	_test_keyboard_mode_requests_cursor_and_restores_focus_outline()
 	_test_release_cursor_request_is_safe_and_delegated()
+	_test_cursor_coordinator_uses_stable_cursor_manager_facade()
 	return get_failures()
 
 func _test_gamepad_mode_releases_cursor_and_hides_focus_outline() -> void:
@@ -59,3 +66,12 @@ func _test_release_cursor_request_is_safe_and_delegated() -> void:
 	coordinator.release_cursor_request(null, owner)
 
 	assert_eq(cursor.released_sources.size(), 1, "Cursor release must be delegated exactly once for a real manager")
+
+func _test_cursor_coordinator_uses_stable_cursor_manager_facade() -> void:
+	var content := FileAccess.get_file_as_string(DEATH_CURSOR_COORDINATOR_PATH)
+	assert_true(content != "", "Failed to read script: %s" % DEATH_CURSOR_COORDINATOR_PATH)
+	for pattern in FORBIDDEN_CURSOR_MANAGER_PROBES:
+		assert_true(
+			content.find(pattern) == -1,
+			"Death cursor coordinator must use stable CursorManager facade directly: %s" % pattern
+		)

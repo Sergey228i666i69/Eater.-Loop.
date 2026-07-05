@@ -11,7 +11,7 @@ func apply_input_mode(retry_button: Button, cursor_manager: Object, owner: Objec
 	_apply_cursor_mode(cursor_manager, owner, using_gamepad)
 
 func release_cursor_request(cursor_manager: Object, owner: Object) -> void:
-	if cursor_manager != null and cursor_manager.has_method("release_visible"):
+	if cursor_manager != null:
 		cursor_manager.release_visible(owner)
 
 func _apply_retry_button_mode(retry_button: Button, using_gamepad: bool) -> void:
@@ -33,5 +33,5 @@ func _apply_cursor_mode(cursor_manager: Object, owner: Object, using_gamepad: bo
 		return
 	if using_gamepad:
 		release_cursor_request(cursor_manager, owner)
-	elif cursor_manager.has_method("request_visible"):
+	else:
 		cursor_manager.request_visible(owner)
