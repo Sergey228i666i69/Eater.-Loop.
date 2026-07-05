@@ -65,6 +65,4 @@ func _apply_to701_target(fridge_done: bool) -> void:
 func _is_fridge_success_done() -> bool:
 	if CycleState == null:
 		return _fridge != null and _fridge.is_completed
-	if CycleState.has_method("is_fridge_interacted"):
-		return bool(CycleState.is_fridge_interacted())
-	return false
+	return bool(CycleState.is_fridge_interacted())

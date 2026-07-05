@@ -72,6 +72,8 @@ const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const INTERACTION_MANAGER_PATH := "res://global/interaction_manager.gd"
 const CRAZY_LEVEL_EVENT_PATH := "res://levels/cycles/crazy_level_event.gd"
 const TEXTURE_DISTORTION_MANAGER_PATH := "res://levels/cycles/texture_distortion_manager.gd"
+const LEVEL_11_STU_1_PATH := "res://levels/cycles/level_11_stu_1.gd"
+const LEVEL_13_STU_3_PATH := "res://levels/cycles/level_13_stu_3.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -196,6 +198,14 @@ const FORBIDDEN_MUSIC_MANAGER_CLEANUP_PROBES := {
 		"MusicManager.has_method(\"stop_music\")",
 	],
 }
+const FORBIDDEN_LEVEL_STABLE_STATE_PROBES := {
+	LEVEL_11_STU_1_PATH: [
+		"CycleState.has_method(\"is_fridge_interacted\")",
+	],
+	LEVEL_13_STU_3_PATH: [
+		"CycleState.has_method(\"is_fridge_interacted\")",
+	],
+}
 
 func run() -> Array[String]:
 	var scripts: Array[String] = []
@@ -248,6 +258,13 @@ func run() -> Array[String]:
 				assert_true(
 					content.find(pattern) == -1,
 					"Music cleanup paths must use stable MusicManager facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
+
+		if FORBIDDEN_LEVEL_STABLE_STATE_PROBES.has(path):
+			for pattern in FORBIDDEN_LEVEL_STABLE_STATE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"STU level scripts must use stable CycleState facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)

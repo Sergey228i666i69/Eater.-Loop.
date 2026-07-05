@@ -51,7 +51,7 @@ func _update_bathroom_door_target() -> void:
 	_door_to_bathroom.set_target_marker_path(target)
 
 func _is_fridge_interacted() -> bool:
-	if CycleState != null and CycleState.has_method("is_fridge_interacted") and CycleState.is_fridge_interacted():
+	if CycleState != null and CycleState.is_fridge_interacted():
 		return true
 	for fridge in _fridges:
 		if fridge != null and is_instance_valid(fridge) and bool(fridge.is_completed):
