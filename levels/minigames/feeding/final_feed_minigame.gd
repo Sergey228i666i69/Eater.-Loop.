@@ -106,8 +106,9 @@ func _clear_food_nodes() -> void:
 			continue
 		if child is CanvasItem:
 			(child as CanvasItem).visible = false
-		if child.has_method("set_interaction_enabled"):
-			child.call("set_interaction_enabled", false)
+		var food := child as FoodItem
+		if food != null:
+			food.set_interaction_enabled(false)
 		child.queue_free()
 
 func _sanitize_stages(raw_stages: Array) -> Array[Dictionary]:
@@ -209,5 +210,6 @@ func _win() -> void:
 
 func _set_stage_food_interaction_enabled(enabled: bool) -> void:
 	for child in food_container.get_children():
-		if child != null and child.has_method("set_interaction_enabled"):
-			child.call("set_interaction_enabled", enabled)
+		var food := child as FoodItem
+		if food != null:
+			food.set_interaction_enabled(enabled)

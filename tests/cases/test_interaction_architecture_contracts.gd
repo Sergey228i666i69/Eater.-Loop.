@@ -328,6 +328,8 @@ const FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES := {
 	],
 	FINAL_FEED_MINIGAME_PATH: [
 		"UIMessage.has_method(\"play_sfx\")",
+		"has_method(\"set_interaction_enabled\")",
+		".call(\"set_interaction_enabled\"",
 	],
 }
 const FORBIDDEN_MENU_STABLE_FACADE_PROBES := {

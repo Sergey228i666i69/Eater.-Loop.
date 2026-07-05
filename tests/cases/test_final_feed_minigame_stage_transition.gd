@@ -5,6 +5,7 @@ const FACE_STAGE_A := preload("res://levels/minigames/feeding/andreys_faces/Happ
 const FACE_STAGE_B := preload("res://levels/minigames/feeding/andreys_faces/SadEat.png")
 const FOOD_STAGE_A := preload("res://levels/minigames/feeding/food/dumpling/food_dumpling.tscn")
 const FOOD_STAGE_B := preload("res://levels/minigames/feeding/food/cookie/food_cookie_1.tscn")
+const FoodItemScript := preload("res://levels/minigames/feeding/food/food_item.gd")
 
 func run() -> Array[String]:
 	var tree := Engine.get_main_loop() as SceneTree
@@ -77,11 +78,12 @@ func run() -> Array[String]:
 	await tree.process_frame
 	return get_failures()
 
-func _find_first_food(minigame: Node) -> Area2D:
+func _find_first_food(minigame: Node) -> FoodItemScript:
 	var food_container := minigame.get_node_or_null("Control/FoodContainer")
 	if food_container == null:
 		return null
 	for child in food_container.get_children():
-		if child is Area2D and child.has_method("set_interaction_enabled"):
-			return child as Area2D
+		var food := child as FoodItemScript
+		if food != null:
+			return food
 	return null
