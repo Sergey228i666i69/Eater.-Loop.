@@ -66,6 +66,8 @@ const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const FINAL_ENDING_FRIDGE_PATH := "res://objects/interactable/fridge/final_ending_fridge.gd"
 const PICKUP_FLASHLIGHT_PATH := "res://objects/interactable/flashlight/pickup_flashlight.gd"
+const LAPTOP_PATH := "res://objects/interactable/notebook/laptop.gd"
+const LEBEDKA_PATH := "res://objects/interactable/lebedka/lebedka.gd"
 const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
@@ -286,6 +288,13 @@ const FORBIDDEN_OBJECT_STABLE_FACADE_PROBES := {
 		"CycleState.has_method(\"collect_flashlight_for_cycle\")",
 		"CycleState.has_method(\"has_flashlight_for_current_cycle\")",
 		"GameState.has_method(\"is_flashlight_unlocked\")",
+	],
+	LAPTOP_PATH: [
+		"CycleState.has_method(\"is_lab_completed\")",
+		"CycleState.has_method(\"has_completed_any_lab\")",
+	],
+	LEBEDKA_PATH: [
+		"CycleState.has_method(\"mark_lab_completed\")",
 	],
 }
 

@@ -215,12 +215,8 @@ func _is_lab_completed() -> bool:
 		return false
 	var local_id := lab_completion_id.strip_edges()
 	if local_id != "":
-		if CycleState.has_method("is_lab_completed"):
-			return bool(CycleState.is_lab_completed(local_id))
-		return false
-	if CycleState.has_method("has_completed_any_lab"):
-		return bool(CycleState.has_completed_any_lab())
-	return false
+		return bool(CycleState.is_lab_completed(local_id))
+	return bool(CycleState.has_completed_any_lab())
 
 func _try_reward_for_work_completion() -> void:
 	if not reward_on_work_completion:

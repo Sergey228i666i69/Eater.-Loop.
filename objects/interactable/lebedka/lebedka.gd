@@ -76,7 +76,7 @@ func _apply_winch_effects() -> void:
 	if _is_used:
 		return
 
-	if complete_lab_on_use and CycleState != null and CycleState.has_method("mark_lab_completed"):
+	if complete_lab_on_use and CycleState != null:
 		CycleState.mark_lab_completed()
 
 	var fridge := _get_fridge_target()
