@@ -155,6 +155,34 @@ const FORBIDDEN_CYCLE_STATE_PUBLIC_FIELD_DECLARATIONS := [
 	"var pending_respawn_blackout:",
 	"var flashlight_collected_this_cycle:"
 ]
+const FORBIDDEN_GAME_STATE_STABLE_FACADE_PROBES := [
+	"CycleState.has_method(\"has_flashlight_for_current_cycle\")",
+	"CycleState.has_method(\"has_pending_sleep_spawn\")",
+	"CycleState.has_method(\"next_cycle\")",
+	"CycleState.has_method(\"queue_sleep_spawn\")",
+	"CycleState.has_method(\"reset_cycle_state\")",
+	"CycleState.has_method(\"set_phase\")",
+	"CycleState.has_method(\"mark_ate\")",
+	"CycleState.has_method(\"has_eaten_this_cycle\")",
+	"CycleState.has_method(\"mark_phone_picked\")",
+	"CycleState.has_method(\"mark_fridge_interacted\")",
+	"CycleState.has_method(\"is_fridge_interacted\")",
+	"CycleState.has_method(\"consume_pending_sleep_spawn\")",
+	"CycleState.has_method(\"queue_respawn_blackout\")",
+	"CycleState.has_method(\"consume_pending_respawn_blackout\")",
+	"CycleState.has_method(\"reset_runtime_state_only\")",
+	"CycleState.has_method(\"has_pending_respawn_blackout\")",
+	"CycleState.has_method(\"load_save_data\")",
+	"CycleState.has_method(\"write_save_data\")",
+	"CycleState.has_method(\"export_checkpoint_state\")",
+	"CycleState.has_method(\"apply_checkpoint_state\")",
+	"GameDirector.has_method(\"apply_checkpoint_state\")",
+	"GameDirector.has_method(\"capture_checkpoint_state\")"
+]
+const FORBIDDEN_CYCLE_STATE_STABLE_FACADE_PROBES := [
+	"GameState.has_method(\"is_flashlight_unlocked\")",
+	"GameState.has_method(\"autosave_run\")"
+]
 const FORBIDDEN_ACTIVE_SCENE_PATTERNS := [
 	"archive(trash)"
 ]
@@ -286,6 +314,18 @@ func run() -> Array[String]:
 		else:
 			for pattern in FORBIDDEN_CYCLE_STATE_PUBLIC_FIELD_DECLARATIONS:
 				assert_true(content.find(pattern) == -1, "CycleState must keep core state behind private backing fields and public methods: %s" % pattern)
+			for pattern in FORBIDDEN_CYCLE_STATE_STABLE_FACADE_PROBES:
+				assert_true(
+					content.find(pattern) == -1,
+					"CycleState must use stable GameState facade directly instead of stringly method probes: %s" % pattern
+				)
+
+		if path == GAME_STATE_PATH:
+			for pattern in FORBIDDEN_GAME_STATE_STABLE_FACADE_PROBES:
+				assert_true(
+					content.find(pattern) == -1,
+					"GameState must use stable CycleState/GameDirector facades directly instead of stringly method probes: %s" % pattern
+				)
 
 		if path != SCENE_CONTEXT_PATH:
 			assert_true(content.find("path.find(\"/levels/cycles/\")") == -1, "Gameplay scene path checks must go through SceneContext: %s" % path)
