@@ -63,6 +63,7 @@ const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
 const LEVEL_14_END_PATH := "res://levels/cycles/level_14_end.gd"
 const PLAYER_PATH := "res://player/player.gd"
 const UI_MESSAGE_PATH := "res://player/ui_message.gd"
+const PAUSE_MANAGER_PATH := "res://levels/menu/pause_manager.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const FINAL_ENDING_FRIDGE_PATH := "res://objects/interactable/fridge/final_ending_fridge.gd"
@@ -208,6 +209,11 @@ const FORBIDDEN_UI_MESSAGE_PAUSE_FALLBACK_PATTERNS := [
 	"PauseManager.has_method(\"release_pause\")",
 	"get_tree().paused = true",
 	"get_tree().paused = false"
+]
+const FORBIDDEN_PAUSE_MANAGER_STABLE_FACADE_PROBES := [
+	"MinigameController.has_method(\"set_pause_menu_open\")",
+	"MinigameController.has_method(\"is_pause_menu_allowed\")",
+	"MinigameController.has_method(\"is_cancel_action_allowed\")"
 ]
 const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"is_screen_dark\")",
@@ -448,6 +454,14 @@ func run() -> Array[String]:
 		assert_true(
 			ui_message_content.find(pattern) == -1,
 			"UIMessage modal pause ownership must go through stable PauseManager token API without local tree.paused fallbacks: %s" % pattern
+		)
+
+	var pause_manager_content := FileAccess.get_file_as_string(PAUSE_MANAGER_PATH)
+	assert_true(pause_manager_content != "", "Failed to read script: %s" % PAUSE_MANAGER_PATH)
+	for pattern in FORBIDDEN_PAUSE_MANAGER_STABLE_FACADE_PROBES:
+		assert_true(
+			pause_manager_content.find(pattern) == -1,
+			"PauseManager must use stable MinigameController facades directly instead of stringly method probes: %s" % pattern
 		)
 
 	var fridge_content := FileAccess.get_file_as_string(FRIDGE_PATH)

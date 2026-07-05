@@ -45,7 +45,7 @@ func _open_menu() -> void:
 		_pause_menu.call("open_menu")
 	request_pause(self, "pause_menu")
 	_is_open = true
-	if MinigameController and MinigameController.has_method("set_pause_menu_open"):
+	if MinigameController != null:
 		MinigameController.set_pause_menu_open(true)
 
 func _request_resume() -> void:
@@ -53,7 +53,7 @@ func _request_resume() -> void:
 		_pause_menu.call("close_menu")
 	release_pause(self, "pause_menu")
 	_is_open = false
-	if MinigameController and MinigameController.has_method("set_pause_menu_open"):
+	if MinigameController != null:
 		MinigameController.set_pause_menu_open(false)
 
 func _ensure_menu_instance() -> void:
@@ -72,7 +72,7 @@ func _ensure_menu_instance() -> void:
 		_pause_menu = null
 		_is_open = false
 		release_pause(self, "pause_menu")
-		if MinigameController and MinigameController.has_method("set_pause_menu_open"):
+		if MinigameController != null:
 			MinigameController.set_pause_menu_open(false)
 	)
 
@@ -100,12 +100,12 @@ func _is_minigame_active() -> bool:
 	return false
 
 func _is_minigame_pause_blocked() -> bool:
-	if MinigameController and MinigameController.has_method("is_pause_menu_allowed"):
+	if MinigameController != null:
 		return not MinigameController.is_pause_menu_allowed()
 	return false
 
 func _is_minigame_cancel_allowed() -> bool:
-	if MinigameController and MinigameController.has_method("is_cancel_action_allowed"):
+	if MinigameController != null:
 		return MinigameController.is_cancel_action_allowed()
 	return false
 
