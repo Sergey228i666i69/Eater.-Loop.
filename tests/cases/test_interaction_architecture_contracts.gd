@@ -84,6 +84,8 @@ const LEVEL_13_STU_3_PATH := "res://levels/cycles/level_13_stu_3.gd"
 const LEVEL_11_END_PATH := "res://levels/cycles/level_11_end.gd"
 const ENDING_SCREEN_PATH := "res://levels/endings/ending_screen.gd"
 const ENDING_CREDITS_PATH := "res://levels/endings/ending_credits.gd"
+const ENEMY_BASE_PATH := "res://enemies/enemy.gd"
+const ENEMY_LIGHT_ONLY_PATH := "res://enemies/light_only/enemy_light_only.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -250,6 +252,19 @@ const FORBIDDEN_INTERACTIVE_OBJECT_STABLE_FACADE_PROBES := [
 	"MinigameController.has_method(\"attach_minigame\")",
 	"InteractionManager.has_method(\"register_candidate\")"
 ]
+const FORBIDDEN_ENEMY_STABLE_FACADE_PROBES := {
+	ENEMY_BASE_PATH: [
+		"UIMessage.has_method(\"play_sfx\")",
+		"GameDirector.has_method(\"trigger_death_screen\")",
+		"GameDirector.has_method(\"trigger_damage_flash\")",
+		"GameDirector.has_method(\"reduce_time\")",
+		"MinigameController.has_method(\"has_active_minigame\")",
+		"MinigameController.has_method(\"should_block_player_movement\")",
+	],
+	ENEMY_LIGHT_ONLY_PATH: [
+		"GameDirector.has_method(\"trigger_light_only_jump_effect\")",
+	],
+}
 const FORBIDDEN_UTILITY_STABLE_FACADE_PROBES := {
 	CRAZY_LEVEL_EVENT_PATH: [
 		"GameDirector.has_method(\"ensure_timer_running\")",
@@ -389,21 +404,28 @@ func run() -> Array[String]:
 					"STU level scripts must use stable CycleState facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
-		if FORBIDDEN_ENDING_STABLE_FACADE_PROBES.has(path):
-			for pattern in FORBIDDEN_ENDING_STABLE_FACADE_PROBES[path]:
-				assert_true(
-					content.find(pattern) == -1,
-					"Ending flow scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
-				)
+			if FORBIDDEN_ENDING_STABLE_FACADE_PROBES.has(path):
+				for pattern in FORBIDDEN_ENDING_STABLE_FACADE_PROBES[path]:
+					assert_true(
+						content.find(pattern) == -1,
+						"Ending flow scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+					)
 
-		if FORBIDDEN_OBJECT_STABLE_FACADE_PROBES.has(path):
-			for pattern in FORBIDDEN_OBJECT_STABLE_FACADE_PROBES[path]:
-				assert_true(
-					content.find(pattern) == -1,
-					"Content objects must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
-				)
+			if FORBIDDEN_OBJECT_STABLE_FACADE_PROBES.has(path):
+				for pattern in FORBIDDEN_OBJECT_STABLE_FACADE_PROBES[path]:
+					assert_true(
+						content.find(pattern) == -1,
+						"Content objects must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+					)
 
-		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
+			if FORBIDDEN_ENEMY_STABLE_FACADE_PROBES.has(path):
+				for pattern in FORBIDDEN_ENEMY_STABLE_FACADE_PROBES[path]:
+					assert_true(
+						content.find(pattern) == -1,
+						"Enemy scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+					)
+
+			assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 
 		if path != GAME_STATE_PATH:
 			for pattern in FORBIDDEN_GAME_STATE_FIELD_PATTERNS:

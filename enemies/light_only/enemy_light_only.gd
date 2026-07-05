@@ -115,8 +115,6 @@ func _play_jump_sound() -> void:
 func _trigger_jump_screen_effect() -> void:
 	if GameDirector == null:
 		return
-	if not GameDirector.has_method("trigger_light_only_jump_effect"):
-		return
 	GameDirector.trigger_light_only_jump_effect()
 
 func _play_idle_sound() -> void:

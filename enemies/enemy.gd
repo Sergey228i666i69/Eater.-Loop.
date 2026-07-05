@@ -186,7 +186,7 @@ func _play_attack_sfx(stream_override: AudioStream = null) -> void:
 	var pitch_min := minf(attack_sfx_pitch_min, attack_sfx_pitch_max)
 	var pitch_max := maxf(attack_sfx_pitch_min, attack_sfx_pitch_max)
 	var pitch := randf_range(pitch_min, pitch_max)
-	if UIMessage and UIMessage.has_method("play_sfx"):
+	if UIMessage != null:
 		UIMessage.play_sfx(stream, attack_sfx_volume_db, pitch)
 		return
 	if get_tree() == null:
@@ -208,7 +208,7 @@ func _attack_player() -> void:
 	var is_lethal := kill_on_attack or (CycleState != null and CycleState.is_distorted_phase())
 	if is_lethal:
 		_play_attack_sfx(_pick_random_death_scream())
-		if GameDirector and GameDirector.has_method("trigger_death_screen"):
+		if GameDirector != null:
 			GameDirector.trigger_death_screen()
 		else:
 			if CycleState != null:
@@ -216,11 +216,9 @@ func _attack_player() -> void:
 			get_tree().call_deferred("reload_current_scene")
 		return
 	_play_attack_sfx(_pick_random_death_scream())
-	if GameDirector:
-		if GameDirector.has_method("trigger_damage_flash"):
-			GameDirector.trigger_damage_flash()
-		if GameDirector.has_method("reduce_time"):
-			GameDirector.reduce_time(time_penalty)
+	if GameDirector != null:
+		GameDirector.trigger_damage_flash()
+		GameDirector.reduce_time(time_penalty)
 	
 	# Удаляем врага, чтобы он не кусал каждый кадр
 	call_deferred("queue_free")
@@ -231,8 +229,4 @@ func _exit_tree() -> void:
 func _is_player_busy_with_minigame() -> bool:
 	if MinigameController == null:
 		return false
-	if MinigameController.has_method("has_active_minigame"):
-		return bool(MinigameController.has_active_minigame())
-	if MinigameController.has_method("should_block_player_movement"):
-		return bool(MinigameController.should_block_player_movement())
-	return false
+	return MinigameController.has_active_minigame() or MinigameController.should_block_player_movement()

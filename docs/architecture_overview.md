@@ -173,6 +173,7 @@
 - Shared interaction helpers вроде `FridgeCompletionSession` не скрывают отсутствие стабильных `GameState`/`CycleState`/`MusicManager` методов через `has_method`: такие ошибки должны всплывать тестами и parser/full-suite прогонами.
 - Content objects with singleton-owned state/flow (`pickup_flashlight`, `final_ending_fridge`, `Laptop`, `Lebedka`) call stable `CycleState`/`GameState`/`GameDirector` facades directly; group-local polymorphism can still use explicit `has_method` where nodes are intentionally heterogeneous.
 - `Player` тоже считает `MinigameController`, `UIMessage`, `CycleState` и `GameState` стабильными autoload facade: movement-blocking, screen-dark checks и доступность фонарика идут через прямые публичные вызовы с `null` guards.
+- Enemy runtime тоже вызывает стабильные `UIMessage`, `GameDirector` и `MinigameController` facade напрямую: attack SFX, death screen, damage flash/time penalty, light-only jump effect и minigame-blocking не должны маскироваться через `has_method` probes.
 - Приватные методы (`_...`) можно менять без обратной совместимости, поэтому
   внешние зависимости на них считаются архитектурным дефектом.
 
