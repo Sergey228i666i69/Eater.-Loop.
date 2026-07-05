@@ -106,6 +106,7 @@
 - `InteractionManager` и базовый `InteractiveObject` считают `MinigameController`/`InteractionManager` стабильными autoload facades: minigame blocking, attach/start minigame и manager refresh идут через прямые публичные вызовы с `null` guards, без `has_method` probes.
 - `SearchKeyManager.search_spots` резолвятся в `SearchSpot`; manager сбрасывает и выбирает точки через typed API, слушает successful outcome выбранной точки и закрывает sibling spots без обратного поиска manager-а из `SearchSpot`. `SearchSpot.minigame_scene` должен инстанцироваться как `SearchKeyMinigame`, поэтому setup/layout-state вызываются типизированно.
 - Включение/отключение объекта делается через `set_interaction_enabled(...)`, а не прямой раздельной правкой prompt/input флагов.
+- `Obstacle` остаётся `StaticBody2D` collision-blocker-ом, но его дочерний `$InteractArea` является стабильным `InteractiveObject` child contract; код obstacles обращается к нему типизированно и отключает через тот же `set_interaction_enabled(...)`.
 - Запуск/attach мини-игр делается через `attach_minigame(...)` или `start_managed_minigame(...)`.
 - Если зависимость не выполнена, базовый `InteractiveObject` обязан показать `locked_message`, если наследник не переопределил это поведение явно.
 - Content-object scripts должны использовать стабильные collaborators типизированно: обязательный fridge path резолвится в `Fridge`, а `UIMessage.fade_*` вызывается через facade при `UIMessage != null`, без локальных `has_method/call` probes.

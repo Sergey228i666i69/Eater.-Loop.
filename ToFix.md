@@ -190,7 +190,9 @@
 Статус: закрыто контрактом.
 
 - `Obstacle` оставлен как `StaticBody2D` + `InteractArea`, потому что это collision-blocker, а не обычный `Area2D` interactable.
+- Runtime-код `Obstacle` типизирует `$InteractArea` как `InteractiveObject` и отключает его через прямой `set_interaction_enabled(false)`, без fallback-а на `has_method("set_interaction_enabled")`.
 - `tests/cases/test_obstacle_interaction_contract.gd` проверяет, что `$InteractArea` сохраняет `InteractiveObject` contract, не регистрируется как обычный focused candidate и press-clear flow освобождает obstacle после нужного числа нажатий.
+- `tests/cases/test_interaction_architecture_contracts.gd` запрещает возвращать stringly method probe для этого stable child contract.
 
 ### 19. Ending scenes и pause classification непоследовательны
 

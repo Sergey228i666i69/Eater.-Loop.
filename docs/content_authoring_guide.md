@@ -51,6 +51,7 @@
 9. Managed `SearchSpot` должен быть полноценной точкой поиска: `minigame_scene` инстанцируется как `SearchKeyMinigame`, держит `SearchArea/KeyButton` и `SearchArea/TrashContainer`; `key_id` непустой, `key_texture` задан, `trash_textures` непустой и `trash_min`/`trash_max` образуют валидный видимый диапазон. Новые search-key мини-игры должны наследовать текущий `search_minigame.gd` contract или получить отдельный typed base перед подключением к `SearchSpot`.
 10. Все exported `NodePath` для критичных детей должны либо быть пустыми и optional, либо резолвиться. Для новых обязательных child/path contracts добавляй проверку в `test_scene_nodepath_contracts.gd`.
 11. Для стабильных autoload/facade API не добавляй локальные `has_method` guards в content scripts. Например, `UIMessage.fade_out(...)` / `fade_in(...)` вызываются напрямую при `UIMessage != null`; если facade меняется, должен падать тест или parser, а не тихо пропускаться поведение.
+12. Если нужен blocking-интерактив по образцу obstacle, оставляй root как физический blocker, но дочерний `InteractArea` должен быть настоящим `InteractiveObject`. Не заменяй этот contract локальным `has_method("set_interaction_enabled")` fallback-ом.
 
 ## Свет, Генератор И Враги
 

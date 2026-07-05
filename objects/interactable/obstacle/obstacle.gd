@@ -26,7 +26,7 @@ enum ClearMode { HOLD, PRESS }
 ## Смещение спрайта подсказки относительно зоны взаимодействия.
 @export var prompt_offset: Vector2 = Vector2.ZERO
 
-@onready var _interact_area: Area2D = $InteractArea
+@onready var _interact_area: InteractiveObject = get_node_or_null("InteractArea") as InteractiveObject
 var _player_in_range: Node = null
 var _hold_time: float = 0.0
 var _presses: int = 0
@@ -35,11 +35,11 @@ var _last_prompt_text: String = ""
 func _ready() -> void:
 	if not is_in_group("checkpoint_stateful"):
 		add_to_group("checkpoint_stateful")
-	if _interact_area:
-		_ensure_interact_area_script()
-		if _interact_area.has_signal("player_entered"):
+	_ensure_interact_area_script()
+	if _interact_area != null:
+		if not _interact_area.player_entered.is_connected(_on_interact_area_player_entered):
 			_interact_area.player_entered.connect(_on_interact_area_player_entered)
-		if _interact_area.has_signal("player_exited"):
+		if not _interact_area.player_exited.is_connected(_on_interact_area_player_exited):
 			_interact_area.player_exited.connect(_on_interact_area_player_exited)
 	set_process(true)
 
@@ -73,10 +73,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		_refresh_prompt()
 
 func _ensure_interact_area_script() -> void:
-	if _interact_area.get_script() != INTERACTION_SCRIPT:
-		_interact_area.set_script(INTERACTION_SCRIPT)
-	if _interact_area.has_method("set_interaction_enabled"):
-		_interact_area.set_interaction_enabled(false)
+	var interact_area_node := get_node_or_null("InteractArea") as Area2D
+	if interact_area_node == null:
+		push_warning("Obstacle requires an InteractArea Area2D child.")
+		return
+	if interact_area_node.get_script() != INTERACTION_SCRIPT:
+		interact_area_node.set_script(INTERACTION_SCRIPT)
+	_interact_area = interact_area_node as InteractiveObject
+	if _interact_area == null:
+		push_warning("Obstacle InteractArea must use InteractiveObject.")
+		return
+	_interact_area.set_interaction_enabled(false)
 
 func _on_interact_area_player_entered(player: Node) -> void:
 	_player_in_range = player
