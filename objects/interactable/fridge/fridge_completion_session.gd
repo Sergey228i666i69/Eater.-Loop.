@@ -8,15 +8,13 @@ const CHASE_MUSIC_CLEAR_FADE := 0.2
 static func mark_cycle_feeding_completed(cycle_state: Object) -> void:
 	if cycle_state == null:
 		return
-	if cycle_state.has_method("mark_ate"):
-		cycle_state.mark_ate()
-	if cycle_state.has_method("mark_fridge_interacted"):
-		cycle_state.mark_fridge_interacted()
+	cycle_state.mark_ate()
+	cycle_state.mark_fridge_interacted()
 
 static func clear_chase_after_teleport_success(tree: SceneTree, music_manager: Object) -> void:
 	if tree != null:
 		tree.call_group(ENEMIES_GROUP, "force_stop_chase")
-	if music_manager != null and music_manager.has_method("clear_chase_music_sources"):
+	if music_manager != null:
 		music_manager.clear_chase_music_sources(CHASE_MUSIC_CLEAR_FADE)
 
 static func teleport_player_if_needed(owner: Node, enable_teleport: bool, teleport_target: NodePath) -> bool:
@@ -45,8 +43,7 @@ static func current_scene_from_owner(owner: Node) -> Node:
 static func save_after_feeding(game_state: Object, current_scene: Node) -> void:
 	if game_state == null:
 		return
-	if current_scene != null and game_state.has_method("capture_fridge_checkpoint"):
+	if current_scene != null:
 		game_state.capture_fridge_checkpoint(current_scene)
 		return
-	if game_state.has_method("autosave_run"):
-		game_state.autosave_run()
+	game_state.autosave_run()

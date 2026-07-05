@@ -268,6 +268,13 @@ const FORBIDDEN_ENDING_STABLE_FACADE_PROBES := {
 		"UIMessage.has_method(\"play_fade_sequence\")",
 	],
 }
+const FORBIDDEN_FRIDGE_COMPLETION_STABLE_FACADE_PROBES := [
+	"cycle_state.has_method(\"mark_ate\")",
+	"cycle_state.has_method(\"mark_fridge_interacted\")",
+	"music_manager.has_method(\"clear_chase_music_sources\")",
+	"game_state.has_method(\"capture_fridge_checkpoint\")",
+	"game_state.has_method(\"autosave_run\")",
+]
 
 func run() -> Array[String]:
 	var scripts: Array[String] = []
@@ -397,6 +404,11 @@ func run() -> Array[String]:
 	assert_true(fridge_content.find("FridgeCompletionSessionScript.save_after_feeding") != -1, "Fridge must delegate post-feeding save policy")
 	var fridge_completion_content := FileAccess.get_file_as_string(FRIDGE_COMPLETION_SESSION_PATH)
 	assert_true(fridge_completion_content.find("autosave_run") != -1, "Fridge completion session must keep autosave fallback after successful interaction")
+	for pattern in FORBIDDEN_FRIDGE_COMPLETION_STABLE_FACADE_PROBES:
+		assert_true(
+			fridge_completion_content.find(pattern) == -1,
+			"Fridge completion session must use stable autoload facades directly instead of stringly method probes: %s" % pattern
+		)
 
 	var bed_content := FileAccess.get_file_as_string(BED_PATH)
 	assert_true(bed_content.find("change_scene_with_fade_delay") != -1, "Bed sleep transition must use the shared UIMessage scene transition API")
