@@ -86,6 +86,9 @@ const ENDING_SCREEN_PATH := "res://levels/endings/ending_screen.gd"
 const ENDING_CREDITS_PATH := "res://levels/endings/ending_credits.gd"
 const ENEMY_BASE_PATH := "res://enemies/enemy.gd"
 const ENEMY_LIGHT_ONLY_PATH := "res://enemies/light_only/enemy_light_only.gd"
+const FEED_MINIGAME_PATH := "res://levels/minigames/feeding/feed_minigame.gd"
+const FEED_DETACH_HANDS_PATH := "res://levels/minigames/feeding/feed_minigame_detach_hands.gd"
+const FINAL_FEED_MINIGAME_PATH := "res://levels/minigames/feeding/final_feed_minigame.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -265,6 +268,18 @@ const FORBIDDEN_ENEMY_STABLE_FACADE_PROBES := {
 		"GameDirector.has_method(\"trigger_light_only_jump_effect\")",
 	],
 }
+const FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES := {
+	FEED_MINIGAME_PATH: [
+		"GameState.has_method(\"reset_dragging\")",
+		"GameState.reset_dragging",
+	],
+	FEED_DETACH_HANDS_PATH: [
+		"MusicManager.has_method(\"stop_minigame_music_with_pitch_drop\")",
+	],
+	FINAL_FEED_MINIGAME_PATH: [
+		"UIMessage.has_method(\"play_sfx\")",
+	],
+}
 const FORBIDDEN_UTILITY_STABLE_FACADE_PROBES := {
 	CRAZY_LEVEL_EVENT_PATH: [
 		"GameDirector.has_method(\"ensure_timer_running\")",
@@ -423,6 +438,13 @@ func run() -> Array[String]:
 					assert_true(
 						content.find(pattern) == -1,
 						"Enemy scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+					)
+
+			if FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES.has(path):
+				for pattern in FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES[path]:
+					assert_true(
+						content.find(pattern) == -1,
+						"Feeding minigames must use stable facades and local FoodItem state directly instead of dead/stringly method probes: %s (%s)" % [path, pattern]
 					)
 
 			assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)

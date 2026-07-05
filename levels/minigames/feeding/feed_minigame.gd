@@ -216,8 +216,6 @@ func _exit_tree() -> void:
 		MinigameController.clear_gamepad_scheme(self)
 		if MinigameController.is_active(self):
 			MinigameController.finish_minigame(self, false)
-	if GameState.has_method("reset_dragging"):
-		GameState.reset_dragging()
 
 func _start_minigame_session() -> void:
 	if MinigameController == null:

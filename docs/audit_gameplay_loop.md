@@ -100,6 +100,7 @@ Credits возвращают в меню и ставят только meta-фл�
 
 - Закрыто: мёртвое поле `running_unlocked` удалено из `GameState`, save-data и checkpoint runtime-state. Текущий источник истины для бега остаётся scene-export `Player.allow_running`.
 - Закрыто: базовый enemy runtime и light-only enemy больше не скрывают stable autoload contracts через `has_method`; attack SFX, death screen, damage flash/time penalty, minigame-blocking и light-only jump effect идут через прямые `UIMessage`/`GameDirector`/`MinigameController` facade-вызовы и закреплены архитектурным тестом.
+- Закрыто: feeding minigames больше не держат мёртвый `GameState.reset_dragging` compatibility probe; drag lifecycle сбрасывается локально через `FoodItem`, а creepy-music/glitch SFX используют прямые `MusicManager`/`UIMessage` facade-вызовы.
 - Door/fridge redirects размазаны по нескольким level scripts: `level_07_doors.gd`, `level_11_stu_1.gd`, `level_13_stu_3.gd`.
 - Движение/анимация частично дублируются между player, runner, stalker и light-sensitive enemies.
 

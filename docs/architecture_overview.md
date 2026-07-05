@@ -70,6 +70,7 @@
 - Timer state и одноразовый timeout-флаг вынесены в `MinigameTimerState`; `MinigameController` только эмитит публичные сигналы и решает auto-finish.
 - Pause/cursor ownership state вынесен в `MinigameModalOwnership`; helper ходит к typed `PauseManager`/`CursorManager` API напрямую, а публичное поведение `pause_game`/`show_mouse_cursor` остаётся в `MinigameSettings`.
 - Music stack/session state вынесен в `MinigameMusicSession`; `MinigameController` сохраняет публичные `stop_minigame_music(...)`/`update_minigame_music(...)` и ходит к `MusicManager` только через его публичный фасад.
+- Feeding minigames держат drag lifecycle в локальном `FoodItem` state и используют стабильные `MusicManager`/`UIMessage` facades напрямую; мёртвые compatibility hooks вроде `GameState.reset_dragging` не должны возвращаться.
 - Registry зарегистрированных gamepad-схем вынесен в `GamepadSchemeRegistry`; контроллер сохраняет публичные `set_gamepad_scheme`/`clear_gamepad_scheme`.
 - Player-facing gamepad hint policy вынесен в `GamepadHintBuilder`; `GamepadRuntime` сохраняет input/navigation/callback lifecycle.
 - Gamepad hint values отображаются через `tr(...)`; русскоязычные hint strings должны иметь ключ в `global/localization/texts.csv`.

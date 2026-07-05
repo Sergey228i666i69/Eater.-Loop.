@@ -331,8 +331,7 @@ func _trigger_creepy_music_stop_once() -> void:
 	_creepy_music_stop_triggered = true
 	if MusicManager == null:
 		return
-	if MusicManager.has_method("stop_minigame_music_with_pitch_drop"):
-		MusicManager.stop_minigame_music_with_pitch_drop(creepy_music_stop_duration, creepy_music_target_pitch)
+	MusicManager.stop_minigame_music_with_pitch_drop(creepy_music_stop_duration, creepy_music_target_pitch)
 
 func _get_hand_anchor_tear_point(state: HandState) -> Vector2:
 	return state.base_global_pos + state.node.size * state.tear_uv

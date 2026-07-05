@@ -197,7 +197,7 @@ func _finalize_stage_transition_after_glitch() -> void:
 func _play_stage_glitch_sfx() -> void:
 	if stage_glitch_sfx == null:
 		return
-	if UIMessage != null and UIMessage.has_method("play_sfx"):
+	if UIMessage != null:
 		UIMessage.play_sfx(stage_glitch_sfx, stage_glitch_sfx_volume_db, 1.0)
 
 func _win() -> void:
