@@ -132,9 +132,7 @@ func _stop_distortion_music() -> void:
 func _is_minigame_music_active() -> bool:
 	if MinigameController == null:
 		return false
-	if MinigameController.has_method("should_block_player_movement"):
-		return MinigameController.should_block_player_movement()
-	return false
+	return MinigameController.should_block_player_movement()
 
 func _play_distortion_sfx() -> void:
 	if distortion_sfx == null:

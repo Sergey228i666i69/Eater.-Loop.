@@ -69,6 +69,8 @@ const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
 const MINIGAME_CONTROLLER_PATH := "res://levels/minigames/minigame_controller.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const INTERACTION_MANAGER_PATH := "res://global/interaction_manager.gd"
+const CRAZY_LEVEL_EVENT_PATH := "res://levels/cycles/crazy_level_event.gd"
+const TEXTURE_DISTORTION_MANAGER_PATH := "res://levels/cycles/texture_distortion_manager.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -172,6 +174,16 @@ const FORBIDDEN_INTERACTION_MANAGER_STRINGLY_PATTERNS := [
 	"call(\"_set_interaction_focus\"",
 	"call('_set_interaction_focus'"
 ]
+const FORBIDDEN_UTILITY_STABLE_FACADE_PROBES := {
+	CRAZY_LEVEL_EVENT_PATH: [
+		"GameDirector.has_method(\"ensure_timer_running\")",
+		"GameDirector.has_method(\"get_time_left\")",
+		"GameDirector.has_method(\"set_time_left\")",
+	],
+	TEXTURE_DISTORTION_MANAGER_PATH: [
+		"MinigameController.has_method(\"should_block_player_movement\")",
+	],
+}
 
 func run() -> Array[String]:
 	var scripts: Array[String] = []
@@ -211,6 +223,13 @@ func run() -> Array[String]:
 		if path.begins_with("res://objects/"):
 			for pattern in CONTENT_OBJECT_STRINGLY_PATTERNS:
 				assert_true(content.find(pattern) == -1, "Content objects must use typed collaborators instead of stringly method probes: %s (%s)" % [path, pattern])
+
+		if FORBIDDEN_UTILITY_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_UTILITY_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Utility scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 
