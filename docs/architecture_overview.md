@@ -168,6 +168,7 @@
 - Ending-flow скрипты (`ending_screen`, `ending_credits`, финальный level-11 route) тоже используют стабильные autoload facade-вызовы напрямую; fallback через `has_method` оставляется только для настоящей полиморфии узлов.
 - Shared interaction helpers вроде `FridgeCompletionSession` не скрывают отсутствие стабильных `GameState`/`CycleState`/`MusicManager` методов через `has_method`: такие ошибки должны всплывать тестами и parser/full-suite прогонами.
 - Content objects with singleton-owned state/flow (`pickup_flashlight`, `final_ending_fridge`, `Laptop`, `Lebedka`) call stable `CycleState`/`GameState`/`GameDirector` facades directly; group-local polymorphism can still use explicit `has_method` where nodes are intentionally heterogeneous.
+- `Player` тоже считает `MinigameController`, `UIMessage`, `CycleState` и `GameState` стабильными autoload facade: movement-blocking, screen-dark checks и доступность фонарика идут через прямые публичные вызовы с `null` guards.
 - Приватные методы (`_...`) можно менять без обратной совместимости, поэтому
   внешние зависимости на них считаются архитектурным дефектом.
 

@@ -192,18 +192,14 @@ func _ready() -> void:
 func _connect_minigame_controller() -> void:
 	if MinigameController == null:
 		return
-	if MinigameController.has_signal("minigame_started") and not MinigameController.minigame_started.is_connected(_on_minigame_state_changed):
+	if not MinigameController.minigame_started.is_connected(_on_minigame_state_changed):
 		MinigameController.minigame_started.connect(_on_minigame_state_changed)
-	if MinigameController.has_signal("minigame_finished") and not MinigameController.minigame_finished.is_connected(_on_minigame_state_changed):
+	if not MinigameController.minigame_finished.is_connected(_on_minigame_state_changed):
 		MinigameController.minigame_finished.connect(_on_minigame_state_changed)
-	if MinigameController.has_method("should_block_player_movement"):
-		_movement_blocked = bool(MinigameController.should_block_player_movement())
+	_movement_blocked = MinigameController.should_block_player_movement()
 
 func _on_minigame_state_changed(_minigame: Node, _success: bool = true) -> void:
-	if MinigameController and MinigameController.has_method("should_block_player_movement"):
-		_movement_blocked = bool(MinigameController.should_block_player_movement())
-	else:
-		_movement_blocked = false
+	_movement_blocked = MinigameController != null and MinigameController.should_block_player_movement()
 	if _is_minigame_active():
 		_force_disable_flashlight()
 
@@ -246,9 +242,7 @@ func _is_movement_blocked() -> bool:
 func _is_screen_dark() -> bool:
 	if UIMessage == null:
 		return false
-	if UIMessage.has_method("is_screen_dark"):
-		return bool(UIMessage.call("is_screen_dark"))
-	return false
+	return UIMessage.is_screen_dark()
 
 func _resolve_running_state(delta: float, direction: float) -> bool:
 	_sync_stamina_config()
@@ -263,10 +257,10 @@ func get_flashlight_charge_ratio() -> float:
 	return _get_flashlight_charge_state().get_ratio()
 
 func has_flashlight_available() -> bool:
-	if CycleState != null and CycleState.has_method("has_flashlight_for_current_cycle"):
-		return bool(CycleState.has_flashlight_for_current_cycle())
-	if GameState != null and GameState.has_method("is_flashlight_unlocked"):
-		return bool(GameState.is_flashlight_unlocked())
+	if CycleState != null:
+		return CycleState.has_flashlight_for_current_cycle()
+	if GameState != null:
+		return GameState.is_flashlight_unlocked()
 	return false
 
 func is_running() -> bool:
@@ -341,11 +335,7 @@ func _force_disable_flashlight() -> void:
 func _is_minigame_active() -> bool:
 	if MinigameController == null:
 		return false
-	if MinigameController.has_method("has_active_minigame"):
-		return bool(MinigameController.has_active_minigame())
-	if MinigameController.has_method("should_block_player_movement"):
-		return bool(MinigameController.should_block_player_movement())
-	return false
+	return MinigameController.has_active_minigame() or MinigameController.should_block_player_movement()
 
 func _play_flashlight_toggle_sound() -> void:
 	if flashlight_sound == null:

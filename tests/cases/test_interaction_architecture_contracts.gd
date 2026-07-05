@@ -194,7 +194,12 @@ const FORBIDDEN_ACTIVE_SCENE_PATTERNS := [
 	"archive(trash)"
 ]
 const FORBIDDEN_PLAYER_PATTERNS := [
-	"var _facing_dir"
+	"var _facing_dir",
+	"MinigameController.has_method(",
+	"UIMessage.has_method(\"is_screen_dark\")",
+	"UIMessage.call(\"is_screen_dark\"",
+	"CycleState.has_method(\"has_flashlight_for_current_cycle\")",
+	"GameState.has_method(\"is_flashlight_unlocked\")"
 ]
 const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"is_screen_dark\")",
