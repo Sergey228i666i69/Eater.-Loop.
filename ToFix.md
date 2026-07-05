@@ -81,6 +81,7 @@
 - `DependencyCondition.COMPLETED` слушает typed success outcome, а `INTERACTION_REQUESTED` остаётся attempt-level unlock.
 - `level_11_end.gd` выбирает laptop branch только по typed `interaction_succeeded`; final scene wiring проверяет реальные `Laptop`/`Fridge`/`Bed` paths и `bad_ending_scene`.
 - `level_07_doors.gd`, `level_11_stu_1.gd`, `level_13_stu_3.gd` и node-signal defaults `TargetMonsterSpawner` теперь используют typed `interaction_succeeded`; `test_interaction_architecture_contracts.gd` запрещает новые legacy subscriptions.
+- `test_stu_level_path_contracts.gd` фиксирует level 07 Hall2 fridge/door paths и post-fridge lock layout, чтобы eaten/fridge state не превращался в silent no-op после переименования узлов.
 - Контракт покрыт `tests/cases/test_interactive_dependency_conditions.gd` и `tests/cases/test_level11_end_flow_contracts.gd`.
 
 ### 9. Владение `get_tree().paused` размазано по singleton-ам

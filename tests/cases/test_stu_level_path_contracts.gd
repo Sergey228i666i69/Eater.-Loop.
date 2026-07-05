@@ -1,14 +1,50 @@
 extends "res://tests/test_case.gd"
 
+const LEVEL07_SCENE := "res://levels/cycles/level_07_doors.tscn"
 const LEVEL11_SCENE := "res://levels/cycles/level_11_STU_1.tscn"
 const LEVEL12_SCENE := "res://levels/cycles/level_12_STU_2.tscn"
 const LEVEL13_SCENE := "res://levels/cycles/level_13_STU_3.tscn"
 
 func run() -> Array[String]:
+	await _test_level07_exported_paths_and_post_fridge_layout()
 	_test_level11_exported_paths_and_dynamic_targets_resolve()
 	_test_level12_hardcoded_paths_and_dynamic_targets_resolve()
 	_test_level13_exported_paths_and_dynamic_targets_resolve()
 	return get_failures()
+
+func _test_level07_exported_paths_and_post_fridge_layout() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	if tree == null:
+		return
+	if CycleState != null:
+		CycleState.reset_cycle_state()
+		CycleState.mark_fridge_interacted()
+
+	var level := _instantiate_scene(LEVEL07_SCENE)
+	if level == null:
+		if CycleState != null:
+			CycleState.reset_cycle_state()
+		return
+	tree.root.add_child(level)
+	await tree.process_frame
+	await tree.process_frame
+
+	var fridge := _assert_root_path(level, LEVEL07_SCENE, "fridge_path")
+	var left_door := _assert_root_path(level, LEVEL07_SCENE, "hall2_left_door_path")
+	var right_door := _assert_root_path(level, LEVEL07_SCENE, "hall2_right_door_path")
+	assert_true(fridge is Fridge, "Level 07 fridge_path must resolve to Fridge")
+	assert_true(left_door is Door, "Level 07 hall2_left_door_path must resolve to Door")
+	assert_true(right_door is Door, "Level 07 hall2_right_door_path must resolve to Door")
+	if left_door is Door:
+		assert_true((left_door as Door).is_locked, "Level 07 left Hall2 door must lock after fridge interaction")
+	if right_door is Door:
+		assert_true(not (right_door as Door).is_locked, "Level 07 right Hall2 door must stay open after fridge interaction")
+
+	level.queue_free()
+	await tree.process_frame
+	if CycleState != null:
+		CycleState.reset_cycle_state()
 
 func _test_level11_exported_paths_and_dynamic_targets_resolve() -> void:
 	var level := _instantiate_scene(LEVEL11_SCENE)

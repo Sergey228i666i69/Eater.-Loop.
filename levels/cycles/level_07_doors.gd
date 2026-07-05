@@ -25,7 +25,7 @@ func _setup_level_logic() -> void:
 		_fridge.interaction_succeeded.connect(_on_fridge_interaction_succeeded)
 
 	_apply_pre_fridge_layout()
-	if CycleState != null and CycleState.has_method("is_fridge_interacted") and CycleState.is_fridge_interacted():
+	if CycleState != null and CycleState.is_fridge_interacted():
 		_apply_post_fridge_layout()
 
 func _on_fridge_interaction_succeeded(_result: Dictionary = {}) -> void:
