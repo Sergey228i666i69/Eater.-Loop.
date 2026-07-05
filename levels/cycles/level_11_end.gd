@@ -52,7 +52,7 @@ func _resolve_nodes() -> void:
 func _connect_level_flow() -> void:
 	if _laptop != null and not _laptop.interaction_succeeded.is_connected(_on_laptop_interaction_succeeded):
 		_laptop.interaction_succeeded.connect(_on_laptop_interaction_succeeded)
-	if CycleState != null and CycleState.has_signal("lab_completed") and not CycleState.lab_completed.is_connected(_on_lab_completed):
+	if CycleState != null and not CycleState.lab_completed.is_connected(_on_lab_completed):
 		CycleState.lab_completed.connect(_on_lab_completed)
 	if _fridge != null and not _fridge.feeding_finished.is_connected(_on_fridge_feeding_finished):
 		_fridge.feeding_finished.connect(_on_fridge_feeding_finished)
@@ -88,7 +88,7 @@ func _on_lab_completed() -> void:
 	_complete_laptop_branch()
 
 func _complete_laptop_branch() -> void:
-	if CycleState != null and CycleState.has_method("mark_ate"):
+	if CycleState != null:
 		CycleState.mark_ate()
 	_set_bed_enabled(true)
 	if UIMessage != null and laptop_sleep_prompt.strip_edges() != "":
@@ -121,7 +121,7 @@ func _start_bad_ending() -> void:
 	if bad_ending_scene == null:
 		push_warning("LevelEnd: bad_ending_scene не назначена.")
 		return
-	if UIMessage != null and UIMessage.has_method("change_scene_with_fade"):
+	if UIMessage != null:
 		await UIMessage.change_scene_with_fade(bad_ending_scene, 0.6, true)
 		return
 	get_tree().change_scene_to_packed(bad_ending_scene)
@@ -141,7 +141,7 @@ func _set_fridge_enabled(enabled: bool) -> void:
 	_fridge.refresh_visual_state()
 
 func _has_completed_any_lab() -> bool:
-	if CycleState == null or not CycleState.has_method("has_completed_any_lab"):
+	if CycleState == null:
 		return false
 	return bool(CycleState.has_completed_any_lab())
 

@@ -74,6 +74,9 @@ const CRAZY_LEVEL_EVENT_PATH := "res://levels/cycles/crazy_level_event.gd"
 const TEXTURE_DISTORTION_MANAGER_PATH := "res://levels/cycles/texture_distortion_manager.gd"
 const LEVEL_11_STU_1_PATH := "res://levels/cycles/level_11_stu_1.gd"
 const LEVEL_13_STU_3_PATH := "res://levels/cycles/level_13_stu_3.gd"
+const LEVEL_11_END_PATH := "res://levels/cycles/level_11_end.gd"
+const ENDING_SCREEN_PATH := "res://levels/endings/ending_screen.gd"
+const ENDING_CREDITS_PATH := "res://levels/endings/ending_credits.gd"
 const ACTIVE_SCENE_EXCLUDE_SUBSTRINGS: Array[String] = ["archive", "trash"]
 const FORBIDDEN_GAME_DIRECTOR_PATTERNS := [
 	"has_method(\"handle_custom_death_screen\")",
@@ -240,6 +243,30 @@ const FORBIDDEN_LEVEL_STABLE_STATE_PROBES := {
 	LEVEL_13_STU_3_PATH: [
 		"CycleState.has_method(\"is_fridge_interacted\")",
 	],
+	LEVEL_11_END_PATH: [
+		"CycleState.has_signal(\"lab_completed\")",
+		"CycleState.has_method(\"mark_ate\")",
+		"CycleState.has_method(\"has_completed_any_lab\")",
+		"UIMessage.has_method(\"change_scene_with_fade\")",
+	],
+}
+const FORBIDDEN_ENDING_STABLE_FACADE_PROBES := {
+	ENDING_SCREEN_PATH: [
+		"SceneContext.has_method(\"mark_ending_scene\")",
+		"UIMessage.has_method(\"change_scene_with_fade\")",
+		"UIMessage.has_method(\"is_screen_dark\")",
+		"MusicManager.has_method(\"stop_pause_menu_music\")",
+		"MusicManager.has_method(\"clear_stack\")",
+		"MusicManager.has_method(\"reset_base_music_state\")",
+		"MusicManager.has_method(\"stop_music\")",
+	],
+	ENDING_CREDITS_PATH: [
+		"SceneContext.has_method(\"mark_ending_scene\")",
+		"MusicManager.has_method(\"clear_stack\")",
+		"PauseManager.has_method(\"set_pause_blocked\")",
+		"GameState.has_method(\"reset_run\")",
+		"UIMessage.has_method(\"play_fade_sequence\")",
+	],
 }
 
 func run() -> Array[String]:
@@ -300,6 +327,13 @@ func run() -> Array[String]:
 				assert_true(
 					content.find(pattern) == -1,
 					"STU level scripts must use stable CycleState facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
+
+		if FORBIDDEN_ENDING_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_ENDING_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Ending flow scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)

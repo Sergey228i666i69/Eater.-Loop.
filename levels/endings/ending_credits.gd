@@ -29,7 +29,7 @@ var _return_transition_started: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	if SceneContext != null and SceneContext.has_method("mark_ending_scene"):
+	if SceneContext != null:
 		SceneContext.mark_ending_scene(self)
 	_apply_label_fonts()
 	_play_credits_music()
@@ -100,8 +100,7 @@ func _play_credits_music() -> void:
 		return
 	if MusicManager == null:
 		return
-	if MusicManager.has_method("clear_stack"):
-		MusicManager.clear_stack()
+	MusicManager.clear_stack()
 	MusicManager.play_music(
 		credits_music,
 		credits_music_fade_time,
@@ -149,8 +148,7 @@ func _apply_label_fonts() -> void:
 func _set_pause_block(blocked: bool) -> void:
 	if PauseManager == null:
 		return
-	if PauseManager.has_method("set_pause_blocked"):
-		PauseManager.set_pause_blocked(self, blocked)
+	PauseManager.set_pause_blocked(self, blocked)
 
 func _apply_exit_hint_style(title_font: Font, body_font: Font) -> void:
 	if _exit_hint_label == null:
@@ -203,11 +201,10 @@ func _perform_return_transition() -> void:
 	_hide_exit_hint()
 	get_tree().paused = false
 	if GameState != null:
-		if GameState.has_method("reset_run"):
-			GameState.reset_run()
+		GameState.reset_run()
 		GameState.set_meta(STARTUP_DISCLAIMER_META, true)
 	_stop_credits_music()
-	if UIMessage != null and UIMessage.has_method("play_fade_sequence") and return_fade_time > 0.0:
+	if UIMessage != null and return_fade_time > 0.0:
 		var token := _esc_confirm_token
 		UIMessage.play_fade_sequence(
 			return_fade_time,

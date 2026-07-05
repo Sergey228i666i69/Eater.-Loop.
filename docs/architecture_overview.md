@@ -165,6 +165,7 @@
 - Для специальных death-screen веток используется публичный override-point `CycleLevel.handle_custom_death_screen() -> bool`, без `has_method/call` по строке.
 - Чтение/запись runtime-флагов `GameState` должно идти через публичные getter/mutator/consume методы, а не через разрозненные прямые правки полей там, где уже есть API.
 - `GameState` и `CycleState` считаются стабильными autoload-соседями: их взаимные save/checkpoint/cycle facade-вызовы идут напрямую, с `null` guard только на отсутствие autoload, без `has_method` fallback-ов.
+- Ending-flow скрипты (`ending_screen`, `ending_credits`, финальный level-11 route) тоже используют стабильные autoload facade-вызовы напрямую; fallback через `has_method` оставляется только для настоящей полиморфии узлов.
 - Приватные методы (`_...`) можно менять без обратной совместимости, поэтому
   внешние зависимости на них считаются архитектурным дефектом.
 

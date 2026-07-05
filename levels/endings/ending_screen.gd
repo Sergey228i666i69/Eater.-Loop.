@@ -10,7 +10,7 @@ extends Control
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	if SceneContext != null and SceneContext.has_method("mark_ending_scene"):
+	if SceneContext != null:
 		SceneContext.mark_ending_scene(self)
 	_reset_music_for_ending()
 	_apply_title_font()
@@ -34,13 +34,13 @@ func _run_sequence() -> void:
 
 	if next_scene == null:
 		return
-	if UIMessage != null and UIMessage.has_method("change_scene_with_fade"):
+	if UIMessage != null:
 		await UIMessage.change_scene_with_fade(next_scene, transition_fade_time, true)
 		return
 	get_tree().change_scene_to_packed(next_scene)
 
 func _wait_for_screen_fade_in() -> void:
-	if UIMessage == null or not UIMessage.has_method("is_screen_dark"):
+	if UIMessage == null:
 		return
 	var max_frames := 240
 	var frames := 0
@@ -60,11 +60,6 @@ func _apply_title_font() -> void:
 func _reset_music_for_ending() -> void:
 	if MusicManager == null:
 		return
-	if MusicManager.has_method("stop_pause_menu_music"):
-		MusicManager.stop_pause_menu_music(0.0)
-	if MusicManager.has_method("clear_stack"):
-		MusicManager.clear_stack()
-	if MusicManager.has_method("reset_base_music_state"):
-		MusicManager.reset_base_music_state()
-	elif MusicManager.has_method("stop_music"):
-		MusicManager.stop_music(0.0)
+	MusicManager.stop_pause_menu_music(0.0)
+	MusicManager.clear_stack()
+	MusicManager.reset_base_music_state()
