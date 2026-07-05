@@ -1449,8 +1449,8 @@ target_marker = NodePath("../../../Hall/InteractableObjects/Door(ToParents)")
 position = Vector2(-2374, 246.00002)
 scale = Vector2(1.2, 1.2)
 next_level_path = "uid://c3s82ewvaot7t"
-require_light_for_sleep = true
-no_bedroom_light_message = "Это кровать родителей. Я не собираюсь на ней спать..."
+block_sleep = true
+blocked_sleep_message = "Это кровать родителей. Я не собираюсь на ней спать..."
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="ParentsRoom/InteractableObjects/Bed" index="1"]

@@ -689,6 +689,8 @@ func run() -> Array[String]:
 	assert_true(bed_content.find("change_scene_with_fade_delay") != -1, "Bed sleep transition must use the shared UIMessage scene transition API")
 	assert_true(bed_content.find("UIMessage.fade_out") == -1, "Bed sleep transition must not add a manual fade_out before shared scene transition")
 	assert_true(bed_content.find("UIMessage.fade_in") == -1, "Bed sleep transition must not manually restore fade after load validation")
+	assert_true(bed_content.find("has_method(\"is_light_active\")") == -1, "Bed bedroom-light checks must use the typed Lamp contract")
+	assert_true(bed_content.find("has_method(\"get_cycle_number\")") == -1, "Bed must not keep dead/stringly cycle-number probes")
 
 	var cycle_level_content := FileAccess.get_file_as_string(CYCLE_LEVEL_PATH)
 	assert_true(cycle_level_content != "", "Failed to read script: %s" % CYCLE_LEVEL_PATH)

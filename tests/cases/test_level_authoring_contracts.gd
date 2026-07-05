@@ -3,6 +3,7 @@ extends "res://tests/test_case.gd"
 const LEVEL_DIR := "res://levels/cycles"
 const CYCLE_LEVEL_TEMPLATE_SCENE := "res://levels/templates/cycle_level_template.tscn"
 const BED_SCRIPT := "res://objects/interactable/bed/bed.gd"
+const LAMP_SCRIPT := "res://objects/interactable/lamp/lamp.gd"
 const LEVEL_MUSIC_SCRIPT := "res://levels/cycles/level_music.gd"
 const PLAYER_SCRIPT := "res://player/player.gd"
 const SceneContextScript = preload("res://global/scene_context.gd")
@@ -144,6 +145,7 @@ func _assert_bed_next_level_path(path: String, root: Node, bed: Node, current_sc
 	assert_true(_has_property(bed, "next_level_path"), "Bed must expose next_level_path: %s:%s" % [path, root.get_path_to(bed)])
 	if not _has_property(bed, "next_level_path"):
 		return
+	_assert_bed_sleep_requirement_contract(path, root, bed)
 	var next_level_path := str(bed.get("next_level_path")).strip_edges()
 	assert_true(next_level_path != "", "Bed next_level_path must be set: %s:%s" % [path, root.get_path_to(bed)])
 	if next_level_path == "":
@@ -165,6 +167,16 @@ func _assert_bed_next_level_scene_type(path: String, root: Node, bed: Node, next
 	scene_context.free()
 	assert_true(valid_target, "Bed next_level_path must point to a cycle level or ending scene: %s:%s -> %s" % [path, root.get_path_to(bed), next_level_path])
 	next_root.free()
+
+func _assert_bed_sleep_requirement_contract(path: String, root: Node, bed: Node) -> void:
+	var block_sleep := bool(bed.get("block_sleep")) if _has_property(bed, "block_sleep") else false
+	if block_sleep:
+		var message := str(bed.get("blocked_sleep_message")).strip_edges() if _has_property(bed, "blocked_sleep_message") else ""
+		assert_true(message != "", "Blocked beds must set blocked_sleep_message: %s:%s" % [path, root.get_path_to(bed)])
+	var require_light := bool(bed.get("require_light_for_sleep")) if _has_property(bed, "require_light_for_sleep") else false
+	if require_light:
+		assert_true(not block_sleep, "Bed must not mix block_sleep with require_light_for_sleep: %s:%s" % [path, root.get_path_to(bed)])
+		assert_true(_has_bedroom_lamp(root), "Beds requiring bedroom light need a Lamp with is_bedroom=true in the same scene: %s:%s" % [path, root.get_path_to(bed)])
 
 func _assert_optional_nodepath_resolves(path: String, root: Node, node: Node, property_name: String, expected_type: String = "") -> void:
 	if not _has_property(node, property_name):
@@ -344,5 +356,18 @@ func _has_property(node: Object, property_name: String) -> bool:
 		return false
 	for info in node.get_property_list():
 		if String(info.name) == property_name:
+			return true
+	return false
+
+func _nodes_including_root(root: Node) -> Array[Node]:
+	var nodes: Array[Node] = [root]
+	nodes.append_array(root.find_children("*", "", true, false))
+	return nodes
+
+func _has_bedroom_lamp(root: Node) -> bool:
+	for node in _nodes_including_root(root):
+		if _script_path(node) != LAMP_SCRIPT:
+			continue
+		if _has_property(node, "is_bedroom") and bool(node.get("is_bedroom")):
 			return true
 	return false

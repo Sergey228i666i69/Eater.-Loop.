@@ -14,6 +14,7 @@ const PLAYER_FACING_PROPERTIES: Array[String] = [
     "access_granted_message",
     "already_collected_message",
     "already_given_message",
+    "blocked_sleep_message",
     "cleared_message",
     "completed_message",
     "death_retry_text",

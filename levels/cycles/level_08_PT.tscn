@@ -3360,8 +3360,8 @@ texture = SubResource("GradientTexture2D_wc02g")
 position = Vector2(24867, 5446)
 scale = Vector2(1.2, 1.2)
 next_level_path = "uid://cf6175x5iuho8"
-require_light_for_sleep = true
-no_bedroom_light_message = "Не помню, чтобы здесь стояла эта кровать"
+block_sleep = true
+blocked_sleep_message = "Не помню, чтобы здесь стояла эта кровать"
 metadata/_edit_group_ = true
 
 [node name="Sprite2D" parent="Bed" index="1"]

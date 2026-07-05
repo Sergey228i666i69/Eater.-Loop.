@@ -10,12 +10,17 @@ class_name Bed
 @export_multiline var not_ate_message: String = "Нельзя спать: сначала поешь."
 ## Шаблон сообщения после сна (старый/новый цикл).
 @export_multiline var sleep_message_template: String = ""
+## Полностью запретить сон на этой кровати.
+@export var block_sleep: bool = false
+## Сообщение, если сон на этой кровати запрещён.
+@export_multiline var blocked_sleep_message: String = ""
 ## Требовать свет в спальне для сна.
 @export var require_light_for_sleep: bool = false
 ## Сообщение, если света в спальне нет.
 @export_multiline var no_bedroom_light_message: String = "Я боюсь засыпать в темноте..."
 
 const DEFAULT_NO_LIGHT_MESSAGE: String = "Я боюсь засыпать в темноте..."
+const LampScript := preload("res://objects/interactable/lamp/lamp.gd")
 
 var _is_sleeping: bool = false # Защита от повторного нажатия
 
@@ -32,6 +37,15 @@ func _on_interact() -> void:
 	_try_sleep()
 
 func _try_sleep() -> void:
+	if block_sleep:
+		var blocked_message := blocked_sleep_message
+		if blocked_message.strip_edges() == "":
+			blocked_message = no_bedroom_light_message
+		if blocked_message.strip_edges() == "":
+			blocked_message = DEFAULT_NO_LIGHT_MESSAGE
+		UIMessage.show_notification(blocked_message)
+		return
+
 	var ate_this_cycle := false
 	if CycleState != null:
 		ate_this_cycle = bool(CycleState.has_eaten_this_cycle())
@@ -40,9 +54,9 @@ func _try_sleep() -> void:
 		return
 	if require_light_for_sleep and not _is_bedroom_light_on():
 		var message := no_bedroom_light_message
-		if message == null or str(message).strip_edges() == "":
+		if message.strip_edges() == "":
 			message = DEFAULT_NO_LIGHT_MESSAGE
-		UIMessage.show_notification(str(message))
+		UIMessage.show_notification(message)
 		return
 
 	_is_sleeping = true
@@ -69,33 +83,11 @@ func _advance_cycle_before_sleep_scene_change() -> void:
 
 func _is_bedroom_light_on() -> bool:
 	var lamps := get_tree().get_nodes_in_group("bedroom_lamp")
-	for lamp in lamps:
-		if lamp.has_method("is_light_active") and lamp.is_light_active():
+	for node in lamps:
+		var lamp := node as LampScript
+		if lamp != null and lamp.is_light_active():
 			return true
 	return false
-
-func _get_current_cycle_number() -> int:
-	var level := get_tree().current_scene
-	if level != null and level.has_method("get_cycle_number"):
-		return int(level.get_cycle_number())
-	return 0
-
-func _get_next_cycle_number(fallback: int) -> int:
-	if next_level_path.is_empty():
-		return fallback
-	var scene := load(next_level_path) as PackedScene
-	if scene == null:
-		return fallback
-	var instance := scene.instantiate()
-	if instance == null:
-		return fallback
-	var cycle_number := fallback
-	if instance.has_method("get_cycle_number"):
-		cycle_number = int(instance.get_cycle_number())
-	instance.free()
-	if cycle_number <= 0:
-		return fallback
-	return cycle_number
 
 func _get_sleep_sfx_delay() -> float:
 	if sleep_sfx == null:
