@@ -309,6 +309,8 @@ const FORBIDDEN_ENEMY_STABLE_FACADE_PROBES := {
 		"player.call(\"is_point_lit\"",
 		"light_source.has_method(ReactiveLightContracts.METHOD_IS_POINT_LIT)",
 		"light_source.call(ReactiveLightContracts.METHOD_IS_POINT_LIT",
+		"has_method(\"get_rect\")",
+		".call(\"get_rect\"",
 	],
 	ENEMY_CEILING_PATH: [
 		"light_source.has_method(ReactiveLightContracts.METHOD_IS_POINT_LIT)",

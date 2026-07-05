@@ -119,13 +119,9 @@ func _append_collision_shape_probe_points(points: Array[Vector2], collision_shap
 			points.append(collision_shape.to_global(local_point))
 
 func _append_sprite_probe_points(points: Array[Vector2]) -> void:
-	var canvas_sprite := _sprite as CanvasItem
-	if canvas_sprite == null or not canvas_sprite.has_method("get_rect"):
+	if _sprite == null:
 		return
-	var rect: Variant = canvas_sprite.call("get_rect")
-	if not (rect is Rect2):
-		return
-	var bounds := rect as Rect2
+	var bounds := _get_visual_local_bounds(_sprite)
 	if bounds.size == Vector2.ZERO:
 		return
 	var local_points := [
@@ -136,4 +132,32 @@ func _append_sprite_probe_points(points: Array[Vector2]) -> void:
 		Vector2(bounds.position.x + bounds.size.x * 0.8, bounds.get_center().y),
 	]
 	for local_point in local_points:
-		points.append((canvas_sprite as Node2D).to_global(local_point))
+		points.append(_sprite.to_global(local_point))
+
+func _get_visual_local_bounds(visual: Node2D) -> Rect2:
+	var sprite := visual as Sprite2D
+	if sprite != null:
+		return sprite.get_rect()
+	var animated := visual as AnimatedSprite2D
+	if animated != null:
+		return _get_animated_sprite_local_bounds(animated)
+	return Rect2()
+
+func _get_animated_sprite_local_bounds(animated: AnimatedSprite2D) -> Rect2:
+	var frames := animated.sprite_frames
+	if frames == null:
+		return Rect2()
+	if not frames.has_animation(animated.animation):
+		return Rect2()
+	var frame_count := frames.get_frame_count(animated.animation)
+	if frame_count <= 0:
+		return Rect2()
+	var frame_index: int = clampi(animated.frame, 0, frame_count - 1)
+	var texture := frames.get_frame_texture(animated.animation, frame_index)
+	if texture == null:
+		return Rect2()
+	var size := texture.get_size()
+	var position := animated.offset
+	if animated.centered:
+		position -= size * 0.5
+	return Rect2(position, size)
