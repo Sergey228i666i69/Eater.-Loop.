@@ -24,6 +24,7 @@ const DEFAULT_MUSIC: AudioStream = preload("res://music/MusicForEat.mp3")
 const DEFAULT_EAT: AudioStream = preload("res://levels/minigames/feeding/sounds/Nam-nam_1.wav")
 const DEFAULT_WIN: AudioStream = preload("res://levels/minigames/feeding/sounds/Poel_1.wav")
 const HINT_FONT: FontFile = preload("res://global/fonts/AmaticSC-Regular.ttf")
+const FoodItemScript := preload("res://levels/minigames/feeding/food/food_item.gd")
 
 # Путь к сцене тарелки теперь жестко прописан в коде
 var tarelka_scene = load("res://levels/minigames/feeding/food/plate/plate.tscn") 
@@ -132,16 +133,20 @@ func setup_game(andrey_texture: Texture2D, count: int, music: AudioStream, win_s
 		# Генерируем случайную позицию для пельменей (разброс внутри тарелки)
 		var spawn_pos = Vector2(randf_range(-120, 120), randf_range(-80, 80))
 		
-		var food = scene.instantiate()
+		var raw_food := scene.instantiate()
+		var food := raw_food as FoodItemScript
+		if food == null:
+			push_error("FeedMinigame: food scene must instantiate as FoodItem.")
+			if raw_food != null:
+				raw_food.free()
+			continue
 		# Добавляем еду после тарелки, чтобы она была визуально выше
 		food_container.add_child(food)
 		food.position = spawn_pos
 		if food_rotation_jitter_deg > 0.0:
 			food.rotation_degrees = randf_range(-food_rotation_jitter_deg, food_rotation_jitter_deg)
 		
-		if food.has_method("set_target_mouth"):
-			food.set_target_mouth(mouth_area)
-			
+		food.set_target_mouth(mouth_area)
 		food.eaten.connect(_on_food_eaten)
 	_register_gamepad_scheme()
 
@@ -246,8 +251,9 @@ func _get_gamepad_food_sources() -> Array[Node]:
 	for child in food_container.get_children():
 		if child == null or child.is_queued_for_deletion():
 			continue
-		if child.has_method("feed_to_mouth"):
-			nodes.append(child)
+		var food := child as FoodItemScript
+		if food != null:
+			nodes.append(food)
 	return nodes
 
 func _get_gamepad_focus_nodes() -> Array[Node]:
@@ -291,7 +297,8 @@ func _node_distance_sq_to_point(node: Node, point: Vector2) -> float:
 func _on_gamepad_confirm(active: Node, _context: Dictionary) -> bool:
 	if active == null or mouth_area == null:
 		return false
-	if not active.has_method("feed_to_mouth"):
+	var food := active as FoodItemScript
+	if food == null:
 		return false
-	active.feed_to_mouth(mouth_area)
+	food.feed_to_mouth(mouth_area)
 	return true

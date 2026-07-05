@@ -283,9 +283,9 @@ func _set_food_mouth_enabled(enabled: bool) -> void:
 	for child in food_container.get_children():
 		if child == null:
 			continue
-		if not child.has_method("set_target_mouth"):
-			continue
-		child.set_target_mouth(mouth_area if enabled else null)
+		var food := child as FoodItemScript
+		if food != null:
+			food.set_target_mouth(mouth_area if enabled else null)
 
 func _win() -> void:
 	if _is_won:
