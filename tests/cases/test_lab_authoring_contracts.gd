@@ -9,6 +9,10 @@ const TIMED_LAB_BASE_STRINGLY_UI_PATTERNS := [
 	"UIMessage.has_method(\"show_dialogue\")",
 	"UIMessage.call(\"show_dialogue\""
 ]
+const TIMED_LAB_BASE_STRINGLY_CYCLE_STATE_PATTERNS := [
+	"cycle_state.has_method(\"mark_lab_completed\")",
+	"cycle_state.call(\"mark_lab_completed\""
+]
 
 func run() -> Array[String]:
 	_test_timed_lab_base_uses_stable_ui_facade()
@@ -36,6 +40,11 @@ func _test_timed_lab_base_uses_stable_ui_facade() -> void:
 		assert_true(
 			content.find(pattern) == -1,
 			"TimedLabMinigameBase must use UIMessage.show_dialogue directly instead of stringly method probes: %s" % pattern
+		)
+	for pattern in TIMED_LAB_BASE_STRINGLY_CYCLE_STATE_PATTERNS:
+		assert_true(
+			content.find(pattern) == -1,
+			"TimedLabMinigameBase must use CycleState.mark_lab_completed directly instead of stringly method probes: %s" % pattern
 		)
 
 func _test_laptop_lab_settings_are_valid() -> void:

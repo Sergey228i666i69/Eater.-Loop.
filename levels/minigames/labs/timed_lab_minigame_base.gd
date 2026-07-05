@@ -66,8 +66,8 @@ func apply_standard_lab_outcome(success: bool) -> void:
 		if gd != null:
 			gd.reduce_time(penalty_time)
 	if success or complete_lab_on_failure:
-		var cycle_state := get_node_or_null("/root/CycleState")
-		if cycle_state != null and cycle_state.has_method("mark_lab_completed"):
+		var cycle_state = get_node_or_null("/root/CycleState")
+		if cycle_state != null:
 			cycle_state.mark_lab_completed(lab_completion_id.strip_edges())
 	_show_outcome_dialogue(success)
 
