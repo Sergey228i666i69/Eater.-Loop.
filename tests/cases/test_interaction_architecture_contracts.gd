@@ -60,6 +60,7 @@ const CONTENT_OBJECT_STRINGLY_PATTERNS := [
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"
 const CYCLE_STATE_PATH := "res://levels/cycles/cycle_state.gd"
+const LEVEL_14_END_PATH := "res://levels/cycles/level_14_end.gd"
 const PLAYER_PATH := "res://player/player.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
@@ -184,6 +185,17 @@ const FORBIDDEN_UTILITY_STABLE_FACADE_PROBES := {
 		"MinigameController.has_method(\"should_block_player_movement\")",
 	],
 }
+const FORBIDDEN_MUSIC_MANAGER_CLEANUP_PROBES := {
+	GAME_STATE_PATH: [
+		"MusicManager.has_method(\"clear_chase_music_sources\")",
+	],
+	LEVEL_14_END_PATH: [
+		"MusicManager.has_method(\"clear_chase_music_sources\")",
+		"MusicManager.has_method(\"clear_stack\")",
+		"MusicManager.has_method(\"reset_base_music_state\")",
+		"MusicManager.has_method(\"stop_music\")",
+	],
+}
 
 func run() -> Array[String]:
 	var scripts: Array[String] = []
@@ -229,6 +241,13 @@ func run() -> Array[String]:
 				assert_true(
 					content.find(pattern) == -1,
 					"Utility scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
+
+		if FORBIDDEN_MUSIC_MANAGER_CLEANUP_PROBES.has(path):
+			for pattern in FORBIDDEN_MUSIC_MANAGER_CLEANUP_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Music cleanup paths must use stable MusicManager facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)

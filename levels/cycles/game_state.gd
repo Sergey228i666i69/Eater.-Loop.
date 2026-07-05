@@ -166,7 +166,7 @@ func apply_checkpoint_to_scene(scene: Node) -> bool:
 
 	if GameDirector != null and GameDirector.has_method("apply_checkpoint_state"):
 		GameDirector.apply_checkpoint_state(checkpoint_director_state)
-	if MusicManager != null and MusicManager.has_method("clear_chase_music_sources"):
+	if MusicManager != null:
 		MusicManager.clear_chase_music_sources(0.0)
 	return true
 
