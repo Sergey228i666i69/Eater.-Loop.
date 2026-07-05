@@ -191,6 +191,8 @@
 - `FridgeFeedingSession` вынес feeding minigame config/instantiation/setup contract
   из `Fridge`; обычная feeding-сцена должна инстанцироваться как `FeedingMinigame`,
   а некорректная feeding scene теперь fail-closed до выдачи еды.
+- `FinalEndingFridge` запускает только typed `FinalFeedMinigame`; неверная final feeding
+  scene fail-closed и не засчитывает плохую ветку.
 - `FridgeCompletionSession` вынес post-feeding world hooks из `Fridge`: cycle
   marks, chase cleanup, teleport и checkpoint/autosave fallback теперь тестируются отдельно.
 - Устранена гонка при sync-громкости в кроссфейде базовой музыки.

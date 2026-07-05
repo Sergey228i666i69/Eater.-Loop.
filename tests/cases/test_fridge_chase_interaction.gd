@@ -81,6 +81,7 @@ class MusicProbe:
 		last_fade_time = fade_time
 
 const FridgeScript := preload("res://objects/interactable/fridge/fridge.gd")
+const FinalFridgeScript := preload("res://objects/interactable/fridge/final_ending_fridge.gd")
 const FridgeCodeLockSessionScript := preload("res://objects/interactable/fridge/fridge_code_lock_session.gd")
 const FridgeFeedingSessionScript := preload("res://objects/interactable/fridge/fridge_feeding_session.gd")
 const FridgeCompletionSessionScript := preload("res://objects/interactable/fridge/fridge_completion_session.gd")
@@ -93,6 +94,7 @@ func run() -> Array[String]:
 	_test_teleport_fridge_clears_chase_state()
 	_test_misconfigured_fridge_does_not_grant_food()
 	_test_invalid_feeding_scene_does_not_grant_food()
+	_test_invalid_final_feeding_scene_does_not_grant_food()
 	_test_code_lock_session_applies_access_code()
 	_test_feeding_session_configures_game()
 	_test_completion_session_marks_cycle_state()
@@ -162,6 +164,27 @@ func _test_invalid_feeding_scene_does_not_grant_food() -> void:
 	fridge.call("_start_feeding_process")
 	assert_true(not bool(CycleState.has_eaten_this_cycle()), "Invalid feeding scene must fail closed instead of marking food as eaten")
 	assert_true(not fridge.is_completed, "Invalid feeding scene must not complete the fridge interaction")
+	fridge.free()
+	CycleState.reset_cycle_state()
+
+func _test_invalid_final_feeding_scene_does_not_grant_food() -> void:
+	assert_true(CycleState != null, "CycleState autoload is missing")
+	if CycleState == null:
+		return
+	CycleState.reset_cycle_state()
+
+	var invalid_root := Node.new()
+	var invalid_scene := PackedScene.new()
+	assert_eq(invalid_scene.pack(invalid_root), OK, "Invalid final feeding test scene must pack")
+	invalid_root.free()
+
+	var fridge := FinalFridgeScript.new()
+	fridge.final_minigame_scene = invalid_scene
+	fridge.call("_start_feeding_process")
+
+	assert_true(not bool(CycleState.has_eaten_this_cycle()), "Invalid final feeding scene must fail closed instead of marking food as eaten")
+	assert_true(not fridge.is_completed, "Invalid final feeding scene must not complete the final fridge interaction")
+
 	fridge.free()
 	CycleState.reset_cycle_state()
 

@@ -2,6 +2,8 @@ extends "res://objects/interactable/fridge/fridge.gd"
 
 signal ending_feeding_finished
 
+const FinalFeedMinigameScript := preload("res://levels/minigames/feeding/final_feed_minigame.gd")
+
 @export var final_minigame_scene: PackedScene = preload("res://levels/minigames/feeding/final_feed_minigame.tscn")
 @export var force_distortion_on_start: bool = true
 @export_range(0.0, 30.0, 0.1) var distortion_trigger_delay: float = 5.0
@@ -31,24 +33,28 @@ func _start_feeding_process() -> void:
 	var game_scene := final_minigame_scene
 	if game_scene == null:
 		push_warning("FinalEndingFridge: не назначена финальная сцена feeding.")
-		_finish_feeding_logic()
 		_is_interacting = false
+		fail_interaction("missing_final_feeding_scene")
 		return
 
-	var game := game_scene.instantiate()
+	var raw_game := game_scene.instantiate()
+	var game := raw_game as FinalFeedMinigameScript
+	if game == null:
+		push_warning("FinalEndingFridge: final_minigame_scene must use FinalFeedMinigame.")
+		if raw_game != null:
+			raw_game.free()
+		_is_interacting = false
+		fail_interaction("invalid_final_feeding_scene")
+		return
+
 	_current_minigame = game
 	attach_minigame(game)
 
 	if force_distortion_on_start:
 		_schedule_level_distortion()
 
-	if game.has_method("setup_final_stages"):
-		game.setup_final_stages(_build_stage_data(), bg_music, win_sound, eat_sound, background_texture)
-	elif game.has_method("setup_game"):
-		game.setup_game(andrey_face, food_count, bg_music, win_sound, eat_sound, background_texture, food_scenes)
-
-	if game.has_signal("minigame_finished"):
-		game.minigame_finished.connect(_on_feeding_finished)
+	game.setup_final_stages(_build_stage_data(), bg_music, win_sound, eat_sound, background_texture)
+	game.minigame_finished.connect(_on_feeding_finished)
 
 func _finish_feeding_logic() -> void:
 	super._finish_feeding_logic()

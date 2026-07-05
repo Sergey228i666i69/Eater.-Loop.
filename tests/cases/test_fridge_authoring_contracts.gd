@@ -5,9 +5,11 @@ const FRIDGE_SCRIPT := "res://objects/interactable/fridge/fridge.gd"
 const FINAL_FRIDGE_SCRIPT := "res://objects/interactable/fridge/final_ending_fridge.gd"
 const FridgeFeedingSessionScript := preload("res://objects/interactable/fridge/fridge_feeding_session.gd")
 const FeedingMinigameScript := preload("res://levels/minigames/feeding/feed_minigame.gd")
+const FinalFeedMinigameScript := preload("res://levels/minigames/feeding/final_feed_minigame.gd")
 
 func run() -> Array[String]:
 	_test_fridge_feeding_session_uses_typed_minigames()
+	_test_final_fridge_uses_typed_final_minigame()
 	_test_feeding_fridges_have_complete_configs()
 	_test_code_locked_fridges_have_lock_contracts()
 	_test_final_fridges_have_final_feeding_contracts()
@@ -22,6 +24,18 @@ func _test_fridge_feeding_session_uses_typed_minigames() -> void:
 		".call(\"setup_game\""
 	]:
 		assert_true(content.find(pattern) == -1, "FridgeFeedingSession must use typed FeedingMinigame API instead of method/signal probes: %s" % pattern)
+
+func _test_final_fridge_uses_typed_final_minigame() -> void:
+	var content := FileAccess.get_file_as_string(FINAL_FRIDGE_SCRIPT)
+	assert_true(content != "", "Failed to read FinalEndingFridge script")
+	for pattern in [
+		"has_method(\"setup_final_stages\")",
+		"has_method(\"setup_game\")",
+		"has_signal(\"minigame_finished\")",
+		".call(\"setup_final_stages\"",
+		".call(\"setup_game\""
+	]:
+		assert_true(content.find(pattern) == -1, "FinalEndingFridge must use typed FinalFeedMinigame API instead of method/signal probes: %s" % pattern)
 
 func _test_feeding_fridges_have_complete_configs() -> void:
 	for path in _list_level_scenes():
@@ -59,7 +73,7 @@ func _test_final_fridges_have_final_feeding_contracts() -> void:
 				continue
 			var final_scene := _get_packed_scene(fridge, "final_minigame_scene")
 			assert_true(final_scene != null, "Final ending fridge must set final_minigame_scene: %s:%s" % [path, root.get_path_to(fridge)])
-			_assert_scene_instance_contract(path, root, fridge, final_scene, "final_minigame_scene", ["minigame_finished"], ["setup_final_stages", "setup_game"])
+			_assert_final_feeding_minigame_contract(path, root, fridge, final_scene, "final_minigame_scene")
 		root.free()
 
 func _assert_feeding_config(path: String, root: Node, fridge: Node) -> void:
@@ -104,6 +118,18 @@ func _assert_feeding_minigame_contract(path: String, root: Node, fridge: Node, s
 		assert_true(game is FeedingMinigameScript, "%s must use FeedingMinigame script: %s:%s" % [property_name, path, root.get_path_to(fridge)])
 		assert_true(FridgeFeedingSessionScript.has_finish_signal(game), "%s must keep FeedingMinigame minigame_finished contract: %s:%s" % [property_name, path, root.get_path_to(fridge)])
 		game.free()
+
+func _assert_final_feeding_minigame_contract(path: String, root: Node, fridge: Node, scene: PackedScene, property_name: String) -> void:
+	if scene == null:
+		return
+	var instance := scene.instantiate()
+	var game := instance as FinalFeedMinigameScript
+	assert_true(game != null, "%s must instantiate as FinalFeedMinigame: %s:%s" % [property_name, path, root.get_path_to(fridge)])
+	if game == null:
+		if instance != null:
+			instance.free()
+		return
+	game.free()
 
 func _is_feeding_configured(fridge: Node) -> bool:
 	if _get_packed_scene(fridge, "minigame_scene") != null:

@@ -8,6 +8,7 @@
 - Новая финальная feeding-миниигра:
   - `res://levels/minigames/feeding/final_feed_minigame.tscn`
   - `res://levels/minigames/feeding/final_feed_minigame.gd`
+  - scene contract: `FinalFeedMinigame`
 - Новые сцены концовок и титров:
   - `res://levels/endings/good_ending_screen.tscn`
   - `res://levels/endings/bad_ending_screen.tscn`

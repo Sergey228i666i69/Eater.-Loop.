@@ -101,7 +101,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Level authoring contract для cycle metadata, single Player instance, Player export ranges, configured bed transitions, bed target scene type, conditional respawn paths, LevelMusic configs и включённых стартовых текстов.
 - Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.
 - TimedLabMinigameBase UI facade contract запрещает возвращать outcome dialogue к stringly `UIMessage.has_method/call` probes.
-- Fridge authoring contract для feeding/code-lock/final fridge configs, typed `FeedingMinigame` scenes, food scenes, face/background, code-lock scene и final setup contract.
+- Fridge authoring contract для feeding/code-lock/final fridge configs, typed `FeedingMinigame` scenes, typed `FinalFeedMinigame` scene, food scenes, face/background и code-lock scene.
 - Generic active content scene contract для exported non-empty `NodePath`/`Array[NodePath]` values.
 - Scene-owned audio player bus contract для explicit `Music`/`Sounds` на `AudioStreamPlayer`/`AudioStreamPlayer2D`.
 - Utility-level NodePath contract для лебёдки, corridor distortion и `TargetMonsterSpawner` condition/spawn paths.

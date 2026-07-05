@@ -1,4 +1,5 @@
 extends "res://levels/minigames/feeding/feed_minigame.gd"
+class_name FinalFeedMinigame
 
 signal stage_changed(stage_number: int, total_stages: int)
 
