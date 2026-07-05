@@ -167,6 +167,13 @@ const FORBIDDEN_CYCLE_LEVEL_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"fade_out\")",
 	"UIMessage.has_method(\"fade_in\")"
 ]
+const FORBIDDEN_CYCLE_LEVEL_STABLE_FACADE_PATTERNS := [
+	"SceneContext.has_method(\"mark_gameplay_scene\")",
+	"GameState.has_method(\"apply_checkpoint_to_scene\")",
+	"CycleState.has_method(\"is_fridge_interacted\")",
+	"GameState.has_method(\"unlock_flashlight\")",
+	"GameState.has_method(\"capture_level_start_checkpoint\")"
+]
 const FORBIDDEN_MINIGAME_CONTROLLER_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"play_fade_sequence\")",
 	"UIMessage.call(\"play_fade_sequence\""
@@ -328,6 +335,11 @@ func run() -> Array[String]:
 		assert_true(
 			cycle_level_content.find(pattern) == -1,
 			"CycleLevel must use the stable UIMessage facade directly instead of stringly method probes: %s" % pattern
+		)
+	for pattern in FORBIDDEN_CYCLE_LEVEL_STABLE_FACADE_PATTERNS:
+		assert_true(
+			cycle_level_content.find(pattern) == -1,
+			"CycleLevel must use stable autoload facades directly instead of stringly method probes: %s" % pattern
 		)
 
 	var minigame_controller_content := FileAccess.get_file_as_string(MINIGAME_CONTROLLER_PATH)

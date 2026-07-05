@@ -37,7 +37,7 @@
 
 - Меню/интеракции переключают сцену через `UIMessage.change_scene_with_fade*`.
 - Sleep transition у `Bed` тоже идёт через единый `UIMessage.change_scene_with_fade_delay(...)`: next scene загружается до затемнения, поэтому misconfigured bed не оставляет экран чёрным.
-- `CycleLevel` использует `UIMessage.is_screen_dark(...)` и `fade_*` как стабильный facade для стартовых subtitle и respawn blackout, без локальных `has_method/call` probes.
+- `CycleLevel` использует `SceneContext`, `GameState`, `CycleState` и `UIMessage` как стабильные facade для gameplay marking, checkpoint restore/capture, default flashlight, fridge checkpoint spawn, стартовых subtitle и respawn blackout, без локальных `has_method/call` probes.
 - При переходе в игровую сцену `GameDirector` перенастраивает фазу/таймер.
 - `GameState` обновляет путь текущей сцены для продолжения забега.
 - Тип сцены определяется через `SceneContext`: gameplay, menu и ending имеют отдельные группы/path-классификацию; gameplay также определяется по cycle/timer root contract, path fallback разрешает только playable `res://levels/cycles/level_*.tscn`, а utility-сцены в cycles должны полагаться на группы/API, если им нужна специальная классификация.

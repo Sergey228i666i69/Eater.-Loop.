@@ -50,9 +50,9 @@ var _cached_default_wake_blackout_duration: float = -1.0
 var _checkpoint_restored: bool = false
 
 func _ready() -> void:
-	if SceneContext != null and SceneContext.has_method("mark_gameplay_scene"):
+	if SceneContext != null:
 		SceneContext.mark_gameplay_scene(self)
-	if GameState != null and GameState.has_method("apply_checkpoint_to_scene"):
+	if GameState != null:
 		_checkpoint_restored = bool(GameState.apply_checkpoint_to_scene(self))
 	_apply_default_player_progress()
 	call_deferred("_capture_level_start_checkpoint")
@@ -110,7 +110,7 @@ func _apply_conditional_respawn_position() -> void:
 		return
 	if fridge_interacted_spawn_marker_path == NodePath(""):
 		return
-	if CycleState == null or not CycleState.has_method("is_fridge_interacted"):
+	if CycleState == null:
 		return
 	if not bool(CycleState.is_fridge_interacted()):
 		return
@@ -125,13 +125,13 @@ func _apply_conditional_respawn_position() -> void:
 func _apply_default_player_progress() -> void:
 	if not unlock_flashlight_on_ready:
 		return
-	if GameState != null and GameState.has_method("unlock_flashlight"):
+	if GameState != null:
 		GameState.unlock_flashlight()
 
 func _capture_level_start_checkpoint() -> void:
 	if _checkpoint_restored:
 		return
-	if GameState == null or not GameState.has_method("capture_level_start_checkpoint"):
+	if GameState == null:
 		return
 	await get_tree().process_frame
 	GameState.capture_level_start_checkpoint(self)
