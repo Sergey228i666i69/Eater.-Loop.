@@ -49,7 +49,13 @@ const CONTENT_OBJECT_STRINGLY_PATTERNS := [
 	"UIMessage.has_method(\"fade_out\")",
 	"UIMessage.has_method(\"fade_in\")",
 	"has_method(\"apply_winch_release_state\")",
-	".call(\"apply_winch_release_state\""
+	".call(\"apply_winch_release_state\"",
+	"has_method(\"try_open_blockpost\")",
+	".call(\"try_open_blockpost\"",
+	"has_method(\"has_enough_money\")",
+	".call(\"has_enough_money\"",
+	"has_method(\"add_money\")",
+	".call(\"add_money\""
 ]
 const GAME_DIRECTOR_PATH := "res://levels/game_director.gd"
 const GAME_STATE_PATH := "res://levels/cycles/game_state.gd"

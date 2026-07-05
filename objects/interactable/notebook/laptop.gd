@@ -231,16 +231,16 @@ func _try_reward_for_work_completion() -> void:
 		return
 
 	var money_system := _resolve_money_system()
-	if money_system == null or not money_system.has_method("add_money"):
+	if money_system == null:
 		return
 
-	money_system.call("add_money", reward_money, reward_reason)
+	money_system.add_money(reward_money, reward_reason)
 	_money_rewarded = true
 
-func _resolve_money_system() -> Node:
+func _resolve_money_system() -> Level12MoneySystem:
 	if money_system_path.is_empty():
-		return get_node_or_null("../Level12MoneySystem")
-	return get_node_or_null(money_system_path)
+		return get_node_or_null("../Level12MoneySystem") as Level12MoneySystem
+	return get_node_or_null(money_system_path) as Level12MoneySystem
 
 func capture_checkpoint_state() -> Dictionary:
 	var state := super.capture_checkpoint_state()

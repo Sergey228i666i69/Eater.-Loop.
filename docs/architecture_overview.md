@@ -208,6 +208,7 @@
 - Event/distortion music sources теперь scoped к `Node.tree_exited`: удалённый trigger/controller автоматически освобождает registry/stack entry через `MusicScopedSourceRegistry`.
 - Input-device detection вынесен в `InputDeviceUtils`, а `GameDirector`, `InteractionPrompts` и `MainMenu` переведены на общий helper.
 - `InteractiveObject` получил typed outcome/result слой; completed dependencies и финальная laptop-ветка опираются на success outcome.
+- Level-12 money interactables (`Blockpost`, student reward, laptop reward) резолвят typed `Level12MoneySystem`; scene contracts запрещают подменять его случайным узлом с похожими методами.
 - `PauseManager` получил owner-token API; UIMessage, MinigameController, pause menu и death screen больше не восстанавливают `get_tree().paused` через локальный previous-bool.
 - Добавлены scene-contract validators для critical NodePath/child contracts, scene audio-bus contracts, typed interaction signal subscriptions, runtime input action literals, utility-level NodePaths, content-object typed collaborators, cycle/LevelMusic/lab/fridge/search-key-level authoring contracts, configured trigger target/property/effect/music-stream wiring, key-door/search-key wiring, checkpoint participant stable paths и отдельные STU exported route/path contracts.
 - `CheckpointDynamicRestore` вынес enemy-only factory restore allowlist, dynamic restore metadata и parent resolution из `CheckpointSceneSnapshot`.

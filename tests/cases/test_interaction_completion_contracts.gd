@@ -5,6 +5,7 @@ const FridgeScript := preload("res://objects/interactable/fridge/fridge.gd")
 const LaptopScript := preload("res://objects/interactable/notebook/laptop.gd")
 const BlockpostScript := preload("res://objects/interactable/level12/blockpost/blockpost.gd")
 const SearchSpotScript := preload("res://objects/interactable/search_spot/search_spot.gd")
+const Level12MoneySystemScript := preload("res://objects/interactable/level12/money/level12_money_system.gd")
 
 class DummyPlayer:
 	extends CharacterBody2D
@@ -19,19 +20,6 @@ class DummyPlayer:
 
 	func remove_key(key_id: String) -> void:
 		keys.erase(key_id)
-
-class DummyMoneySystem:
-	extends Node
-
-	var can_open := false
-	var open_attempts := 0
-
-	func try_open_blockpost(_required_money: int) -> bool:
-		open_attempts += 1
-		return can_open
-
-	func has_enough_money(_required_money: int) -> bool:
-		return can_open
 
 func _attach_completed_dependent(root: Node, dependency: InteractiveObject) -> InteractiveObject:
 	var dependent := InteractiveObject.new()
@@ -273,8 +261,13 @@ func _test_blockpost_completes_only_after_successful_payment() -> void:
 
 	var root := Node2D.new()
 	var player := DummyPlayer.new()
-	var money_system := DummyMoneySystem.new()
+	var money_system := Level12MoneySystemScript.new()
 	money_system.name = "Money"
+	money_system.hud_show_duration = 0.5
+	var passage_checks: Array[bool] = []
+	money_system.passage_check.connect(func(_current_money: int, _required_money: int, can_pass: bool) -> void:
+		passage_checks.append(can_pass)
+	)
 	var blockpost := BlockpostScript.new()
 	blockpost.name = "Blockpost"
 	blockpost.one_shot = true
@@ -287,16 +280,15 @@ func _test_blockpost_completes_only_after_successful_payment() -> void:
 
 	var dependent := _attach_completed_dependent(root, blockpost)
 	blockpost.call("_on_interact_area_body_entered", player)
-	money_system.can_open = false
 	blockpost.request_interact()
 	assert_true(not blockpost.is_completed, "Blockpost must not complete after failed payment")
 	assert_true(not bool(dependent.call("_is_dependency_satisfied")), "Failed blockpost payment must not satisfy completed dependencies")
 
-	money_system.can_open = true
+	money_system.add_money(100, "Test")
 	blockpost.request_interact()
 	assert_true(blockpost.is_completed, "Blockpost must complete after successful payment")
 	assert_true(bool(dependent.call("_is_dependency_satisfied")), "Successful blockpost payment must satisfy completed dependencies")
-	assert_eq(money_system.open_attempts, 2, "Blockpost should call the payment system for each active interaction attempt")
+	assert_eq(passage_checks, [false, true], "Blockpost should check the payment system for each active interaction attempt")
 
 	InteractionManager.clear_candidates()
 	root.queue_free()

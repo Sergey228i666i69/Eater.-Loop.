@@ -48,10 +48,10 @@ func _play_reward_sequence() -> void:
 	else:
 		await get_tree().create_timer(max(0.0, fade_in_duration)).timeout
 
-func _resolve_money_system() -> Node:
+func _resolve_money_system() -> Level12MoneySystem:
 	if money_system_path.is_empty():
-		return get_node_or_null("../Level12MoneySystem")
-	return get_node_or_null(money_system_path)
+		return get_node_or_null("../Level12MoneySystem") as Level12MoneySystem
+	return get_node_or_null(money_system_path) as Level12MoneySystem
 
 func capture_checkpoint_state() -> Dictionary:
 	var state := super.capture_checkpoint_state()

@@ -81,11 +81,11 @@ func _test_level_money_interactables_resolve_money_systems() -> void:
 		for node in root.find_children("*", "", true, false):
 			var script_path := _script_path(node)
 			if script_path == BLOCKPOST_SCRIPT:
-				_assert_money_system_resolves(path, root, node, "try_open_blockpost")
+				_assert_money_system_resolves(path, root, node)
 			elif script_path == STUDENT_MONEY_SCRIPT:
-				_assert_money_system_resolves(path, root, node, "add_money")
+				_assert_money_system_resolves(path, root, node)
 			elif script_path == LAPTOP_SCRIPT and _has_property(node, "reward_on_work_completion") and bool(node.get("reward_on_work_completion")):
-				_assert_money_system_resolves(path, root, node, "add_money")
+				_assert_money_system_resolves(path, root, node)
 		root.free()
 
 func _test_content_scene_exported_nodepaths_resolve() -> void:
@@ -173,12 +173,12 @@ func _assert_target_monster_spawner_paths(path: String, root: Node, node: Node) 
 	elif condition_type == SPAWNER_CONDITION_TRIGGER_ENTER:
 		_assert_required_nodepath_resolves(path, root, node, "trigger_area_path", "Area2D")
 
-func _assert_money_system_resolves(path: String, root: Node, node: Node, required_method: String) -> void:
+func _assert_money_system_resolves(path: String, root: Node, node: Node) -> void:
 	var money_path: NodePath = node.get("money_system_path")
 	var money_system := node.get_node_or_null(money_path) if not money_path.is_empty() else node.get_node_or_null("../Level12MoneySystem")
 	assert_true(money_system != null, "Money interactable must resolve its money system: %s:%s" % [path, root.get_path_to(node)])
 	if money_system != null:
-		assert_true(money_system.has_method(required_method), "Money system must expose %s for %s:%s" % [required_method, path, root.get_path_to(node)])
+		assert_true(money_system is Level12MoneySystem, "Money interactable must resolve Level12MoneySystem: %s:%s" % [path, root.get_path_to(node)])
 
 func _assert_exported_nodepath_properties_resolve(path: String, root: Node, node: Node) -> void:
 	for property_info in node.get_property_list():
