@@ -43,7 +43,7 @@ func get_prompt_world_position() -> Vector2:
 	return super.get_prompt_world_position()
 
 func _on_interact() -> void:
-	if CycleState == null or not CycleState.has_method("collect_flashlight_for_cycle"):
+	if CycleState == null:
 		return
 	if _should_despawn_immediately():
 		if already_collected_message.strip_edges() != "" and UIMessage != null:
@@ -56,9 +56,9 @@ func _on_interact() -> void:
 	_despawn_all_pickups_in_location()
 
 func _should_despawn_immediately() -> bool:
-	if CycleState != null and CycleState.has_method("has_flashlight_for_current_cycle"):
+	if CycleState != null:
 		return bool(CycleState.has_flashlight_for_current_cycle())
-	if GameState != null and GameState.has_method("is_flashlight_unlocked"):
+	if GameState != null:
 		return bool(GameState.is_flashlight_unlocked())
 	return false
 

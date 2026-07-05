@@ -64,11 +64,8 @@ func _force_level_distortion() -> void:
 	if _distortion_forced:
 		return
 	_distortion_forced = true
-	if GameDirector != null and GameDirector.has_method("trigger_distortion_now"):
+	if GameDirector != null:
 		GameDirector.trigger_distortion_now()
-		return
-	if GameDirector != null and GameDirector.has_method("set_time_left"):
-		GameDirector.set_time_left(0.0)
 
 func _schedule_level_distortion() -> void:
 	if _distortion_forced:

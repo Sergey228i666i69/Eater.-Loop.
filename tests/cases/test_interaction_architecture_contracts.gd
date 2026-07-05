@@ -64,6 +64,8 @@ const LEVEL_14_END_PATH := "res://levels/cycles/level_14_end.gd"
 const PLAYER_PATH := "res://player/player.gd"
 const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
+const FINAL_ENDING_FRIDGE_PATH := "res://objects/interactable/fridge/final_ending_fridge.gd"
+const PICKUP_FLASHLIGHT_PATH := "res://objects/interactable/flashlight/pickup_flashlight.gd"
 const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
@@ -275,6 +277,17 @@ const FORBIDDEN_FRIDGE_COMPLETION_STABLE_FACADE_PROBES := [
 	"game_state.has_method(\"capture_fridge_checkpoint\")",
 	"game_state.has_method(\"autosave_run\")",
 ]
+const FORBIDDEN_OBJECT_STABLE_FACADE_PROBES := {
+	FINAL_ENDING_FRIDGE_PATH: [
+		"GameDirector.has_method(\"trigger_distortion_now\")",
+		"GameDirector.has_method(\"set_time_left\")",
+	],
+	PICKUP_FLASHLIGHT_PATH: [
+		"CycleState.has_method(\"collect_flashlight_for_cycle\")",
+		"CycleState.has_method(\"has_flashlight_for_current_cycle\")",
+		"GameState.has_method(\"is_flashlight_unlocked\")",
+	],
+}
 
 func run() -> Array[String]:
 	var scripts: Array[String] = []
@@ -341,6 +354,13 @@ func run() -> Array[String]:
 				assert_true(
 					content.find(pattern) == -1,
 					"Ending flow scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
+
+		if FORBIDDEN_OBJECT_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_OBJECT_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Content objects must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
 		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
