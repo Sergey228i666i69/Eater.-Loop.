@@ -48,8 +48,7 @@ func _on_interact() -> void:
 
 	# 3. Включаем свет (можно добавить небольшую задержку через таймер для реализма)
 	for light in linked_lights:
-		if light and light.has_method("turn_on"):
-			light.turn_on()
+		ReactiveLightContracts.turn_on_generator_light(light)
 	_activate_required_lamps_in_scene()
 	
 	if UIMessage:
@@ -74,8 +73,7 @@ func _activate_required_lamps_in_scene() -> void:
 	if tree == null:
 		return
 	for light_node in ReactiveLightContracts.get_generator_required_lights(tree):
-		if light_node.has_method(ReactiveLightContracts.METHOD_TURN_ON):
-			light_node.call(ReactiveLightContracts.METHOD_TURN_ON)
+		ReactiveLightContracts.turn_on_generator_light(light_node)
 
 func capture_checkpoint_state() -> Dictionary:
 	return super.capture_checkpoint_state()
@@ -87,8 +85,7 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 	if sprite and sprite.sprite_frames and sprite.sprite_frames.has_animation(on_animation):
 		sprite.play(on_animation)
 	for light in linked_lights:
-		if light and light.has_method("turn_on"):
-			light.turn_on()
+		ReactiveLightContracts.turn_on_generator_light(light)
 	_activate_required_lamps_in_scene()
 	if audio_player:
 		if loop_sfx:

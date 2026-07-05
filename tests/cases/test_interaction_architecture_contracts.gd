@@ -70,6 +70,7 @@ const FRIDGE_PATH := "res://objects/interactable/fridge/fridge.gd"
 const FRIDGE_COMPLETION_SESSION_PATH := "res://objects/interactable/fridge/fridge_completion_session.gd"
 const FINAL_ENDING_FRIDGE_PATH := "res://objects/interactable/fridge/final_ending_fridge.gd"
 const PICKUP_FLASHLIGHT_PATH := "res://objects/interactable/flashlight/pickup_flashlight.gd"
+const GENERATOR_PATH := "res://objects/interactable/generator/generator.gd"
 const KEY_PATH := "res://objects/interactable/key/key.gd"
 const NOTE_OBJECT_PATH := "res://objects/interactable/note/note_object.gd"
 const DOOR_PATH := "res://objects/interactable/door/door.gd"
@@ -415,6 +416,10 @@ const FORBIDDEN_OBJECT_STABLE_FACADE_PROBES := {
 		"GameState.has_method(\"is_flashlight_unlocked\")",
 		"has_method(\"_despawn_pickup\")",
 		".call(\"_despawn_pickup\"",
+	],
+	GENERATOR_PATH: [
+		"has_method(\"turn_on\")",
+		".call(ReactiveLightContracts.METHOD_TURN_ON",
 	],
 	LAPTOP_PATH: [
 		"CycleState.has_method(\"is_lab_completed\")",

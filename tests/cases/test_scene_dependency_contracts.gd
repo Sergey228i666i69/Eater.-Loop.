@@ -41,6 +41,14 @@ const FORBIDDEN_NULL_SCENE_OVERRIDES := [
 	"target_marker",
 ]
 
+class GeneratorLightProbe:
+	extends Node
+
+	var turned_on: bool = false
+
+	func turn_on() -> void:
+		turned_on = true
+
 func run() -> Array[String]:
 	_test_key_search_spots_do_not_depend_on_the_door_they_unlock()
 	_test_required_door_keys_have_scene_sources()
@@ -52,6 +60,7 @@ func run() -> Array[String]:
 	_test_target_monster_spawners_declare_spawn_condition()
 	_test_reversible_triggers_are_not_one_shot()
 	_test_reactive_light_contracts_register_and_deduplicate_groups()
+	_test_reactive_light_contract_turn_on_helper()
 	_test_scripts_that_join_runtime_groups_expose_required_methods()
 	_test_checkpoint_custom_methods_are_declared_in_pairs()
 	_test_checkpoint_participants_have_stable_scene_paths()
@@ -245,6 +254,15 @@ func _test_reactive_light_contracts_register_and_deduplicate_groups() -> void:
 	assert_eq(required_count, 1, "Generator-required helper must deduplicate nodes registered in both required-light groups")
 
 	root.free()
+
+func _test_reactive_light_contract_turn_on_helper() -> void:
+	var light := GeneratorLightProbe.new()
+	assert_true(
+		ReactiveLightContracts.turn_on_generator_light(light),
+		"Generator light helper must accept nodes that expose turn_on()"
+	)
+	assert_true(light.turned_on, "Generator light helper must invoke turn_on()")
+	light.free()
 
 func _test_checkpoint_custom_methods_are_declared_in_pairs() -> void:
 	for path in _list_active_scripts():

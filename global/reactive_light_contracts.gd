@@ -31,6 +31,15 @@ static func get_generator_required_lights(tree: SceneTree) -> Array[Node]:
 			nodes.append(node)
 	return nodes
 
+static func turn_on_generator_light(node: Node) -> bool:
+	if node == null or not is_instance_valid(node):
+		return false
+	if not node.has_method(METHOD_TURN_ON):
+		push_warning("Generator light contract node does not expose %s(): %s" % [METHOD_TURN_ON, node.get_path()])
+		return false
+	node.call(METHOD_TURN_ON)
+	return true
+
 static func _add_to_group_if_needed(node: Node, group_name: String) -> void:
 	if node != null and not node.is_in_group(group_name):
 		node.add_to_group(group_name)
