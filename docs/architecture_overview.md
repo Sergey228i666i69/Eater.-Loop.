@@ -158,6 +158,9 @@
 - Event/distortion source-id metadata и `tree_exited` callback wiring живут в
   `MusicScopedSourceRegistry`; `MusicManager` сохраняет публичный фасад и стековую
   семантику.
+- Chase source order/suppression/active-source metadata и `tree_exited` cleanup
+  живут в `MusicChaseSourceRegistry`; `MusicManager` сохраняет публичный
+  `set_chase_music_source(...)` facade и audio-player lifecycle.
 - Сцены/объекты вызывают только публичные методы autoload-модулей.
 - Для специальных death-screen веток используется публичный override-point `CycleLevel.handle_custom_death_screen() -> bool`, без `has_method/call` по строке.
 - Чтение/запись runtime-флагов `GameState` должно идти через публичные getter/mutator/consume методы, а не через разрозненные прямые правки полей там, где уже есть API.

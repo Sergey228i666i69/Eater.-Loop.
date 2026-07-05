@@ -28,6 +28,7 @@ func run() -> Array[String]:
 	_test_mix_settings_resource_resolves_category_offsets()
 	_test_pause_resume_restores_playback_position()
 	_test_chase_pause_reasons_do_not_resume_while_minigame_paused()
+	await _test_chase_sources_cleanup_on_tree_exit(event_stream)
 	_cleanup_music_manager()
 	return get_failures()
 
@@ -173,6 +174,42 @@ func _test_chase_pause_reasons_do_not_resume_while_minigame_paused() -> void:
 
 	MusicManager.resume_chase_music(0.0, MusicManager.CHASE_PAUSE_REASON_MINIGAME)
 	assert_true(not bool(MusicManager.get("_runner_global_paused")), "Chase music may resume only after the final pause reason is cleared")
+
+func _test_chase_sources_cleanup_on_tree_exit(chase_stream: AudioStream) -> void:
+	_cleanup_music_manager()
+	var tree := Engine.get_main_loop() as SceneTree
+	assert_true(tree != null, "SceneTree is not available")
+	if tree == null:
+		return
+
+	var first_source := Node.new()
+	var second_source := Node.new()
+	tree.root.add_child(first_source)
+	tree.root.add_child(second_source)
+	await tree.process_frame
+	var first_id := first_source.get_instance_id()
+	var second_id := second_source.get_instance_id()
+
+	MusicManager.set_chase_music_source(first_source, true, chase_stream, -7.0, 0.0)
+	MusicManager.set_chase_music_source(second_source, true, chase_stream, -3.0, 0.0)
+	await tree.process_frame
+	assert_true(MusicManager.is_chase_active(), "Chase music must be active while chase sources are registered")
+	assert_eq(int(MusicManager.get("_runner_active_source_id")), first_id, "First chase source must keep priority before it exits")
+
+	first_source.queue_free()
+	await tree.process_frame
+	await tree.process_frame
+	var sources_after_first_exit: Dictionary = MusicManager.get("_runner_sources")
+	assert_true(not sources_after_first_exit.has(first_id), "Exited chase source must unregister automatically")
+	assert_true(sources_after_first_exit.has(second_id), "Second chase source must remain registered after first source exits")
+	assert_eq(int(MusicManager.get("_runner_active_source_id")), second_id, "Chase music must switch to the next source after active source exits")
+	assert_true(MusicManager.is_chase_active(), "Chase music must stay active while a second source remains")
+
+	second_source.queue_free()
+	await tree.process_frame
+	await tree.process_frame
+	assert_true(not MusicManager.is_chase_active(), "Chase music must stop after the final source exits")
+	assert_eq(int(MusicManager.get("_runner_active_source_id")), 0, "Chase active source id must reset after the final source exits")
 
 func _cleanup_music_manager() -> void:
 	if MusicManager == null:

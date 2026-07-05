@@ -118,6 +118,11 @@ Event/distortion music является scoped к переданному `source
 `MusicScopedSourceRegistry`; `MusicManager` остаётся публичным фасадом, который
 решает, когда делать `push_music(...)` и `pop_music(...)`.
 
+Chase music sources тоже привязаны к lifetime `Node`: если enemy/controller,
+который вызвал `set_chase_music_source(self, true, ...)`, выходит из дерева до
+явного `false`, `MusicChaseSourceRegistry` автоматически снимает источник и
+переключает погоню на следующий active source или останавливает её.
+
 Ambient suppression (`set_ambient_music_suppressed`) остаётся публичным API
 `MusicManager`, но source tracking и pending ambient resume request живут в
 `MusicAmbientCoordinator`/`MusicAmbientSuppressionState`: несколько silent-зон
@@ -150,7 +155,9 @@ MusicManager.set_chase_music_source(self, false)
 ```
 
 Пока есть хотя бы один активный источник погони, базовая музыка быстро
-приглушается/глушится и возвращается после окончания погони.
+приглушается/глушится и возвращается после окончания погони. Если источник
+является `Node`, ручной cleanup в `_exit_tree()` полезен для ясности, но не
+является последней линией защиты: registry снимет источник на `tree_exited`.
 
 ### 7) Подавление только ambient (зоны тишины)
 

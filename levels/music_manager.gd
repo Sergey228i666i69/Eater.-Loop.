@@ -4,6 +4,7 @@ const MusicPauseReasonStateScript = preload("res://levels/music_pause_reason_sta
 const MusicStackStateScript = preload("res://levels/music_stack_state.gd")
 const MusicAmbientCoordinatorScript = preload("res://levels/music_ambient_coordinator.gd")
 const MusicScopedSourceRegistryScript = preload("res://levels/music_scoped_source_registry.gd")
+const MusicChaseSourceRegistryScript = preload("res://levels/music_chase_source_registry.gd")
 
 ## MusicManager — единый слой управления музыкой.
 ##
@@ -94,6 +95,7 @@ var _runner_active_source_id: int = 0
 var _runner_active: bool = false
 var _runner_suppressed: Dictionary = {}
 var _runner_active_fade_out_time: float = -1.0
+var _runner_source_registry = MusicChaseSourceRegistryScript.new(_runner_sources, _runner_source_order, _runner_suppressed)
 var _runner_pause_position: float = 0.0
 var _runner_paused: bool = false
 var _runner_global_paused: bool = false
@@ -596,34 +598,18 @@ func _resume_pending_ambient_if_idle() -> void:
 func set_chase_music_source(source: Object, active: bool, stream: AudioStream = null, volume_db: float = 999.0, fade_out_time: float = -1.0) -> void:
 	if source == null:
 		return
-	var id := source.get_instance_id()
 	if active:
-		_runner_sources[id] = {
-			"stream": stream,
-			"volume_db": volume_db,
-			"fade_out_time": fade_out_time
-		}
-		if not _runner_source_order.has(id):
-			_runner_source_order.append(id)
-		if _runner_active_source_id == 0:
-			_set_active_runner_source(id)
+		_runner_source_registry.register_source(source, stream, volume_db, fade_out_time, self, &"_on_runner_source_exited")
 	else:
-		_runner_sources.erase(id)
-		_runner_suppressed.erase(id)
-		_runner_source_order.erase(id)
-		if _runner_active_source_id == id:
-			_runner_active_source_id = 0
-			_set_next_runner_source()
+		_runner_source_registry.unregister_source(source)
+	_sync_runner_source_registry_mirror()
 	_update_runner_music_state()
 
 func set_chase_music_suppressed(source: Object, suppressed: bool) -> void:
 	if source == null:
 		return
-	var id := source.get_instance_id()
-	if suppressed:
-		_runner_suppressed[id] = true
-	else:
-		_runner_suppressed.erase(id)
+	_runner_source_registry.set_source_suppressed(source, suppressed)
+	_sync_runner_source_registry_mirror()
 	_update_runner_music_state()
 
 func is_chase_active() -> bool:
@@ -661,16 +647,13 @@ func resume_chase_music(fade_time: float = -1.0, reason: String = CHASE_PAUSE_RE
 	_sync_chase_base_mute()
 
 func clear_chase_music_sources(fade_time: float = -1.0) -> void:
-	_runner_sources.clear()
-	_runner_source_order.clear()
-	_runner_suppressed.clear()
-	_runner_active_source_id = 0
+	_runner_source_registry.clear()
+	_sync_runner_source_registry_mirror()
 	_runner_active = false
 	_runner_paused = false
 	_runner_pause_position = 0.0
 	_runner_global_pause_state.clear()
 	_sync_runner_global_pause_mirror()
-	_runner_active_fade_out_time = -1.0
 	var target_fade := _resolve_fade_time(fade_time)
 	if _runner_player != null and _runner_player.playing:
 		_fade_runner_volume(-80.0, target_fade, true)
@@ -687,11 +670,12 @@ func _process(_delta: float) -> void:
 		_start_runner_music()
 
 func _update_runner_music_state() -> void:
-	var next_id := _get_next_runner_source_id()
+	var next_id := _runner_source_registry.next_source_id()
 	var should_play := next_id != 0
 	if next_id != _runner_active_source_id:
 		if next_id == 0:
-			_runner_active_source_id = 0
+			_runner_source_registry.clear_active_source()
+			_sync_runner_source_registry_mirror()
 		else:
 			_set_active_runner_source(next_id)
 	_runner_active = should_play
@@ -707,7 +691,7 @@ func _update_runner_music_state() -> void:
 	else:
 		if _runner_player != null and _runner_player.playing:
 			_pause_runner_music(_get_runner_fade_out_time(), false)
-		if _runner_sources.is_empty():
+		if _runner_source_registry.is_empty():
 			_runner_pause_position = 0.0
 			_runner_paused = false
 	_sync_chase_base_mute()
@@ -715,7 +699,10 @@ func _update_runner_music_state() -> void:
 func _set_active_runner_source(source_id: int) -> void:
 	if source_id == 0:
 		return
-	var data: Dictionary = _runner_sources.get(source_id, {})
+	var data: Dictionary = _runner_source_registry.activate_source(source_id)
+	_sync_runner_source_registry_mirror()
+	if data.is_empty():
+		return
 	var stream: AudioStream = data.get("stream", null)
 	if stream != null:
 		var prev_stream := runner_music_stream
@@ -725,27 +712,11 @@ func _set_active_runner_source(source_id: int) -> void:
 	var volume_db: float = data.get("volume_db", 999.0)
 	if volume_db <= 500.0:
 		runner_music_volume_db = volume_db
-	var fade_out_time: float = data.get("fade_out_time", -1.0)
-	_runner_active_fade_out_time = fade_out_time if fade_out_time >= 0.0 else -1.0
-	_runner_active_source_id = source_id
-
-func _set_next_runner_source() -> void:
-	var next_id := _get_next_runner_source_id()
-	if next_id != 0:
-		_set_active_runner_source(next_id)
-
-func _get_next_runner_source_id() -> int:
-	for source_id in _runner_source_order:
-		if _runner_sources.has(source_id) and not _is_runner_source_suppressed(source_id):
-			return source_id
-	return 0
-
-func _is_runner_source_suppressed(source_id: int) -> bool:
-	return bool(_runner_suppressed.get(source_id, false))
 
 func _get_runner_fade_out_time() -> float:
-	if _runner_active_fade_out_time >= 0.0:
-		return _runner_active_fade_out_time
+	var fade_out_time := _runner_source_registry.active_fade_out_time()
+	if fade_out_time >= 0.0:
+		return fade_out_time
 	return runner_music_fade_time
 
 func _start_runner_music(start_position: float = 0.0, fade_in_time: float = -1.0) -> void:
@@ -859,6 +830,11 @@ func _normalize_chase_pause_reason(reason: String) -> String:
 func _on_runner_music_finished() -> void:
 	if _runner_active:
 		_start_runner_music()
+
+func _on_runner_source_exited(source_id: int) -> void:
+	_runner_source_registry.unregister_id(source_id)
+	_sync_runner_source_registry_mirror()
+	_update_runner_music_state()
 
 func _setup_player(player: AudioStreamPlayer) -> void:
 	var bus_name := music_bus
@@ -1092,6 +1068,10 @@ func _sync_base_pause_mirror() -> void:
 func _sync_runner_global_pause_mirror() -> void:
 	_runner_global_pause_reasons = _runner_global_pause_state.get_reasons()
 	_runner_global_paused = _runner_global_pause_state.is_active()
+
+func _sync_runner_source_registry_mirror() -> void:
+	_runner_active_source_id = _runner_source_registry.active_source_id()
+	_runner_active_fade_out_time = _runner_source_registry.active_fade_out_time()
 
 func _sync_pending_ambient_mirror() -> void:
 	_pending_ambient_stream = _ambient_coordinator.pending_stream()
