@@ -91,7 +91,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 ## P2: Свет, Генератор И Враги Завязаны На Строковые Группы
 
-Лампа, фонарик и canonical projector регистрируются через `ReactiveLightContracts.register_reactive_light_source(...)`. Генератор получает required-lights через `ReactiveLightContracts.get_generator_required_lights(...)` и включает их через `ReactiveLightContracts.turn_on_generator_light(...)`.
+Лампа, фонарик и canonical projector регистрируются через `ReactiveLightContracts.register_reactive_light_source(...)`. Враги читают их через `ReactiveLightContracts.is_point_lit(...)`, а генератор получает required-lights через `ReactiveLightContracts.get_generator_required_lights(...)` и включает их через `ReactiveLightContracts.turn_on_generator_light(...)`.
 
 Файлы:
 
@@ -101,7 +101,7 @@ Result/outcome слой введён: `interaction_result(result)` несёт ou
 
 Практический риск: строка группы или имя метода меняется - контракт ломается без явной ошибки.
 
-Статус: закрыто практическим helper-слоем. `ReactiveLightContracts` держит canonical group names, registration helpers, getter-ы для reactive sources, dedupe generator-required light groups и единый `turn_on_generator_light(...)` helper. `test_scene_nodepath_contracts.gd` проверяет exported `light_node` у лампы, прожектора и pickup flashlight, а `test_scene_dependency_contracts.gd` запрещает runtime-скрипты, которые регистрируются в reactive/generator light contracts без `is_point_lit()` или `turn_on()`.
+Статус: закрыто практическим helper-слоем. `ReactiveLightContracts` держит canonical group names, registration helpers, getter-ы для reactive sources, единый `is_point_lit(...)` query helper, dedupe generator-required light groups и единый `turn_on_generator_light(...)` helper. `test_scene_nodepath_contracts.gd` проверяет exported `light_node` у лампы, прожектора и pickup flashlight, а `test_scene_dependency_contracts.gd` запрещает runtime-скрипты, которые регистрируются в reactive/generator light contracts без `is_point_lit()` или `turn_on()`.
 
 ## Resolved: `TargetMonsterSpawner` Конфигурируется Слишком Неявно
 

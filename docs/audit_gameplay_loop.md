@@ -58,7 +58,7 @@ Credits возвращают в меню и ставят только meta-фл�
 
 Практический эффект: игрок ожидает светочувствительное поведение, но конкретный враг не замораживается лампой.
 
-Статус: закрыто. Проверка света вынесена в достижимую ветку; focused light contract покрыт тестами.
+Статус: закрыто. Проверка света вынесена в достижимую ветку, а enemy-side чтение external light теперь идёт через `ReactiveLightContracts.is_point_lit(...)`; focused light contract покрыт тестами.
 
 ## Resolved: Мини-Игры Не Блокируют Общий Interact
 
@@ -106,7 +106,7 @@ Credits возвращают в меню и ставят только meta-фл�
 
 ## Риски Производительности
 
-- `enemy_flashlight_base` каждый physics frame сканирует sources через `ReactiveLightContracts.get_reactive_light_sources(...)` и probe-точки.
+- `enemy_flashlight_base` каждый physics frame сканирует sources через `ReactiveLightContracts.get_reactive_light_sources(...)`, `ReactiveLightContracts.is_point_lit(...)` и probe-точки.
 - Stalker регулярно строит door route через двери и raycasts.
 - Некоторые враги грузят animation frames в `_ready()` через файловую систему.
 

@@ -49,6 +49,16 @@ class GeneratorLightProbe:
 	func turn_on() -> void:
 		turned_on = true
 
+class ReactiveLightProbe:
+	extends Node
+
+	var lit: bool = false
+	var last_point: Vector2 = Vector2.ZERO
+
+	func is_point_lit(point: Vector2) -> bool:
+		last_point = point
+		return lit
+
 func run() -> Array[String]:
 	_test_key_search_spots_do_not_depend_on_the_door_they_unlock()
 	_test_required_door_keys_have_scene_sources()
@@ -60,6 +70,7 @@ func run() -> Array[String]:
 	_test_target_monster_spawners_declare_spawn_condition()
 	_test_reversible_triggers_are_not_one_shot()
 	_test_reactive_light_contracts_register_and_deduplicate_groups()
+	_test_reactive_light_contract_point_lit_helper()
 	_test_reactive_light_contract_turn_on_helper()
 	_test_scripts_that_join_runtime_groups_expose_required_methods()
 	_test_checkpoint_custom_methods_are_declared_in_pairs()
@@ -254,6 +265,21 @@ func _test_reactive_light_contracts_register_and_deduplicate_groups() -> void:
 	assert_eq(required_count, 1, "Generator-required helper must deduplicate nodes registered in both required-light groups")
 
 	root.free()
+
+func _test_reactive_light_contract_point_lit_helper() -> void:
+	var light := ReactiveLightProbe.new()
+	var point := Vector2(12.0, -4.0)
+	assert_true(
+		not ReactiveLightContracts.is_point_lit(light, point),
+		"Reactive light helper must return the source is_point_lit result when false"
+	)
+	light.lit = true
+	assert_true(
+		ReactiveLightContracts.is_point_lit(light, point),
+		"Reactive light helper must return the source is_point_lit result when true"
+	)
+	assert_eq(light.last_point, point, "Reactive light helper must pass the queried point through")
+	light.free()
 
 func _test_reactive_light_contract_turn_on_helper() -> void:
 	var light := GeneratorLightProbe.new()

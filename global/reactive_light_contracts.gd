@@ -19,6 +19,14 @@ static func register_generator_required_lamp(node: Node) -> void:
 static func get_reactive_light_sources(tree: SceneTree) -> Array[Node]:
 	return _nodes_in_group(tree, REACTIVE_LIGHT_SOURCE_GROUP)
 
+static func is_point_lit(light_source: Node, point: Vector2) -> bool:
+	if light_source == null or not is_instance_valid(light_source):
+		return false
+	if not light_source.has_method(METHOD_IS_POINT_LIT):
+		push_warning("Reactive light source does not expose %s(point): %s" % [METHOD_IS_POINT_LIT, light_source.get_path()])
+		return false
+	return bool(light_source.call(METHOD_IS_POINT_LIT, point))
+
 static func get_generator_required_lights(tree: SceneTree) -> Array[Node]:
 	var nodes: Array[Node] = []
 	var seen := {}

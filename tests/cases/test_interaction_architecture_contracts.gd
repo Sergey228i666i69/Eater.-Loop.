@@ -97,6 +97,7 @@ const ENDING_SCREEN_PATH := "res://levels/endings/ending_screen.gd"
 const ENDING_CREDITS_PATH := "res://levels/endings/ending_credits.gd"
 const ENEMY_BASE_PATH := "res://enemies/enemy.gd"
 const ENEMY_FLASHLIGHT_BASE_PATH := "res://enemies/enemy_flashlight_base.gd"
+const ENEMY_CEILING_PATH := "res://enemies/light_ceiling/enemy_ceiling.gd"
 const ENEMY_LIGHT_ONLY_PATH := "res://enemies/light_only/enemy_light_only.gd"
 const FEED_MINIGAME_PATH := "res://levels/minigames/feeding/feed_minigame.gd"
 const FEED_DETACH_HANDS_PATH := "res://levels/minigames/feeding/feed_minigame_detach_hands.gd"
@@ -303,6 +304,12 @@ const FORBIDDEN_ENEMY_STABLE_FACADE_PROBES := {
 	ENEMY_FLASHLIGHT_BASE_PATH: [
 		"player.has_method(\"is_point_lit\")",
 		"player.call(\"is_point_lit\"",
+		"light_source.has_method(ReactiveLightContracts.METHOD_IS_POINT_LIT)",
+		"light_source.call(ReactiveLightContracts.METHOD_IS_POINT_LIT",
+	],
+	ENEMY_CEILING_PATH: [
+		"light_source.has_method(ReactiveLightContracts.METHOD_IS_POINT_LIT)",
+		"light_source.call(ReactiveLightContracts.METHOD_IS_POINT_LIT",
 	],
 	ENEMY_LIGHT_ONLY_PATH: [
 		"GameDirector.has_method(\"trigger_light_only_jump_effect\")",

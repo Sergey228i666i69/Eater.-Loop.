@@ -69,10 +69,8 @@ func _is_external_reactive_light_hitting() -> bool:
 			continue
 		if light_source.is_in_group("player"):
 			continue
-		if not light_source.has_method(ReactiveLightContracts.METHOD_IS_POINT_LIT):
-			continue
 		for probe_point in probe_points:
-			if bool(light_source.call(ReactiveLightContracts.METHOD_IS_POINT_LIT, probe_point)):
+			if ReactiveLightContracts.is_point_lit(light_source, probe_point):
 				return true
 	return false
 
