@@ -9,6 +9,7 @@ These tests are lightweight smoke checks for project health. They run headless a
 - Key input actions exist and have events.
 - Scene dependency contracts cover reversible triggers, target spawners, and runtime group/method expectations.
 - Level authoring contracts cover cycle metadata, bed transitions, and root-level exported paths/text toggles.
+- The cycle-level template under `levels/templates/` is load-tested and checked against the same minimal Player/bed/root contract.
 - Lab authoring contracts cover lab laptop timing, timed-lab minigame scenes, explicit lab IDs, and required-lab references.
 - Fridge authoring contracts cover feeding, code-lock, and final-feeding scene configs.
 - Architecture contracts keep external `GameState`/`CycleState` access on public methods.

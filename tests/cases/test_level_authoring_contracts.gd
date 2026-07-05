@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
 
 const LEVEL_DIR := "res://levels/cycles"
+const CYCLE_LEVEL_TEMPLATE_SCENE := "res://levels/templates/cycle_level_template.tscn"
 const BED_SCRIPT := "res://objects/interactable/bed/bed.gd"
 const LEVEL_MUSIC_SCRIPT := "res://levels/cycles/level_music.gd"
 const PLAYER_SCRIPT := "res://player/player.gd"
@@ -14,6 +15,7 @@ const OPTIONAL_ROOT_NODEPATH_PROPERTIES := {
 }
 
 func run() -> Array[String]:
+	_test_cycle_level_template_is_valid()
 	_test_cycle_scene_directory_has_explicit_level_contracts()
 	_test_cycle_level_metadata_is_sane()
 	_test_cycle_levels_have_single_player()
@@ -21,6 +23,33 @@ func run() -> Array[String]:
 	_test_cycle_level_exported_paths_are_valid()
 	_test_level_music_nodes_have_streams_when_active()
 	return get_failures()
+
+func _test_cycle_level_template_is_valid() -> void:
+	var packed_scene := assert_loads(CYCLE_LEVEL_TEMPLATE_SCENE) as PackedScene
+	if packed_scene == null:
+		return
+	var root := packed_scene.instantiate()
+	assert_true(root != null, "Cycle level template must instantiate")
+	if root == null:
+		return
+	assert_true(_is_cycle_level(root), "Cycle level template must expose cycle/timer contract")
+	var players := _find_nodes_with_script(root, PLAYER_SCRIPT)
+	assert_eq(players.size(), 1, "Cycle level template must include exactly one Player instance")
+	if players.size() == 1:
+		var player := players[0] as Node
+		assert_true(player is Node2D, "Cycle level template Player must be a Node2D")
+		_assert_player_authoring_config(CYCLE_LEVEL_TEMPLATE_SCENE, root, player)
+	var bed_count := 0
+	for node in root.find_children("*", "", true, false):
+		if _script_path(node) != BED_SCRIPT:
+			continue
+		bed_count += 1
+		_assert_bed_next_level_path(CYCLE_LEVEL_TEMPLATE_SCENE, root, node, packed_scene)
+	assert_true(bed_count > 0, "Cycle level template must include at least one bed transition")
+	_assert_root_exported_nodepaths_resolve(CYCLE_LEVEL_TEMPLATE_SCENE, root)
+	_assert_enabled_text_is_non_empty(CYCLE_LEVEL_TEMPLATE_SCENE, root, "show_start_hint", "start_hint_text")
+	_assert_enabled_text_is_non_empty(CYCLE_LEVEL_TEMPLATE_SCENE, root, "show_start_subtitle", "start_subtitle_text")
+	root.free()
 
 func _test_cycle_scene_directory_has_explicit_level_contracts() -> void:
 	for path in _list_level_scenes():
