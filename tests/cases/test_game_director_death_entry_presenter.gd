@@ -1,6 +1,13 @@
 extends "res://tests/test_case.gd"
 
 const DeathEntryPresenter = preload("res://levels/game_director_death_entry_presenter.gd")
+const DEATH_ENTRY_PRESENTER_PATH := "res://levels/game_director_death_entry_presenter.gd"
+const FORBIDDEN_DEATH_ENTRY_METHOD_PROBES := [
+	"has_method(",
+	"METHOD_APPLY_NEXT_TITLE",
+	".call(METHOD_APPLY_NEXT_TITLE",
+	".call(\"apply_next_title\"",
+]
 
 class FakeTitlePresenter:
 	extends RefCounted
@@ -13,6 +20,7 @@ class FakeTitlePresenter:
 func run() -> Array[String]:
 	_test_prepare_entry_applies_title_button_and_hidden_root()
 	_test_prepare_entry_tolerates_missing_optional_nodes()
+	_test_death_entry_uses_title_presenter_facade_directly()
 	return get_failures()
 
 func _test_prepare_entry_applies_title_button_and_hidden_root() -> void:
@@ -33,9 +41,16 @@ func _test_prepare_entry_applies_title_button_and_hidden_root() -> void:
 
 func _test_prepare_entry_tolerates_missing_optional_nodes() -> void:
 	var presenter: RefCounted = DeathEntryPresenter.new()
-	var empty_presenter := RefCounted.new()
 
-	presenter.prepare_entry(null, null, empty_presenter, "Умер", "Retry")
 	presenter.prepare_entry(null, null, null, "Умер", "Retry")
 
 	assert_true(true, "Death entry presenter must tolerate missing optional collaborators")
+
+func _test_death_entry_uses_title_presenter_facade_directly() -> void:
+	var content := FileAccess.get_file_as_string(DEATH_ENTRY_PRESENTER_PATH)
+	assert_true(content != "", "Failed to read script: %s" % DEATH_ENTRY_PRESENTER_PATH)
+	for pattern in FORBIDDEN_DEATH_ENTRY_METHOD_PROBES:
+		assert_true(
+			content.find(pattern) == -1,
+			"Death entry presenter must use the stable title presenter facade directly: %s" % pattern
+		)

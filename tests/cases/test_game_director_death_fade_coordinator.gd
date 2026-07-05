@@ -1,6 +1,11 @@
 extends "res://tests/test_case.gd"
 
 const DeathFadeCoordinator = preload("res://levels/game_director_death_fade_coordinator.gd")
+const DEATH_FADE_COORDINATOR_PATH := "res://levels/game_director_death_fade_coordinator.gd"
+const FORBIDDEN_DEATH_FADE_METHOD_PROBES := [
+	"camera_coordinator.has_method(",
+	"camera_coordinator.call(",
+]
 
 class FakeTweener:
 	extends RefCounted
@@ -69,6 +74,7 @@ func run() -> Array[String]:
 	_test_begin_fade_prepares_rect_tween_and_camera()
 	_test_begin_fade_clamps_duration_and_connects_completion()
 	_test_begin_fade_allows_missing_rect_or_camera()
+	_test_death_fade_uses_camera_coordinator_facade_directly()
 	return get_failures()
 
 func _test_begin_fade_prepares_rect_tween_and_camera() -> void:
@@ -129,3 +135,12 @@ func _test_begin_fade_allows_missing_rect_or_camera() -> void:
 	assert_eq(tween.parallel_values, [true], "Death fade must still configure tween mode")
 	assert_eq(tween.property_calls.size(), 0, "Missing fade rect must skip alpha tween")
 	assert_eq(camera.calls.size(), 0, "Missing captured camera must skip camera tween")
+
+func _test_death_fade_uses_camera_coordinator_facade_directly() -> void:
+	var content := FileAccess.get_file_as_string(DEATH_FADE_COORDINATOR_PATH)
+	assert_true(content != "", "Failed to read script: %s" % DEATH_FADE_COORDINATOR_PATH)
+	for pattern in FORBIDDEN_DEATH_FADE_METHOD_PROBES:
+		assert_true(
+			content.find(pattern) == -1,
+			"Death fade coordinator must use the stable camera coordinator facade directly: %s" % pattern
+		)

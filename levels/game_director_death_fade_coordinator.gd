@@ -34,10 +34,6 @@ func _prepare_fade_rect(fade_rect: ColorRect) -> void:
 func _camera_has_capture(camera_coordinator: Object) -> bool:
 	if camera_coordinator == null:
 		return false
-	if not camera_coordinator.has_method("has_camera"):
-		return false
-	if not camera_coordinator.has_method("tween_to_death_pose"):
-		return false
 	return bool(camera_coordinator.has_camera())
 
 func _configure_tweener(tweener: Object) -> void:
