@@ -127,31 +127,35 @@ func _connect_game_state_signal_if_possible() -> bool:
 func _is_game_state_condition_met() -> bool:
 	match game_state_flag_name:
 		"ate_this_cycle":
-			return _call_bool_condition(CycleState, "has_eaten_this_cycle") == game_state_expected_value
+			if CycleState == null:
+				return false
+			return CycleState.has_eaten_this_cycle() == game_state_expected_value
 		"lab_done":
-			return _call_bool_condition(CycleState, "has_completed_any_lab") == game_state_expected_value
+			if CycleState == null:
+				return false
+			return CycleState.has_completed_any_lab() == game_state_expected_value
 		"phone_picked":
-			return _call_bool_condition(CycleState, "has_phone_picked") == game_state_expected_value
+			if CycleState == null:
+				return false
+			return CycleState.has_phone_picked() == game_state_expected_value
 		"fridge_interacted":
-			return _call_bool_condition(CycleState, "is_fridge_interacted") == game_state_expected_value
+			if CycleState == null:
+				return false
+			return CycleState.is_fridge_interacted() == game_state_expected_value
 		"unique_feeding_intro_played":
-			return _call_bool_condition(GameState, "is_unique_feeding_intro_played") == game_state_expected_value
+			if GameState == null:
+				return false
+			return GameState.is_unique_feeding_intro_played() == game_state_expected_value
 		"electricity_on":
-			return _call_bool_condition(CycleState, "is_electricity_on") == game_state_expected_value
+			if CycleState == null:
+				return false
+			return CycleState.is_electricity_on() == game_state_expected_value
 		_:
 			push_warning("TargetMonsterSpawner: неизвестный state flag '%s'." % game_state_flag_name)
 			return false
 
 func _resolve_state_owner() -> Object:
 	return GameState if game_state_flag_name == "unique_feeding_intro_played" else CycleState
-
-func _call_bool_condition(state_owner: Object, method_name: String) -> bool:
-	if state_owner == null:
-		return false
-	if not state_owner.has_method(method_name):
-		push_warning("TargetMonsterSpawner: state owner has no method '%s'." % method_name)
-		return false
-	return bool(state_owner.call(method_name))
 
 func _on_game_state_signal(_arg0: Variant = null) -> void:
 	if _spawned and one_shot:

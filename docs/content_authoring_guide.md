@@ -58,7 +58,7 @@
 2. Скрипт, который должен включаться генератором, должен регистрироваться через `ReactiveLightContracts.register_generator_required_light(self)` / `register_generator_required_lamp(self)` и объявлять `turn_on()`.
 3. Лампы, прожекторы и pickup flashlight должны иметь resolving `light_node` на `PointLight2D`.
 4. Врагам нельзя полагаться на скрытое знание конкретной лампы. Они должны потреблять light contracts через `ReactiveLightContracts.get_reactive_light_sources(...)` и метод `is_point_lit(...)`.
-5. `TargetMonsterSpawner` с `enemy_scene` должен явно задавать condition; node-signal/trigger-enter variants должны иметь resolving source paths, реальные signals/properties и optional spawn parent только если он действительно существует.
+5. `TargetMonsterSpawner` с `enemy_scene` должен явно задавать condition; state-flag variants читают только поддержанные `GameState`/`CycleState` public facade методы, а node-signal/trigger-enter variants должны иметь resolving source paths, реальные signals/properties и optional spawn parent только если он действительно существует.
 
 ## Мини-Игры
 

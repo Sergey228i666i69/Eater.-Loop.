@@ -76,6 +76,7 @@ const DOOR_PATH := "res://objects/interactable/door/door.gd"
 const LAPTOP_PATH := "res://objects/interactable/notebook/laptop.gd"
 const LEBEDKA_PATH := "res://objects/interactable/lebedka/lebedka.gd"
 const SEARCH_KEY_MINIGAME_PATH := "res://levels/minigames/search_key/search_minigame.gd"
+const TARGET_MONSTER_SPAWNER_PATH := "res://objects/environment/smart/target/target.gd"
 const INTERACTIVE_OBJECT_PATH := "res://objects/interactable/interactive_object.gd"
 const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
@@ -399,6 +400,11 @@ const FORBIDDEN_FRIDGE_COMPLETION_STABLE_FACADE_PROBES := [
 	"game_state.has_method(\"autosave_run\")",
 ]
 const FORBIDDEN_OBJECT_STABLE_FACADE_PROBES := {
+	TARGET_MONSTER_SPAWNER_PATH: [
+		"state_owner.has_method(",
+		"state_owner.call(",
+		"func _call_bool_condition",
+	],
 	FINAL_ENDING_FRIDGE_PATH: [
 		"GameDirector.has_method(\"trigger_distortion_now\")",
 		"GameDirector.has_method(\"set_time_left\")",
