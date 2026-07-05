@@ -154,7 +154,7 @@ func _hide_prompt() -> void:
 		InteractionPrompts.hide_lamp(self)
 
 func _get_lamp_prompt_text() -> String:
-	if InteractionPrompts and InteractionPrompts.has_method("get_default_lamp_text"):
+	if InteractionPrompts:
 		return String(InteractionPrompts.get_default_lamp_text(_is_on))
 	return "E — выключить свет" if _is_on else "E — включить свет"
 

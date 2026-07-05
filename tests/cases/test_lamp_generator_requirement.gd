@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
 
 const LAMP_SCENE_PATH := "res://objects/interactable/lamp/lamp.tscn"
+const LAMP_SCRIPT_PATH := "res://objects/interactable/lamp/lamp.gd"
 
 func run() -> Array[String]:
 	var tree := Engine.get_main_loop() as SceneTree
@@ -31,6 +32,7 @@ func run() -> Array[String]:
 	default_lamp.call("_toggle")
 	assert_true(not _is_lit(default_lamp), "Default lamp must toggle off")
 	assert_eq(String(default_lamp.call("_get_lamp_prompt_text")), "E — включить свет", "Lamp prompt must show the real interact key instead of legacy Q")
+	_assert_lamp_prompt_uses_stable_interaction_prompts_facade()
 	if InteractionPrompts != null:
 		assert_eq(String(InteractionPrompts.get_default_lamp_text(false)), "E — включить свет", "Default lamp-on prompt must use interact key")
 		assert_true(String(InteractionPrompts.get_default_lamp_text(true)).find("Q") == -1, "Default lamp-off prompt must not mention removed Q input")
@@ -53,3 +55,11 @@ func run() -> Array[String]:
 func _is_lit(lamp: Node) -> bool:
 	var light := lamp.get_node_or_null("PointLight2D") as PointLight2D
 	return light != null and light.enabled
+
+func _assert_lamp_prompt_uses_stable_interaction_prompts_facade() -> void:
+	var content := FileAccess.get_file_as_string(LAMP_SCRIPT_PATH)
+	assert_true(content != "", "Failed to read script: %s" % LAMP_SCRIPT_PATH)
+	assert_true(
+		content.find("InteractionPrompts.has_method(\"get_default_lamp_text\")") == -1,
+		"Lamp prompt must use stable InteractionPrompts facade directly"
+	)

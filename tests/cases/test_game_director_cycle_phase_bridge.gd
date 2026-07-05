@@ -1,6 +1,15 @@
 extends "res://tests/test_case.gd"
 
 const CyclePhaseBridge = preload("res://levels/game_director_cycle_phase_bridge.gd")
+const CYCLE_PHASE_BRIDGE_PATH := "res://levels/game_director_cycle_phase_bridge.gd"
+const FORBIDDEN_STRINGLY_PHASE_PATTERNS := [
+	"has_method(\"is_distorted_phase\")",
+	"call(\"is_distorted_phase\"",
+	"has_method(\"is_normal_phase\")",
+	"call(\"is_normal_phase\"",
+	"has_method(\"set_phase\")",
+	"call(\"set_phase\"",
+]
 
 class FakeCycleState:
 	extends RefCounted
@@ -21,7 +30,7 @@ class FakeCycleState:
 func run() -> Array[String]:
 	_test_null_cycle_state_keeps_legacy_timer_defaults()
 	_test_phase_queries_and_setters_delegate_to_cycle_state()
-	_test_missing_phase_methods_are_safe()
+	_test_phase_bridge_uses_stable_cycle_state_facade()
 	return get_failures()
 
 func _test_null_cycle_state_keeps_legacy_timer_defaults() -> void:
@@ -52,12 +61,11 @@ func _test_phase_queries_and_setters_delegate_to_cycle_state() -> void:
 	assert_eq(cycle_state.phase, FakeCycleState.Phase.NORMAL, "set_normal must set the normal phase")
 	assert_eq(cycle_state.set_calls[-1], FakeCycleState.Phase.NORMAL, "set_normal must delegate to CycleState")
 
-func _test_missing_phase_methods_are_safe() -> void:
-	var bridge: RefCounted = CyclePhaseBridge.new()
-	var plain_object := RefCounted.new()
-
-	assert_true(bridge.can_run_timer(plain_object), "Unknown CycleState-like object must keep the explicit fallback")
-	assert_true(not bridge.has_normal_state(plain_object), "Unknown CycleState-like object must not count as normal state")
-	assert_true(not bridge.is_distorted(plain_object), "Unknown CycleState-like object must not count as distorted")
-	bridge.set_normal(plain_object)
-	bridge.set_distorted(plain_object)
+func _test_phase_bridge_uses_stable_cycle_state_facade() -> void:
+	var content := FileAccess.get_file_as_string(CYCLE_PHASE_BRIDGE_PATH)
+	assert_true(content != "", "Failed to read script: %s" % CYCLE_PHASE_BRIDGE_PATH)
+	for pattern in FORBIDDEN_STRINGLY_PHASE_PATTERNS:
+		assert_true(
+			content.find(pattern) == -1,
+			"Cycle phase bridge must use the stable CycleState phase facade directly: %s" % pattern
+		)
