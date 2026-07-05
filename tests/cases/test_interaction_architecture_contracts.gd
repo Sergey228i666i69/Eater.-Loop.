@@ -85,6 +85,7 @@ const MINIGAME_PROMPT_VISIBILITY_COORDINATOR_PATH := "res://levels/minigames/min
 const MINIGAME_MUSIC_SESSION_PATH := "res://levels/minigames/minigame_music_session.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const INTERACTION_MANAGER_PATH := "res://global/interaction_manager.gd"
+const PROMPT_VIEW_PATH := "res://levels/prompt_view.gd"
 const CRAZY_LEVEL_EVENT_PATH := "res://levels/cycles/crazy_level_event.gd"
 const TEXTURE_DISTORTION_MANAGER_PATH := "res://levels/cycles/texture_distortion_manager.gd"
 const LEVEL_11_STU_1_PATH := "res://levels/cycles/level_11_stu_1.gd"
@@ -406,6 +407,8 @@ const FORBIDDEN_OBJECT_STABLE_FACADE_PROBES := {
 		"CycleState.has_method(\"collect_flashlight_for_cycle\")",
 		"CycleState.has_method(\"has_flashlight_for_current_cycle\")",
 		"GameState.has_method(\"is_flashlight_unlocked\")",
+		"has_method(\"_despawn_pickup\")",
+		".call(\"_despawn_pickup\"",
 	],
 	LAPTOP_PATH: [
 		"CycleState.has_method(\"is_lab_completed\")",
@@ -442,6 +445,12 @@ const FORBIDDEN_PLAYER_CONTRACT_PROBES := {
 		"player.has_method(\"has_flashlight_available\")",
 		"player.has_method(\"get_flashlight_charge_ratio\")",
 		"player.has_method(\"is_flashlight_enabled\")",
+	],
+}
+const FORBIDDEN_LOCAL_UI_HELPER_PROBES := {
+	PROMPT_VIEW_PATH: [
+		"_text_node.has_method(\"set_text\")",
+		"_text_node.call(\"set_text\"",
 	],
 }
 
@@ -524,6 +533,13 @@ func run() -> Array[String]:
 				assert_true(
 					content.find(pattern) == -1,
 					"Player-dependent content/HUD scripts must use the stable Player facade directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
+
+		if FORBIDDEN_LOCAL_UI_HELPER_PROBES.has(path):
+			for pattern in FORBIDDEN_LOCAL_UI_HELPER_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Local UI helper scripts must use stable node properties directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
 		if FORBIDDEN_ENEMY_STABLE_FACADE_PROBES.has(path):

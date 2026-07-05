@@ -12,10 +12,7 @@ func set_prompt_text(text: String) -> void:
 		_cache_text_node()
 	if _text_node == null:
 		return
-	if _text_node.has_method("set_text"):
-		_text_node.call("set_text", text)
-	else:
-		_text_node.set("text", text)
+	_text_node.set("text", text)
 
 func _cache_text_node() -> void:
 	if text_node_path.is_empty():

@@ -1,4 +1,5 @@
 extends InteractiveObject
+class_name PickupFlashlight
 
 const PICKUP_FLASHLIGHT_GROUP := &"pickup_flashlight"
 
@@ -68,15 +69,13 @@ func _despawn_all_pickups_in_location() -> void:
 		_despawn_pickup()
 		return
 	var branch_root := _get_location_branch_root()
-	for pickup in tree.get_nodes_in_group(PICKUP_FLASHLIGHT_GROUP):
-		if not (pickup is Node):
-			continue
+	for pickup_variant in tree.get_nodes_in_group(PICKUP_FLASHLIGHT_GROUP):
+		var pickup := pickup_variant as PickupFlashlight
 		if pickup == null or not is_instance_valid(pickup):
 			continue
 		if branch_root != null and _get_branch_root_for_node(pickup) != branch_root:
 			continue
-		if pickup.has_method("_despawn_pickup"):
-			pickup.call("_despawn_pickup")
+		pickup._despawn_pickup()
 
 func _despawn_pickup() -> void:
 	_hide_prompt()
