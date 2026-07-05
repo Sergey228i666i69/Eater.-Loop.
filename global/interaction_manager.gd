@@ -128,6 +128,4 @@ func _can_show_prompt(object: InteractiveObject) -> bool:
 	return object != null and object.can_show_manager_prompt()
 
 func _is_minigame_blocking_interactions() -> bool:
-	return MinigameController != null \
-		and MinigameController.has_method("has_active_minigame") \
-		and bool(MinigameController.has_active_minigame())
+	return MinigameController != null and MinigameController.has_active_minigame()

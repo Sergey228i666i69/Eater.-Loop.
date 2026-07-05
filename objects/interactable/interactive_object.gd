@@ -305,7 +305,7 @@ func mark_dependency_request_satisfied() -> void:
 func attach_minigame(minigame: Node, layer_override: int = -1, parent_override: Node = null) -> Node:
 	if minigame == null:
 		return null
-	if MinigameController and MinigameController.has_method("attach_minigame"):
+	if MinigameController != null:
 		MinigameController.attach_minigame(minigame, layer_override, parent_override)
 		return minigame
 	var parent := parent_override
@@ -417,7 +417,7 @@ func _refresh_prompt_state() -> void:
 		_hide_prompt()
 
 func _uses_interaction_manager() -> bool:
-	return InteractionManager != null and InteractionManager.has_method("register_candidate")
+	return InteractionManager != null
 
 func _notify_interaction_manager_changed() -> void:
 	if _uses_interaction_manager():

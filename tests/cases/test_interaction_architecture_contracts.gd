@@ -70,6 +70,7 @@ const FINAL_ENDING_FRIDGE_PATH := "res://objects/interactable/fridge/final_endin
 const PICKUP_FLASHLIGHT_PATH := "res://objects/interactable/flashlight/pickup_flashlight.gd"
 const LAPTOP_PATH := "res://objects/interactable/notebook/laptop.gd"
 const LEBEDKA_PATH := "res://objects/interactable/lebedka/lebedka.gd"
+const INTERACTIVE_OBJECT_PATH := "res://objects/interactable/interactive_object.gd"
 const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction_result_builder.gd"
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
@@ -242,7 +243,12 @@ const FORBIDDEN_INTERACTION_MANAGER_STRINGLY_PATTERNS := [
 	"call(\"_get_interact_action\"",
 	"call('_get_interact_action'",
 	"call(\"_set_interaction_focus\"",
-	"call('_set_interaction_focus'"
+	"call('_set_interaction_focus'",
+	"MinigameController.has_method(\"has_active_minigame\")"
+]
+const FORBIDDEN_INTERACTIVE_OBJECT_STABLE_FACADE_PROBES := [
+	"MinigameController.has_method(\"attach_minigame\")",
+	"InteractionManager.has_method(\"register_candidate\")"
 ]
 const FORBIDDEN_UTILITY_STABLE_FACADE_PROBES := {
 	CRAZY_LEVEL_EVENT_PATH: [
@@ -522,6 +528,14 @@ func run() -> Array[String]:
 				interaction_manager_content.find(pattern) == -1,
 				"InteractionManager must not call InteractiveObject private API by string: %s" % pattern
 			)
+
+	var interactive_object_content := FileAccess.get_file_as_string(INTERACTIVE_OBJECT_PATH)
+	assert_true(interactive_object_content != "", "Failed to read script: %s" % INTERACTIVE_OBJECT_PATH)
+	for pattern in FORBIDDEN_INTERACTIVE_OBJECT_STABLE_FACADE_PROBES:
+		assert_true(
+			interactive_object_content.find(pattern) == -1,
+			"InteractiveObject must use stable interaction/minigame facades directly instead of stringly method probes: %s" % pattern
+		)
 
 	return get_failures()
 
