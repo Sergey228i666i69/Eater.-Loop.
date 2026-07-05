@@ -1,6 +1,7 @@
 extends "res://levels/menu/menu_base.gd"
 
 const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
+const SettingsPanelScript := preload("res://levels/menu/settings_panel.gd")
 
 @export_group("Сцены")
 ## Сцена, которая запускается при новой игре.
@@ -36,7 +37,7 @@ const InputDeviceUtilsClass := preload("res://global/input_device_utils.gd")
 @onready var _exit_button: Button = $MainPanelCenter/MainPanel/VBox/Buttons/ExitButton
 
 @onready var _main_panel: Control = $MainPanelCenter/MainPanel
-@onready var _settings_panel: Control = $SettingsPanelCenter/SettingsPanel
+@onready var _settings_panel: SettingsPanelScript = get_node("SettingsPanelCenter/SettingsPanel") as SettingsPanelScript
 @onready var _credits_panel: Control = $CreditsPanelCenter/CreditsPanel
 @onready var _credits_title: Label = $CreditsPanelCenter/CreditsPanel/VBox/Title
 @onready var _credits_scroll: ScrollContainer = $CreditsPanelCenter/CreditsPanel/VBox/CreditsScroll
@@ -117,8 +118,8 @@ func _connect_buttons() -> void:
 	_credits_button.pressed.connect(_on_credits_pressed)
 	_exit_button.pressed.connect(_on_exit_pressed)
 	_credits_back.pressed.connect(_hide_credits)
-	if _settings_panel.has_signal("closed"):
-		_settings_panel.connect("closed", _hide_settings)
+	if _settings_panel != null and not _settings_panel.closed.is_connected(_hide_settings):
+		_settings_panel.closed.connect(_hide_settings)
 
 func _update_continue_state() -> void:
 	var can_continue := false
@@ -247,8 +248,7 @@ func _focus_active_panel_default() -> void:
 func _focus_settings_default() -> void:
 	if not _settings_panel.visible:
 		return
-	if _settings_panel.has_method("focus_default"):
-		_settings_panel.call("focus_default")
+	_settings_panel.focus_default()
 
 func _grab_focus_if_visible(control: Control) -> void:
 	if control == null:

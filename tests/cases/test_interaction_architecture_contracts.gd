@@ -340,10 +340,16 @@ const FORBIDDEN_MENU_STABLE_FACADE_PROBES := {
 		"GameState.has_method(\"has_active_run_state\")",
 		"GameState.has_method(\"get_last_scene_path\")",
 		"UIMessage.has_method(\"change_scene_with_fade\")",
+		"_settings_panel.has_signal(\"closed\")",
+		"_settings_panel.has_method(\"focus_default\")",
+		"_settings_panel.call(\"focus_default\"",
 	],
 	PAUSE_MENU_PATH: [
 		"PauseManager.has_method(\"clear_all_pause_requests\")",
 		"get_tree().paused = false",
+		"_settings_panel.has_signal(\"closed\")",
+		"_settings_panel.has_method(\"focus_default\")",
+		"_settings_panel.call(\"focus_default\"",
 	],
 	SETTINGS_PANEL_PATH: [
 		"SettingsManager.has_method(\"get_language\")",

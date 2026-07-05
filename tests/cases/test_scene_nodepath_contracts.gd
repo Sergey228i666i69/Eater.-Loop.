@@ -7,9 +7,11 @@ const OBJECT_DIR := "res://objects"
 const INTERACTABLE_DIR := "res://objects/interactable"
 const ENEMY_DIR := "res://enemies"
 const BASIC_INTERACTIVE_TEMPLATE_SCENE := "res://objects/interactable/templates/basic_interactive_template.tscn"
+const MAIN_MENU_SCENE := "res://levels/menu/main_menu.tscn"
 const PAUSE_MENU_SCENE := "res://levels/menu/pause_menu.tscn"
 const INTERACTIVE_OBJECT_SCRIPT := "res://objects/interactable/interactive_object.gd"
 const PAUSE_MENU_SCRIPT := "res://levels/menu/pause_menu.gd"
+const SETTINGS_PANEL_SCRIPT := "res://levels/menu/settings_panel.gd"
 const PLAYER_SCENES := [
 	"res://player/player.tscn",
 ]
@@ -35,6 +37,7 @@ const SCENE_AUDIO_BUSES := {
 func run() -> Array[String]:
 	_test_basic_interactive_template_contract()
 	_test_pause_menu_scene_contract()
+	_test_menu_settings_panel_contracts()
 	_test_unlocked_level_doors_have_resolving_targets()
 	_test_blockpost_child_contracts()
 	_test_level_money_interactables_resolve_money_systems()
@@ -64,6 +67,23 @@ func _test_pause_menu_scene_contract() -> void:
 	if pause_menu != null:
 		assert_true(_script_path(pause_menu) == PAUSE_MENU_SCRIPT, "PauseMenu child must use pause_menu.gd for PauseManager typed lifecycle calls")
 	root.free()
+
+func _test_menu_settings_panel_contracts() -> void:
+	var contracts := [
+		{"scene": MAIN_MENU_SCENE, "panel": "SettingsPanelCenter/SettingsPanel"},
+		{"scene": PAUSE_MENU_SCENE, "panel": "PauseMenu/SettingsPanelCenter/SettingsPanel"},
+	]
+	for contract in contracts:
+		var scene_path := String(contract["scene"])
+		var root := _instantiate_scene(scene_path)
+		if root == null:
+			continue
+		var panel_path := String(contract["panel"])
+		var settings_panel := root.get_node_or_null(panel_path)
+		assert_true(settings_panel != null, "Menu scene must keep typed SettingsPanel instance: %s -> %s" % [scene_path, panel_path])
+		if settings_panel != null:
+			assert_true(_script_path(settings_panel) == SETTINGS_PANEL_SCRIPT, "Menu SettingsPanel must use settings_panel.gd for typed focus/closed API: %s -> %s" % [scene_path, panel_path])
+		root.free()
 
 func _test_unlocked_level_doors_have_resolving_targets() -> void:
 	for path in _list_level_scenes():

@@ -2,6 +2,8 @@ extends "res://levels/menu/menu_base.gd"
 
 signal resume_requested
 
+const SettingsPanelScript := preload("res://levels/menu/settings_panel.gd")
+
 @export_group("Сцены")
 ## Сцена главного меню.
 @export var main_menu_scene: PackedScene
@@ -25,7 +27,7 @@ const EXIT_WARNING := "Вы уверены, что хотите выйти? В �
 @onready var _exit_game_button: Button = $MainPanelCenter/MainPanel/VBox/Buttons/ExitGameButton
 
 @onready var _main_panel: Control = $MainPanelCenter/MainPanel
-@onready var _settings_panel: Control = $SettingsPanelCenter/SettingsPanel
+@onready var _settings_panel: SettingsPanelScript = get_node("SettingsPanelCenter/SettingsPanel") as SettingsPanelScript
 
 @onready var _confirm_panel: Control = $ConfirmPanelCenter/ConfirmPanel
 @onready var _confirm_label: Label = $ConfirmPanelCenter/ConfirmPanel/VBox/Message
@@ -217,8 +219,8 @@ func _connect_buttons() -> void:
 	_exit_game_button.pressed.connect(_on_exit_game_pressed)
 	_confirm_yes.pressed.connect(_on_confirm_yes)
 	_confirm_no.pressed.connect(_hide_confirm)
-	if _settings_panel.has_signal("closed"):
-		_settings_panel.connect("closed", _hide_settings)
+	if _settings_panel != null and not _settings_panel.closed.is_connected(_hide_settings):
+		_settings_panel.closed.connect(_hide_settings)
 
 func _show_main() -> void:
 	_active_panel = PANEL_MAIN
@@ -236,8 +238,7 @@ func _on_settings_pressed() -> void:
 	_main_panel.visible = false
 	_settings_panel.visible = true
 	_confirm_panel.visible = false
-	if _settings_panel.has_method("focus_default"):
-		_settings_panel.call("focus_default")
+	_settings_panel.focus_default()
 
 func _on_exit_menu_pressed() -> void:
 	_show_confirm(EXIT_WARNING, _exit_to_menu)
