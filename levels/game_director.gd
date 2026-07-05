@@ -384,15 +384,17 @@ func _apply_level_settings(scene: Node) -> void:
 func _resolve_cycle_number(scene: Node) -> int:
 	if scene == null:
 		return 0
-	if scene.has_method("get_cycle_number"):
-		return int(scene.get_cycle_number())
+	var level := scene as CycleLevelBase
+	if level != null:
+		return level.get_cycle_number()
 	return 0
 
 func _resolve_timer_duration(scene: Node) -> float:
 	if scene == null:
 		return default_time
-	if scene.has_method("get_timer_duration"):
-		return float(scene.get_timer_duration())
+	var level := scene as CycleLevelBase
+	if level != null:
+		return level.get_timer_duration()
 	return default_time
 
 func _create_death_overlay() -> void:

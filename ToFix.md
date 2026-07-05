@@ -39,7 +39,7 @@
 - Event/distortion music больше не push-ит дубликаты в stack при повторном старте того же source; source registry вынесен в `MusicScopedSourceRegistry` и автоматически освобождает scoped source при `Node.tree_exited`.
 - `InteractiveObject` явно unregister-ится из `InteractionManager` при `_exit_tree`, а `InteractionManager` больше не вызывает private interaction action/focus hooks строками.
 - `SearchSpot` завершает interaction после успешного нахождения ключа.
-- Ending-сцены классифицируются через `SceneContext`, gameplay path fallback ограничен `level_*.tscn`, gameplay-сцены вне стандартной папки могут опираться на `gameplay_scene` group или cycle/timer root contract, и pause menu не открывается поверх концовок.
+- Ending-сцены классифицируются через `SceneContext`, gameplay path fallback ограничен `level_*.tscn`, gameplay-сцены вне стандартной папки могут опираться на `gameplay_scene` group или typed `CycleLevel` root contract, и pause menu не открывается поверх концовок.
 - `ending_credits.gd` уважает export `return_scene`, поэтому credits можно переиспользовать в другом menu/ending flow без правки кода.
 - `tests/run_tests.sh` стал независим от cwd через `--path`.
 - Stale current-state docs обновлены под `level_14_end.*` и текущий suite.

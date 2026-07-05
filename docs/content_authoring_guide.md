@@ -14,7 +14,7 @@
 ## Новый Уровень
 
 1. Начинай новый cycle-level с копии `levels/templates/cycle_level_template.tscn`, затем перенеси копию в `levels/cycles/level_XX_name.tscn` и обнови `cycle_number`, `timer_duration`, позицию `Player`, layout и `Bed.next_level_path`. Шаблон сам не является активным уровнем кампании, но он load-tested и проверяется `test_level_authoring_contracts.gd`, поэтому изменения базового контракта должны обновлять и template.
-2. Используй существующий `levels/cycles/level.gd`-контур, если сцена является игровой. Playable scenes в `levels/cycles/` должны называться `level_*.tscn` и иметь root-контракт `get_cycle_number()` / `get_timer_duration()`; gameplay-сцены вне этой папки должны сохранять cycle/timer root contract или явно добавляться в группу `gameplay_scene`. Non-level utility-сцены в этой папке должны быть явно allowlisted в `test_level_authoring_contracts.gd`. Не добавляй локальные проверки вида `path.find("/levels/cycles/")`; классификация сцены должна идти через `SceneContext`. Базовый `CycleLevel` вызывает стабильные `SceneContext`, `GameState`, `CycleState` и `UIMessage` facade напрямую для gameplay marking, checkpoint restore/capture, default flashlight, fridge checkpoint spawn, стартовых subtitle и respawn blackout, поэтому новые уровни не должны добавлять локальные `has_method` guards вокруг этих autoload API.
+2. Используй существующий `levels/cycles/level.gd`-контур, если сцена является игровой. Playable scenes в `levels/cycles/` должны называться `level_*.tscn` и иметь root script `CycleLevel`; gameplay-сцены вне этой папки должны наследоваться от `CycleLevel` или явно добавляться в группу `gameplay_scene`. Non-level utility-сцены в этой папке должны быть явно allowlisted в `test_level_authoring_contracts.gd`. Не добавляй локальные проверки вида `path.find("/levels/cycles/")`; классификация сцены должна идти через `SceneContext`. Базовый `CycleLevel` вызывает стабильные `SceneContext`, `GameState`, `CycleState` и `UIMessage` facade напрямую для gameplay marking, checkpoint restore/capture, default flashlight, fridge checkpoint spawn, стартовых subtitle и respawn blackout, поэтому новые уровни не должны добавлять локальные `has_method` guards вокруг этих autoload API.
 3. Не правь `GameDirector` ради локальной механики уровня, пока это можно выразить интерактивом, trigger-ом, resource/config-ом или отдельным scene script.
 4. Двери должны иметь resolving `target_marker`. Self-target допустим только для inert/locked двери, иначе fade-to-self снова станет runtime-багом.
 5. Cycle-level scene должна иметь ровно один Player instance из `res://player/player.tscn`; respawn, enemies, UI bars и checkpoint flow завязаны на единственный runtime `player`.
@@ -98,7 +98,7 @@
 - required child name or `NodePath`;
 - required group/method contract;
 - scene script должен явно задать condition/config;
-- playable level scene должен иметь явный cycle/timer root contract;
+- playable level scene должен иметь явный typed `CycleLevel` root contract;
 - cycle-level metadata, Player instance/export ranges, LevelMusic or bed transition/target scene type contract;
 - lab completion id or required lab reference contract;
 - lab minigame scene contract;

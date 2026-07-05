@@ -631,6 +631,12 @@ func run() -> Array[String]:
 			assert_true(content.find("path.find(\"/levels/cycles/\")") == -1, "Gameplay scene path checks must go through SceneContext: %s" % path)
 			assert_true(content.find("path.find(\"/levels/menu/\")") == -1, "Menu scene path checks must go through SceneContext: %s" % path)
 
+	var scene_context_content := FileAccess.get_file_as_string(SCENE_CONTEXT_PATH)
+	assert_true(scene_context_content != "", "Failed to read script: %s" % SCENE_CONTEXT_PATH)
+	if scene_context_content != "":
+		assert_true(scene_context_content.find("has_method(\"get_cycle_number\")") == -1, "SceneContext gameplay classification must use typed CycleLevel contract")
+		assert_true(scene_context_content.find("has_method(\"get_timer_duration\")") == -1, "SceneContext gameplay classification must use typed CycleLevel contract")
+
 	var scenes: Array[String] = []
 	for dir_path in SCENE_DIRS:
 		scenes.append_array(utils.list_files(dir_path, ".tscn", ["tests", ".godot", "addons"], ACTIVE_SCENE_EXCLUDE_SUBSTRINGS))
@@ -648,6 +654,8 @@ func run() -> Array[String]:
 	var game_director_content := FileAccess.get_file_as_string(GAME_DIRECTOR_PATH)
 	assert_true(game_director_content != "", "Failed to read script: %s" % GAME_DIRECTOR_PATH)
 	if game_director_content != "":
+		assert_true(game_director_content.find("has_method(\"get_cycle_number\")") == -1, "GameDirector cycle metadata must use typed CycleLevel contract")
+		assert_true(game_director_content.find("has_method(\"get_timer_duration\")") == -1, "GameDirector cycle metadata must use typed CycleLevel contract")
 		for pattern in FORBIDDEN_GAME_DIRECTOR_PATTERNS:
 			assert_true(game_director_content.find(pattern) == -1, "GameDirector must delegate extracted policies instead of owning pattern: %s" % pattern)
 

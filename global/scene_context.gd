@@ -1,5 +1,7 @@
 extends Node
 
+const CycleLevelScript := preload("res://levels/cycles/level.gd")
+
 const GAMEPLAY_SCENE_GROUP := "gameplay_scene"
 const MENU_SCENE_GROUP := "menu_scene"
 const ENDING_SCENE_GROUP := "ending_scene"
@@ -25,7 +27,7 @@ func is_gameplay_scene(scene: Node) -> bool:
 		return false
 	if scene.is_in_group(GAMEPLAY_SCENE_GROUP):
 		return true
-	if scene.has_method("get_cycle_number") and scene.has_method("get_timer_duration"):
+	if scene is CycleLevelScript:
 		return true
 	return is_gameplay_scene_path(scene.scene_file_path)
 

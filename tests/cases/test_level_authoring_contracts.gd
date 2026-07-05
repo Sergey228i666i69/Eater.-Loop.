@@ -1,5 +1,6 @@
 extends "res://tests/test_case.gd"
 
+const CYCLE_LEVEL_SCRIPT := preload("res://levels/cycles/level.gd")
 const LEVEL_DIR := "res://levels/cycles"
 const CYCLE_LEVEL_TEMPLATE_SCENE := "res://levels/templates/cycle_level_template.tscn"
 const BED_SCRIPT := "res://objects/interactable/bed/bed.gd"
@@ -73,8 +74,9 @@ func _test_cycle_level_metadata_is_sane() -> void:
 		if not _is_cycle_level(root):
 			root.free()
 			continue
-		var cycle_number := _get_int_property_or_method(root, "cycle_number", "get_cycle_number")
-		var timer_duration := _get_float_property_or_method(root, "timer_duration", "get_timer_duration")
+		var cycle_level := root as CYCLE_LEVEL_SCRIPT
+		var cycle_number := cycle_level.cycle_number
+		var timer_duration := cycle_level.timer_duration
 		assert_true(cycle_number > 0, "Cycle level must have a positive cycle_number: %s" % path)
 		assert_true(timer_duration >= 0.0, "Cycle level timer_duration must be non-negative: %s" % path)
 		root.free()
@@ -280,22 +282,8 @@ func _assert_level_music_config(path: String, root: Node, level_music: Node) -> 
 		var fade_time := float(level_music.get("fade_time"))
 		assert_true(fade_time >= 0.0, "LevelMusic fade_time must be non-negative: %s:%s" % [path, root.get_path_to(level_music)])
 
-func _get_int_property_or_method(node: Node, property_name: String, method_name: String) -> int:
-	if node.has_method(method_name):
-		return int(node.call(method_name))
-	if _has_property(node, property_name):
-		return int(node.get(property_name))
-	return 0
-
-func _get_float_property_or_method(node: Node, property_name: String, method_name: String) -> float:
-	if node.has_method(method_name):
-		return float(node.call(method_name))
-	if _has_property(node, property_name):
-		return float(node.get(property_name))
-	return 0.0
-
 func _is_cycle_level(node: Node) -> bool:
-	return node.has_method("get_cycle_number") and node.has_method("get_timer_duration")
+	return node is CYCLE_LEVEL_SCRIPT
 
 func _list_level_scenes() -> Array[String]:
 	return utils.list_files(LEVEL_DIR, ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"])

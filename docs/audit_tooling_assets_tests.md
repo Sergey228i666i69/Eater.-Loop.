@@ -98,7 +98,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Typed interaction signal subscription contract запрещает runtime/scene authoring подписываться на legacy `interaction_finished`; новые level redirects и signal-driven spawner defaults используют `interaction_succeeded`.
 - InteractionManager public API contract запрещает центральному input flow возвращаться к private string calls `_get_interact_action` / `_set_interaction_focus`; manager должен использовать `InteractiveObject.get_interact_action_name()` и `set_manager_focus(...)`.
 - CycleLevel UI facade contract запрещает возвращать стартовые subtitle/respawn blackout к stringly `UIMessage.has_method/call` probes.
-- SceneContext classification contract для gameplay path fallback, cycle/timer root contract, `gameplay_scene` group и ending pause-blocking.
+- SceneContext classification contract для gameplay path fallback, typed `CycleLevel` root contract, `gameplay_scene` group и ending pause-blocking.
 - Level authoring contract для cycle metadata, single Player instance, Player export ranges, configured bed transitions, bed target scene type, conditional respawn paths, LevelMusic configs и включённых стартовых текстов.
 - Lab authoring contract для lab laptop timer settings, timed-lab minigame scene contract, explicit lab IDs и fridge required-lab references.
 - SQL minigame authoring contract для typed `SqlDropSlot`/`SqlDragWord` widgets и запрета stringly slot/word method probes.

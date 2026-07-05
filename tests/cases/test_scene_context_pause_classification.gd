@@ -24,7 +24,7 @@ func _test_gameplay_scene_classification_uses_contracts_before_paths() -> void:
 		return
 
 	var level := LevelBase.new()
-	assert_true(SceneContext.is_gameplay_scene(level), "Scenes exposing cycle/timer contract must classify as gameplay even without a level_*.tscn path")
+	assert_true(SceneContext.is_gameplay_scene(level), "Scenes extending CycleLevel must classify as gameplay even without a level_*.tscn path")
 	level.free()
 
 	var grouped_scene := Node.new()
