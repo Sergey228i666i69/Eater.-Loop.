@@ -73,6 +73,7 @@
 7. Timeout, cancel и fail-forward должны быть одноразовыми. Повторное закрытие мини-игры не должно выдавать деньги, еду или completion второй раз.
 8. Start/finish fade переходы мини-игр принадлежат `MinigameController` и идут через стабильный `UIMessage.play_fade_sequence(...)` facade; новые мини-игры не должны добавлять локальные method-probe fallback-и вокруг этого transition path.
 9. Pause/cursor ownership задавай через `MinigameSettings.pause_game` и `show_mouse_cursor`: `MinigameModalOwnership` уже ходит к typed `PauseManager`/`CursorManager` API, поэтому новая мини-игра не должна вручную дублировать эти manager-вызовы.
+10. Prompt suspend/restore и minigame music stack уже принадлежат `MinigamePromptVisibilityCoordinator`/`MinigameMusicSession`; новые мини-игры должны настраивать это через `MinigameSettings`, `stop_minigame_music(...)` и `update_minigame_music(...)`, а не добавлять `has_method`/`call("...")` fallback-и вокруг `InteractionPrompts` или `MusicManager`.
 
 ## Локализация И Текст
 

@@ -75,6 +75,8 @@ const INTERACTION_RESULT_BUILDER_PATH := "res://objects/interactable/interaction
 const BED_PATH := "res://objects/interactable/bed/bed.gd"
 const CYCLE_LEVEL_PATH := "res://levels/cycles/level.gd"
 const MINIGAME_CONTROLLER_PATH := "res://levels/minigames/minigame_controller.gd"
+const MINIGAME_PROMPT_VISIBILITY_COORDINATOR_PATH := "res://levels/minigames/minigame_prompt_visibility_coordinator.gd"
+const MINIGAME_MUSIC_SESSION_PATH := "res://levels/minigames/minigame_music_session.gd"
 const SCENE_CONTEXT_PATH := "res://global/scene_context.gd"
 const INTERACTION_MANAGER_PATH := "res://global/interaction_manager.gd"
 const CRAZY_LEVEL_EVENT_PATH := "res://levels/cycles/crazy_level_event.gd"
@@ -249,6 +251,25 @@ const FORBIDDEN_MINIGAME_CONTROLLER_UI_MESSAGE_PATTERNS := [
 	"UIMessage.has_method(\"play_fade_sequence\")",
 	"UIMessage.call(\"play_fade_sequence\""
 ]
+const FORBIDDEN_MINIGAME_STABLE_HELPER_PROBES := {
+	MINIGAME_CONTROLLER_PATH: [
+		"_gamepad_runtime.has_method(\"observe_input_device\")",
+	],
+	MINIGAME_PROMPT_VISIBILITY_COORDINATOR_PATH: [
+		"prompts.has_method(",
+		"prompts.call(",
+	],
+	MINIGAME_MUSIC_SESSION_PATH: [
+		"music_manager.has_method(",
+		"music_manager.call(\"start_minigame_music\"",
+		"music_manager.call(\"push_music\"",
+		"music_manager.call(\"pop_music\"",
+		"music_manager.call(\"stop_music\"",
+		"music_manager.call(\"stop_minigame_music\"",
+		"music_manager.call(\"resolve_mix_volume_db\"",
+		"music_manager.call(\"play_music\"",
+	],
+}
 const FORBIDDEN_INTERACTION_MANAGER_STRINGLY_PATTERNS := [
 	"call(\"_get_interact_action\"",
 	"call('_get_interact_action'",
@@ -444,42 +465,49 @@ func run() -> Array[String]:
 					"STU level scripts must use stable CycleState facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
 				)
 
-			if FORBIDDEN_ENDING_STABLE_FACADE_PROBES.has(path):
-				for pattern in FORBIDDEN_ENDING_STABLE_FACADE_PROBES[path]:
-					assert_true(
-						content.find(pattern) == -1,
-						"Ending flow scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
-					)
+		if FORBIDDEN_ENDING_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_ENDING_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Ending flow scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
 
-			if FORBIDDEN_OBJECT_STABLE_FACADE_PROBES.has(path):
-				for pattern in FORBIDDEN_OBJECT_STABLE_FACADE_PROBES[path]:
-					assert_true(
-						content.find(pattern) == -1,
-						"Content objects must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
-					)
+		if FORBIDDEN_OBJECT_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_OBJECT_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Content objects must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
 
-			if FORBIDDEN_ENEMY_STABLE_FACADE_PROBES.has(path):
-				for pattern in FORBIDDEN_ENEMY_STABLE_FACADE_PROBES[path]:
-					assert_true(
-						content.find(pattern) == -1,
-						"Enemy scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
-					)
+		if FORBIDDEN_ENEMY_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_ENEMY_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Enemy scripts must use stable autoload facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
 
-			if FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES.has(path):
-				for pattern in FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES[path]:
-					assert_true(
-						content.find(pattern) == -1,
-						"Feeding minigames must use stable facades and local FoodItem state directly instead of dead/stringly method probes: %s (%s)" % [path, pattern]
-					)
+		if FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_FEEDING_MINIGAME_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Feeding minigames must use stable facades and local FoodItem state directly instead of dead/stringly method probes: %s (%s)" % [path, pattern]
+				)
 
-			if FORBIDDEN_MENU_STABLE_FACADE_PROBES.has(path):
-				for pattern in FORBIDDEN_MENU_STABLE_FACADE_PROBES[path]:
-					assert_true(
-						content.find(pattern) == -1,
-						"Menu/settings flow must use stable autoload facades directly instead of stringly method probes or local pause fallbacks: %s (%s)" % [path, pattern]
-					)
+		if FORBIDDEN_MENU_STABLE_FACADE_PROBES.has(path):
+			for pattern in FORBIDDEN_MENU_STABLE_FACADE_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Menu/settings flow must use stable autoload facades directly instead of stringly method probes or local pause fallbacks: %s (%s)" % [path, pattern]
+				)
 
-			assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
+		if FORBIDDEN_MINIGAME_STABLE_HELPER_PROBES.has(path):
+			for pattern in FORBIDDEN_MINIGAME_STABLE_HELPER_PROBES[path]:
+				assert_true(
+					content.find(pattern) == -1,
+					"Minigame helper scripts must use stable runtime helpers/facades directly instead of stringly method probes: %s (%s)" % [path, pattern]
+				)
+
+		assert_true(content.find("print(") == -1, "Runtime scripts should use print_verbose(), push_warning(), or a typed UI/logging path instead of raw print(): %s" % path)
 
 		if path != GAME_STATE_PATH:
 			for pattern in FORBIDDEN_GAME_STATE_FIELD_PATTERNS:

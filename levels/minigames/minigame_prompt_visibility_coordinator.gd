@@ -7,25 +7,21 @@ var _suspended: bool = false
 var _restore_target: Node = null
 
 
-func suspend(prompts: Object) -> void:
+func suspend(prompts) -> void:
 	if prompts == null:
 		return
 	if _suspended:
 		return
-	if prompts.has_method("are_prompts_enabled"):
-		_previous_enabled = bool(prompts.call("are_prompts_enabled"))
-	else:
-		_previous_enabled = true
-	if prompts.has_method("set_prompts_enabled"):
-		prompts.call("set_prompts_enabled", false)
+	_previous_enabled = bool(prompts.are_prompts_enabled())
+	prompts.set_prompts_enabled(false)
 	_suspended = true
 
 
-func restore(prompts: Object) -> void:
+func restore(prompts) -> void:
 	if not _suspended:
 		return
-	if prompts != null and prompts.has_method("set_prompts_enabled"):
-		prompts.call("set_prompts_enabled", _previous_enabled)
+	if prompts != null:
+		prompts.set_prompts_enabled(_previous_enabled)
 	_suspended = false
 
 

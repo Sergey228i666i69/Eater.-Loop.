@@ -99,7 +99,7 @@ func _ensure_gamepad_scheme_registry():
 func _input(event: InputEvent) -> void:
 	if _active_minigame == null:
 		return
-	if _gamepad_runtime and _gamepad_runtime.has_method("observe_input_device"):
+	if _gamepad_runtime:
 		_gamepad_runtime.observe_input_device(event)
 
 func _unhandled_input(event: InputEvent) -> void:

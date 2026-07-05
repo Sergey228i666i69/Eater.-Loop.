@@ -67,10 +67,10 @@
 - Start/finish fade transitions мини-игр идут через стабильный `UIMessage.play_fade_sequence(...)` facade; `MinigameController` проверяет только наличие autoload-а, а не метод строкой.
 - Игра/пауза/cursor/music синхронизируются централизованно в контроллере.
 - Backdrop registry/fullscreen backdrop detection вынесены в `MinigameBackdropPresenter`.
-- Suspend/restore lifecycle для `InteractionPrompts` вынесен в `MinigamePromptVisibilityCoordinator`.
+- Suspend/restore lifecycle для `InteractionPrompts` вынесен в `MinigamePromptVisibilityCoordinator`; helper считает prompts стабильным runtime facade и вызывает `are_prompts_enabled()`/`set_prompts_enabled(...)` напрямую без stringly probes.
 - Timer state и одноразовый timeout-флаг вынесены в `MinigameTimerState`; `MinigameController` только эмитит публичные сигналы и решает auto-finish.
 - Pause/cursor ownership state вынесен в `MinigameModalOwnership`; helper ходит к typed `PauseManager`/`CursorManager` API напрямую, а публичное поведение `pause_game`/`show_mouse_cursor` остаётся в `MinigameSettings`.
-- Music stack/session state вынесен в `MinigameMusicSession`; `MinigameController` сохраняет публичные `stop_minigame_music(...)`/`update_minigame_music(...)` и ходит к `MusicManager` только через его публичный фасад.
+- Music stack/session state вынесен в `MinigameMusicSession`; `MinigameController` сохраняет публичные `stop_minigame_music(...)`/`update_minigame_music(...)`, а session ходит к `MusicManager` только через прямой публичный фасад без `call("...")`.
 - Feeding minigames держат drag lifecycle в локальном `FoodItem` state и используют стабильные `MusicManager`/`UIMessage` facades напрямую; мёртвые compatibility hooks вроде `GameState.reset_dragging` не должны возвращаться.
 - Registry зарегистрированных gamepad-схем вынесен в `GamepadSchemeRegistry`; контроллер сохраняет публичные `set_gamepad_scheme`/`clear_gamepad_scheme`.
 - Player-facing gamepad hint policy вынесен в `GamepadHintBuilder`; `GamepadRuntime` сохраняет input/navigation/callback lifecycle.

@@ -93,6 +93,7 @@ Tooling-агент ранее также наблюдал `test_audio_menu_to_le
 - Gamepad callback router regression для lookup/invoke/consumed semantics пользовательских схем мини-игр.
 - Gamepad confirm-release gate regression для защиты мини-игр от подтверждения, зажатого до старта runtime.
 - MinigameController UI transition facade contract запрещает возвращать start/finish fade к stringly `UIMessage.has_method/call` probes.
+- Minigame helper facade contract запрещает возвращать prompt suspend/restore, music session и gamepad input observation к stringly `has_method/call` probes.
 - Minigame modal ownership contract запрещает возвращать pause/cursor ownership к stringly `PauseManager`/`CursorManager` method probes.
 - Typed interaction signal subscription contract запрещает runtime/scene authoring подписываться на legacy `interaction_finished`; новые level redirects и signal-driven spawner defaults используют `interaction_succeeded`.
 - InteractionManager public API contract запрещает центральному input flow возвращаться к private string calls `_get_interact_action` / `_set_interaction_focus`; manager должен использовать `InteractiveObject.get_interact_action_name()` и `set_manager_focus(...)`.
