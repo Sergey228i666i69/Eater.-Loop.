@@ -17,6 +17,7 @@ These tests are lightweight smoke checks for project health. They run headless a
 - Architecture contracts keep external `GameState`/`CycleState` access on public methods.
 - Localization CSV and runtime text sources do not contain empty required values or mojibake; RU player-facing strings, including gamepad hints, must have CSV keys.
 - Runtime regressions for critical audio transitions (including menu -> level start).
+- Painted-shadow addon contracts cover brush falloff/interpolation, mask persistence, and native subtractive Light2D configuration.
 
 ## Run
 
@@ -48,3 +49,4 @@ Exit code is the number of failures (0 = success).
 - Runtime tests should clean up their scene/autoload side effects before returning.
 - If you add/remove core input actions, update `tests/cases/test_input_actions.gd`.
 - If you add new scene folders, include them in `tests/cases/test_scenes_load.gd`.
+- The dummy headless renderer cannot validate Light2D pixels. Run the addon's non-headless `painted_shadow_render_probe.gd` when changing its render path.
