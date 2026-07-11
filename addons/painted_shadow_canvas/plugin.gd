@@ -28,10 +28,13 @@ func _enter_tree() -> void:
 	_editor_dock = EditorDock.new()
 	_editor_dock.name = "PaintedShadowCanvasDock"
 	_editor_dock.title = "Painted Shadow"
-	_editor_dock.layout_key = "painted_shadow_canvas"
+	# Use a dedicated key so editors that saved the original hidden Inspector-tab
+	# placement migrate to the visible bottom painter on the next plugin reload.
+	_editor_dock.layout_key = "painted_shadow_canvas_painter"
 	_editor_dock.dock_icon = icon_texture
-	_editor_dock.default_slot = EditorDock.DOCK_SLOT_RIGHT_UL
-	_editor_dock.available_layouts = EditorDock.DOCK_LAYOUT_VERTICAL | EditorDock.DOCK_LAYOUT_FLOATING
+	_editor_dock.force_show_icon = true
+	_editor_dock.default_slot = EditorDock.DOCK_SLOT_BOTTOM
+	_editor_dock.available_layouts = EditorDock.DOCK_LAYOUT_ALL
 	_editor_dock.global = false
 	_editor_dock.transient = true
 	_editor_dock.add_child(_dock)
@@ -82,7 +85,9 @@ func _make_visible(visible: bool) -> void:
 	if _dock == null or _editor_dock == null:
 		return
 	if visible:
-		_editor_dock.open()
+		# open() only unhides an EditorDock. make_visible() also focuses its tab
+		# and expands the bottom panel, which is required for a contextual painter.
+		_editor_dock.make_visible()
 	else:
 		_cancel_stroke()
 		_cursor_visible = false

@@ -4,9 +4,11 @@ const CanvasScript = preload("res://addons/painted_shadow_canvas/runtime/painted
 const ADDON_ROOT := "res://addons/painted_shadow_canvas"
 const RUNTIME_SCENE_PATH := ADDON_ROOT + "/runtime/painted_shadow_canvas_2d.tscn"
 const PLUGIN_CONFIG_PATH := ADDON_ROOT + "/plugin.cfg"
+const PLUGIN_SCRIPT_PATH := ADDON_ROOT + "/plugin.gd"
 
 func run() -> Array[String]:
 	_test_addon_resources_load()
+	_test_editor_dock_contract()
 	_test_runtime_light_contract()
 	_test_mask_instances_and_snapshot_roundtrip()
 	_test_scene_serialization()
@@ -47,6 +49,29 @@ func _test_addon_resources_load() -> void:
 		var instance := scene.instantiate()
 		assert_true(instance != null and instance.get_script() == CanvasScript, "Runtime scene must instantiate the painted shadow canvas script")
 		instance.free()
+
+func _test_editor_dock_contract() -> void:
+	var source := FileAccess.get_file_as_string(PLUGIN_SCRIPT_PATH)
+	assert_true(
+		source.find("_editor_dock.layout_key = \"painted_shadow_canvas_painter\"") != -1,
+		"Painted shadow dock must not restore the legacy hidden Inspector-tab layout"
+	)
+	assert_true(
+		source.find("_editor_dock.default_slot = EditorDock.DOCK_SLOT_BOTTOM") != -1,
+		"Painted shadow controls must default to the bottom panel instead of hiding behind Inspector"
+	)
+	assert_true(
+		source.find("_editor_dock.available_layouts = EditorDock.DOCK_LAYOUT_ALL") != -1,
+		"Painted shadow dock must remain movable between bottom, side, and floating layouts"
+	)
+	assert_true(
+		source.find("_editor_dock.make_visible()") != -1,
+		"Selecting a painted shadow canvas must focus and expand its painter dock"
+	)
+	assert_true(
+		source.find("\t\t_editor_dock.open()") == -1,
+		"Painted shadow visibility must not regress to open(), which leaves the dock hidden behind another tab"
+	)
 
 func _test_runtime_light_contract() -> void:
 	var canvas := CanvasScript.new()

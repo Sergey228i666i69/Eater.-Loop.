@@ -76,7 +76,7 @@ res://addons/painted_shadow_canvas/runtime/painted_shadow_canvas_2d.tscn
 ## Рисование
 
 1. Выделите `PaintedShadowCanvas2D`.
-2. В dock **Painted Shadow** включите `Paint in 2D View`.
+2. В автоматически раскрывшейся нижней панели **Painted Shadow** включите `Paint in 2D View`.
 3. Выберите кисть:
    - `Soft Round` — универсальная мягкая тень;
    - `Hard Round` — плотная граница;
@@ -84,6 +84,8 @@ res://addons/painted_shadow_canvas/runtime/painted_shadow_canvas_2d.tscn
    - `Custom` — ручные параметры.
 4. Выберите `Darken` или `Erase`.
 5. Рисуйте левой кнопкой внутри синей рамки.
+
+Панель по умолчанию находится внизу, чтобы Inspector оставался виден. Её можно перетащить в боковой dock или сделать отдельным окном. При повторном выборе `PaintedShadowCanvas2D` plugin сам открывает и фокусирует панель. Если редактор был открыт во время обновления addon и сохранил старое расположение, один раз выключите и снова включите plugin в `Project Settings > Plugins`.
 
 Параметры кисти:
 
