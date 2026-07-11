@@ -17,7 +17,7 @@ These tests are lightweight smoke checks for project health. They run headless a
 - Architecture contracts keep external `GameState`/`CycleState` access on public methods.
 - Localization CSV and runtime text sources do not contain empty required values or mojibake; RU player-facing strings, including gamepad hints, must have CSV keys.
 - Runtime regressions for critical audio transitions (including menu -> level start).
-- Painted-shadow addon contracts cover brush falloff/interpolation, mask persistence, and native subtractive Light2D configuration.
+- Painted-shadow addon contracts cover brush falloff/interpolation, independent layer masks, scene-local persistence, per-layer receiver Z ranges, and native subtractive Light2D configuration.
 
 ## Run
 

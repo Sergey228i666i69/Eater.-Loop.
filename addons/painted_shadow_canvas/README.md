@@ -17,11 +17,24 @@
 
 Доступны пресеты `Soft Round`, `Hard Round`, `Airbrush`, режимы `Darken`/`Erase`, размер, интенсивность, мягкость, spacing, полная очистка/заливка и Undo/Redo по законченному мазку.
 
+## Слои И Z
+
+В блоке `Layer` можно создать несколько независимых масок кнопкой `+`. Для каждого слоя настраиваются имя, `Visible` и диапазон `Affects Z Min…Max`. Каждый слой создаёт собственный transient `SUB PointLight2D`, поэтому рисунки действительно фильтруют получателей по final Z.
+
+Пример для тени за объектом с `z_index = 7`:
+
+1. Создайте слой `Behind object`.
+2. Установите `Affects Z Min = -1024`, `Max = 6`.
+3. Рисуйте тень: фон на меньшем Z затемнится, объект на Z 7 останется впереди.
+
+Для одного точного Z задайте одинаковые Min и Max. Если фон и объект имеют одинаковый final Z, разделите их через `CanvasItem.light_mask`: один только Z-фильтр их не различает.
+
 Подробное руководство и проектные рекомендации: [`docs/human/painted-shadow-canvas.md`](../../docs/human/painted-shadow-canvas.md).
 
 ## Структура
 
 - `runtime/painted_shadow_canvas_2d.gd` — экспортобезопасный runtime-узел и сериализация маски.
+- `runtime/painted_shadow_layer.gd` — scene-local данные дополнительного слоя: stable ID, имя, видимость, Z и PNG-маска.
 - `runtime/painted_shadow_brush_engine.gd` — чистые операции кисти над `Image`.
 - `runtime/painted_shadow_stroke_sampler.gd` — независимая от частоты mouse events сетка штампов.
 - `editor/painted_shadow_dock.gd` — панель параметров кисти.
@@ -37,7 +50,8 @@ Editor plugin нужен только для рисования. Уже сохр
 Контракты инструмента покрыты:
 
 - `tests/cases/test_painted_shadow_brush_engine.gd`;
-- `tests/cases/test_painted_shadow_canvas_contract.gd`.
+- `tests/cases/test_painted_shadow_canvas_contract.gd`;
+- `tests/cases/test_painted_shadow_editor_stroke_sampling.gd`.
 
 Запуск из корня проекта:
 

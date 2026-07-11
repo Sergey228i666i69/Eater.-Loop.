@@ -5,6 +5,12 @@ signal settings_changed
 signal paint_mode_changed(enabled: bool)
 signal clear_requested
 signal fill_requested
+signal layer_selected(layer_id: String)
+signal layer_add_requested
+signal layer_remove_requested(layer_id: String)
+signal layer_name_changed(layer_id: String, display_name: String)
+signal layer_enabled_changed(layer_id: String, enabled: bool)
+signal layer_z_range_changed(layer_id: String, z_min: int, z_max: int)
 
 enum BrushPreset {
 	SOFT_ROUND,
@@ -19,6 +25,13 @@ enum PaintMode {
 }
 
 var _paint_toggle: Button = null
+var _layer_option: OptionButton = null
+var _layer_add_button: Button = null
+var _layer_remove_button: Button = null
+var _layer_name_edit: LineEdit = null
+var _layer_enabled_check: CheckBox = null
+var _layer_z_min_spin: SpinBox = null
+var _layer_z_max_spin: SpinBox = null
 var _preset_option: OptionButton = null
 var _mode_option: OptionButton = null
 var _size_spin: SpinBox = null
@@ -30,6 +43,8 @@ var _fill_button: Button = null
 var _status_label: Label = null
 var _applying_preset := false
 var _target_available := false
+var _updating_layer_controls := false
+var _layer_summaries: Array[Dictionary] = []
 
 func _ready() -> void:
 	_build_ui()
@@ -65,15 +80,54 @@ func adjust_brush_size(scale_factor: float) -> void:
 		return
 	_size_spin.value = clampf(_size_spin.value * scale_factor, _size_spin.min_value, _size_spin.max_value)
 
+func get_selected_layer_id() -> String:
+	if _layer_option == null or _layer_option.selected < 0:
+		return ""
+	return String(_layer_option.get_item_metadata(_layer_option.selected))
+
+func set_layer_summaries(summaries: Array, active_layer_id: String) -> void:
+	if _layer_option == null:
+		return
+	_updating_layer_controls = true
+	_layer_summaries.clear()
+	for summary_variant in summaries:
+		if summary_variant is Dictionary:
+			_layer_summaries.append((summary_variant as Dictionary).duplicate(true))
+	_layer_option.clear()
+	var selected_index := -1
+	for index in range(_layer_summaries.size()):
+		var summary := _layer_summaries[index]
+		var display_name := String(summary.get("name", "Shadow"))
+		var layer_id := String(summary.get("id", ""))
+		_layer_option.add_item(display_name)
+		_layer_option.set_item_metadata(index, layer_id)
+		_layer_option.set_item_tooltip(index, "%s · affects final Z %d…%d" % [
+			display_name,
+			int(summary.get("z_min", -1024)),
+			int(summary.get("z_max", 1024)),
+		])
+		if layer_id == active_layer_id:
+			selected_index = index
+	if selected_index < 0 and not _layer_summaries.is_empty():
+		selected_index = 0
+	if selected_index >= 0:
+		_layer_option.select(selected_index)
+	_apply_selected_layer_summary()
+	_updating_layer_controls = false
+	_update_target_controls()
+
+func set_paint_mode_enabled(enabled: bool) -> void:
+	if _paint_toggle == null:
+		return
+	_paint_toggle.button_pressed = enabled and not _paint_toggle.disabled
+
 func set_target_available(available: bool) -> void:
 	if _paint_toggle == null:
 		return
 	_target_available = available
-	_paint_toggle.disabled = not available
-	_clear_button.disabled = not available
-	_fill_button.disabled = not available
 	if not available:
 		_paint_toggle.set_pressed_no_signal(false)
+	_update_target_controls()
 	_update_status()
 
 func _build_ui() -> void:
@@ -90,6 +144,8 @@ func _build_ui() -> void:
 	explanation.modulate = Color(0.82, 0.86, 0.92)
 	add_child(explanation)
 
+	add_child(HSeparator.new())
+	_build_layer_ui()
 	add_child(HSeparator.new())
 
 	_paint_toggle = Button.new()
@@ -128,7 +184,7 @@ func _build_ui() -> void:
 
 	_clear_button = Button.new()
 	_clear_button.text = "Clear"
-	_clear_button.tooltip_text = "Remove the complete mask. This action is undoable."
+	_clear_button.tooltip_text = "Clear the selected layer mask. This action is undoable."
 	_clear_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_clear_button.pressed.connect(func() -> void:
 		clear_requested.emit()
@@ -137,7 +193,7 @@ func _build_ui() -> void:
 
 	_fill_button = Button.new()
 	_fill_button.text = "Fill"
-	_fill_button.tooltip_text = "Fill the complete mask with darkness. This action is undoable."
+	_fill_button.tooltip_text = "Fill the selected layer mask with darkness. This action is undoable."
 	_fill_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_fill_button.pressed.connect(func() -> void:
 		fill_requested.emit()
@@ -156,15 +212,196 @@ func _build_ui() -> void:
 	shortcut_label.modulate = Color(0.62, 0.68, 0.76)
 	add_child(shortcut_label)
 
+func _build_layer_ui() -> void:
+	var selection_row := HBoxContainer.new()
+	selection_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(selection_row)
+
+	var layer_label := Label.new()
+	layer_label.text = "Layer"
+	layer_label.custom_minimum_size.x = 88.0
+	selection_row.add_child(layer_label)
+
+	_layer_option = OptionButton.new()
+	_layer_option.fit_to_longest_item = false
+	_layer_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_layer_option.item_selected.connect(_on_layer_selected)
+	selection_row.add_child(_layer_option)
+
+	_layer_add_button = Button.new()
+	_layer_add_button.text = "+"
+	_layer_add_button.tooltip_text = "Add a blank painted-shadow layer."
+	_layer_add_button.pressed.connect(func() -> void:
+		layer_add_requested.emit()
+	)
+	selection_row.add_child(_layer_add_button)
+
+	_layer_remove_button = Button.new()
+	_layer_remove_button.text = "−"
+	_layer_remove_button.tooltip_text = "Remove the selected layer. The Base layer cannot be removed."
+	_layer_remove_button.pressed.connect(func() -> void:
+		var layer_id := get_selected_layer_id()
+		if not layer_id.is_empty():
+			layer_remove_requested.emit(layer_id)
+	)
+	selection_row.add_child(_layer_remove_button)
+
+	var name_row := HBoxContainer.new()
+	name_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(name_row)
+	var name_label := Label.new()
+	name_label.text = "Name"
+	name_label.custom_minimum_size.x = 88.0
+	name_row.add_child(name_label)
+	_layer_name_edit = LineEdit.new()
+	_layer_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_layer_name_edit.placeholder_text = "Shadow layer"
+	_layer_name_edit.text_submitted.connect(func(_value: String) -> void:
+		_emit_layer_name_if_changed()
+	)
+	_layer_name_edit.focus_exited.connect(_emit_layer_name_if_changed)
+	name_row.add_child(_layer_name_edit)
+	_layer_enabled_check = CheckBox.new()
+	_layer_enabled_check.text = "Visible"
+	_layer_enabled_check.tooltip_text = "Enable this layer's subtractive light. Hidden layers cannot be painted."
+	_layer_enabled_check.toggled.connect(func(enabled: bool) -> void:
+		if _updating_layer_controls:
+			return
+		var layer_id := get_selected_layer_id()
+		if not layer_id.is_empty():
+			layer_enabled_changed.emit(layer_id, enabled)
+	)
+	name_row.add_child(_layer_enabled_check)
+
+	var z_row := HBoxContainer.new()
+	z_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	add_child(z_row)
+	var z_label := Label.new()
+	z_label.text = "Affects Z"
+	z_label.custom_minimum_size.x = 88.0
+	z_label.tooltip_text = "Final CanvasItem Z values affected by this layer. Set Min = Max for one exact Z."
+	z_row.add_child(z_label)
+	_layer_z_min_spin = _create_integer_spin(-4096, 4096)
+	_layer_z_min_spin.tooltip_text = "Minimum final Z affected by this shadow layer."
+	_layer_z_min_spin.value_changed.connect(func(_value: float) -> void:
+		_on_layer_z_changed(true)
+	)
+	z_row.add_child(_layer_z_min_spin)
+	var z_to_label := Label.new()
+	z_to_label.text = "to"
+	z_row.add_child(z_to_label)
+	_layer_z_max_spin = _create_integer_spin(-4096, 4096)
+	_layer_z_max_spin.tooltip_text = "Maximum final Z affected. For a shadow behind an object at Z 7, use Max 6."
+	_layer_z_max_spin.value_changed.connect(func(_value: float) -> void:
+		_on_layer_z_changed(false)
+	)
+	z_row.add_child(_layer_z_max_spin)
+
 func _update_status() -> void:
 	if _status_label == null:
 		return
 	if not _target_available:
 		_status_label.text = "Select a PaintedShadowCanvas2D node."
+	elif not _is_selected_layer_enabled():
+		_status_label.text = "The selected layer is hidden. Enable Visible before painting."
 	elif is_paint_mode_enabled():
 		_status_label.text = "Paint active: left-drag inside the blue bounds. Space or middle-drag pans; wheel zooms."
 	else:
 		_status_label.text = "Enable Paint, then draw inside the blue bounds in the 2D viewport."
+
+func _on_layer_selected(index: int) -> void:
+	if _updating_layer_controls or index < 0 or index >= _layer_summaries.size():
+		return
+	_updating_layer_controls = true
+	_apply_selected_layer_summary()
+	_updating_layer_controls = false
+	_update_target_controls()
+	var layer_id := get_selected_layer_id()
+	if not layer_id.is_empty():
+		layer_selected.emit(layer_id)
+
+func _apply_selected_layer_summary() -> void:
+	var index := _layer_option.selected if _layer_option != null else -1
+	if index < 0 or index >= _layer_summaries.size():
+		if _layer_name_edit != null:
+			_layer_name_edit.text = ""
+		return
+	var summary := _layer_summaries[index]
+	_layer_name_edit.text = String(summary.get("name", "Shadow"))
+	_layer_enabled_check.button_pressed = bool(summary.get("enabled", true))
+	_layer_z_min_spin.value = int(summary.get("z_min", -1024))
+	_layer_z_max_spin.value = int(summary.get("z_max", 1024))
+	_layer_remove_button.disabled = not bool(summary.get("removable", false))
+
+func _emit_layer_name_if_changed() -> void:
+	if _updating_layer_controls or _layer_name_edit == null:
+		return
+	var index := _layer_option.selected
+	if index < 0 or index >= _layer_summaries.size():
+		return
+	var current_name := String(_layer_summaries[index].get("name", "Shadow"))
+	var requested_name := _layer_name_edit.text.strip_edges()
+	if requested_name.is_empty():
+		requested_name = "Base" if get_selected_layer_id() == "base" else "Shadow"
+	if requested_name == current_name:
+		return
+	layer_name_changed.emit(get_selected_layer_id(), requested_name)
+
+func _on_layer_z_changed(changed_minimum: bool) -> void:
+	if _updating_layer_controls:
+		return
+	_updating_layer_controls = true
+	var z_min := int(_layer_z_min_spin.value)
+	var z_max := int(_layer_z_max_spin.value)
+	if z_min > z_max:
+		if changed_minimum:
+			z_max = z_min
+			_layer_z_max_spin.value = z_max
+		else:
+			z_min = z_max
+			_layer_z_min_spin.value = z_min
+	_updating_layer_controls = false
+	var layer_id := get_selected_layer_id()
+	if not layer_id.is_empty():
+		layer_z_range_changed.emit(layer_id, z_min, z_max)
+
+func _is_selected_layer_enabled() -> bool:
+	var index := _layer_option.selected if _layer_option != null else -1
+	return (
+		index >= 0
+		and index < _layer_summaries.size()
+		and bool(_layer_summaries[index].get("enabled", false))
+	)
+
+func _update_target_controls() -> void:
+	if _paint_toggle == null:
+		return
+	var has_layer := _target_available and not _layer_summaries.is_empty()
+	var can_paint_layer := has_layer and _is_selected_layer_enabled()
+	_paint_toggle.disabled = not can_paint_layer
+	_clear_button.disabled = not can_paint_layer
+	_fill_button.disabled = not can_paint_layer
+	if not can_paint_layer:
+		_paint_toggle.set_pressed_no_signal(false)
+	_layer_option.disabled = not _target_available
+	_layer_add_button.disabled = not _target_available
+	if not has_layer:
+		_layer_remove_button.disabled = true
+	_layer_name_edit.editable = has_layer
+	_layer_enabled_check.disabled = not has_layer
+	_layer_z_min_spin.editable = has_layer
+	_layer_z_max_spin.editable = has_layer
+	_update_status()
+
+func _create_integer_spin(min_value: int, max_value: int) -> SpinBox:
+	var spin := SpinBox.new()
+	spin.min_value = min_value
+	spin.max_value = max_value
+	spin.step = 1.0
+	spin.allow_greater = false
+	spin.allow_lesser = false
+	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return spin
 
 func _add_option_row(label_text: String, items: Array[String]) -> OptionButton:
 	var row := HBoxContainer.new()

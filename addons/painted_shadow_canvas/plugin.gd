@@ -5,6 +5,7 @@ const CanvasScript = preload("res://addons/painted_shadow_canvas/runtime/painted
 const DockScript = preload("res://addons/painted_shadow_canvas/editor/painted_shadow_dock.gd")
 const StrokeSampler = preload("res://addons/painted_shadow_canvas/runtime/painted_shadow_stroke_sampler.gd")
 const ICON_PATH := "res://addons/painted_shadow_canvas/icon.svg"
+const BASE_LAYER_ID := "base"
 
 var _dock: VBoxContainer = null
 var _editor_dock: EditorDock = null
@@ -12,9 +13,11 @@ var _edited_canvas: Node2D = null
 var _stroke_active := false
 var _stroke_changed := false
 var _stroke_before := PackedByteArray()
+var _stroke_layer_id := BASE_LAYER_ID
 var _stroke_sampler: RefCounted = StrokeSampler.new()
 var _cursor_local_position := Vector2.ZERO
 var _cursor_visible := false
+var _active_layer_id := BASE_LAYER_ID
 
 static func compose_local_to_viewport_transform(
 	viewport_canvas_transform: Transform2D,
@@ -53,6 +56,12 @@ func _enter_tree() -> void:
 	_dock.paint_mode_changed.connect(_on_paint_mode_changed)
 	_dock.clear_requested.connect(_on_clear_requested)
 	_dock.fill_requested.connect(_on_fill_requested)
+	_dock.layer_selected.connect(_on_layer_selected)
+	_dock.layer_add_requested.connect(_on_layer_add_requested)
+	_dock.layer_remove_requested.connect(_on_layer_remove_requested)
+	_dock.layer_name_changed.connect(_on_layer_name_changed)
+	_dock.layer_enabled_changed.connect(_on_layer_enabled_changed)
+	_dock.layer_z_range_changed.connect(_on_layer_z_range_changed)
 	_editor_dock = EditorDock.new()
 	_editor_dock.name = "PaintedShadowCanvasDock"
 	_editor_dock.title = "Painted Shadow"
@@ -78,7 +87,7 @@ func _exit_tree() -> void:
 		_editor_dock = null
 	_dock = null
 	remove_custom_type("PaintedShadowCanvas2D")
-	_edited_canvas = null
+	_set_edited_canvas(null)
 
 func _handles(object: Object) -> bool:
 	if object == null:
@@ -92,10 +101,12 @@ func _handles(object: Object) -> bool:
 
 func _clear() -> void:
 	_cancel_stroke()
-	_edited_canvas = null
+	_set_edited_canvas(null)
+	_active_layer_id = BASE_LAYER_ID
 	_cursor_visible = false
 	if _dock != null:
 		_dock.set_target_available(false)
+		_dock.set_layer_summaries([], "")
 	update_overlays()
 
 func _apply_changes() -> void:
@@ -103,10 +114,12 @@ func _apply_changes() -> void:
 
 func _edit(object: Object) -> void:
 	_finish_stroke()
-	_edited_canvas = object as Node2D if _handles(object) else null
+	_set_edited_canvas(object as Node2D if _handles(object) else null)
+	_active_layer_id = BASE_LAYER_ID
 	_cursor_visible = false
 	if _dock != null:
 		_dock.set_target_available(_edited_canvas != null)
+		_refresh_layer_controls()
 	update_overlays()
 
 func _make_visible(visible: bool) -> void:
@@ -128,6 +141,11 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.ctrl_pressed or event.meta_pressed or event.alt_pressed:
+			# Let the editor handle its shortcuts, but first turn an in-flight
+			# stroke into the newest Undo action. In particular, Cmd/Ctrl+Z must
+			# undo that stroke instead of removing a newly added active layer.
+			if _stroke_active:
+				_finish_stroke()
 			return false
 		match event.keycode:
 			KEY_B:
@@ -231,6 +249,8 @@ func _can_paint() -> bool:
 		_edited_canvas != null
 		and is_instance_valid(_edited_canvas)
 		and _dock != null
+		and bool(_edited_canvas.call("has_layer", _active_layer_id))
+		and bool(_edited_canvas.call("is_layer_enabled", _active_layer_id))
 		and _dock.is_paint_mode_enabled()
 	)
 
@@ -252,7 +272,8 @@ func _get_local_to_viewport_transform() -> Transform2D:
 func _begin_stroke(local_position: Vector2) -> void:
 	if _stroke_active:
 		_finish_stroke()
-	_stroke_before = _edited_canvas.call("capture_mask_snapshot") as PackedByteArray
+	_stroke_layer_id = _active_layer_id
+	_stroke_before = _edited_canvas.call("capture_layer_mask_snapshot", _stroke_layer_id) as PackedByteArray
 	_stroke_active = true
 	_stroke_changed = false
 	var radius: float = float(_dock.call("get_brush_size")) * 0.5
@@ -269,7 +290,8 @@ func _paint_points(points: PackedVector2Array) -> void:
 		return
 	var radius: float = float(_dock.call("get_brush_size")) * 0.5
 	var changed: bool = _edited_canvas.call(
-		"paint_points",
+		"paint_points_on_layer",
+		_stroke_layer_id,
 		points,
 		radius,
 		_dock.get_brush_strength(),
@@ -289,11 +311,11 @@ func _finish_stroke() -> void:
 		return
 	_paint_points(_stroke_sampler.call("finish", true) as PackedVector2Array)
 	_stroke_active = false
-	var after := _edited_canvas.call("capture_mask_snapshot") as PackedByteArray
+	var after := _edited_canvas.call("capture_layer_mask_snapshot", _stroke_layer_id) as PackedByteArray
 	if _stroke_changed and after != _stroke_before:
-		_commit_snapshot_action("Paint shadow stroke", _stroke_before, after)
+		_commit_snapshot_action("Paint shadow stroke", _stroke_layer_id, _stroke_before, after)
 	else:
-		_edited_canvas.call("apply_mask_snapshot", _stroke_before)
+		_edited_canvas.call("apply_layer_mask_snapshot", _stroke_layer_id, _stroke_before)
 	_stroke_before = PackedByteArray()
 	_stroke_changed = false
 
@@ -302,30 +324,168 @@ func _cancel_stroke() -> void:
 		return
 	_stroke_active = false
 	if _edited_canvas != null and is_instance_valid(_edited_canvas):
-		_edited_canvas.call("apply_mask_snapshot", _stroke_before)
+		_edited_canvas.call("apply_layer_mask_snapshot", _stroke_layer_id, _stroke_before)
 	_stroke_sampler.call("cancel")
 	_stroke_before = PackedByteArray()
 	_stroke_changed = false
 	update_overlays()
 
-func _commit_snapshot_action(action_name: String, before: PackedByteArray, after: PackedByteArray) -> void:
+func _commit_snapshot_action(
+	action_name: String,
+	layer_id: String,
+	before: PackedByteArray,
+	after: PackedByteArray
+) -> void:
 	var undo_redo := get_undo_redo()
 	undo_redo.create_action(action_name, UndoRedo.MERGE_DISABLE, _edited_canvas)
-	undo_redo.add_do_method(_edited_canvas, &"apply_mask_snapshot", after)
-	undo_redo.add_undo_method(_edited_canvas, &"apply_mask_snapshot", before)
+	undo_redo.add_do_method(_edited_canvas, &"apply_layer_mask_snapshot", layer_id, after)
+	undo_redo.add_undo_method(_edited_canvas, &"apply_layer_mask_snapshot", layer_id, before)
 	undo_redo.commit_action()
 
 func _apply_full_mask_action(action_name: String, value: float) -> void:
 	if _edited_canvas == null or not is_instance_valid(_edited_canvas):
 		return
 	_finish_stroke()
-	var before := _edited_canvas.call("capture_mask_snapshot") as PackedByteArray
-	_edited_canvas.call("fill_mask", value)
-	var after := _edited_canvas.call("capture_mask_snapshot") as PackedByteArray
+	var before := _edited_canvas.call("capture_layer_mask_snapshot", _active_layer_id) as PackedByteArray
+	_edited_canvas.call("fill_layer_mask", _active_layer_id, value)
+	var after := _edited_canvas.call("capture_layer_mask_snapshot", _active_layer_id) as PackedByteArray
 	if after == before:
 		return
-	_commit_snapshot_action(action_name, before, after)
+	_commit_snapshot_action(action_name, _active_layer_id, before, after)
 	update_overlays()
+
+func _set_edited_canvas(canvas: Node2D) -> void:
+	var callback := Callable(self, "_on_canvas_layers_changed")
+	if (
+		_edited_canvas != null
+		and is_instance_valid(_edited_canvas)
+		and _edited_canvas.is_connected(&"layers_changed", callback)
+	):
+		_edited_canvas.disconnect(&"layers_changed", callback)
+	_edited_canvas = canvas
+	if (
+		_edited_canvas != null
+		and is_instance_valid(_edited_canvas)
+		and not _edited_canvas.is_connected(&"layers_changed", callback)
+	):
+		_edited_canvas.connect(&"layers_changed", callback)
+
+func _refresh_layer_controls() -> void:
+	if _dock == null:
+		return
+	if _edited_canvas == null or not is_instance_valid(_edited_canvas):
+		_dock.set_layer_summaries([], "")
+		return
+	if not bool(_edited_canvas.call("has_layer", _active_layer_id)):
+		_active_layer_id = BASE_LAYER_ID
+	var summaries: Array[Dictionary] = []
+	for summary_variant in _edited_canvas.call("get_layer_summaries") as Array:
+		summaries.append(summary_variant as Dictionary)
+	_dock.set_layer_summaries(summaries, _active_layer_id)
+
+func _on_canvas_layers_changed() -> void:
+	if _edited_canvas == null or not is_instance_valid(_edited_canvas):
+		return
+	if _stroke_active and not bool(_edited_canvas.call("has_layer", _stroke_layer_id)):
+		_cancel_stroke()
+	if not bool(_edited_canvas.call("has_layer", _active_layer_id)):
+		_active_layer_id = BASE_LAYER_ID
+	_refresh_layer_controls()
+	update_overlays()
+
+func _on_layer_selected(layer_id: String) -> void:
+	if _edited_canvas == null or not bool(_edited_canvas.call("has_layer", layer_id)):
+		return
+	_finish_stroke()
+	_active_layer_id = layer_id
+	_refresh_layer_controls()
+	update_overlays()
+
+func _on_layer_add_requested() -> void:
+	if _edited_canvas == null or not is_instance_valid(_edited_canvas):
+		return
+	_finish_stroke()
+	# get_layer_count() includes Base, so its current value is the ordinal of
+	# the next additional layer (Base only -> Shadow 1).
+	var layer_number := int(_edited_canvas.call("get_layer_count"))
+	var layer := _edited_canvas.call(
+		"create_shadow_layer",
+		"Shadow %d" % layer_number,
+		-1024,
+		0
+	) as Resource
+	if layer == null:
+		return
+	var layer_id := String(layer.get("layer_id"))
+	var insertion_index := int(_edited_canvas.call("get_layer_count"))
+	_active_layer_id = layer_id
+	var undo_redo := get_undo_redo()
+	undo_redo.create_action("Add painted shadow layer", UndoRedo.MERGE_DISABLE, _edited_canvas)
+	undo_redo.add_do_method(_edited_canvas, &"insert_shadow_layer", layer, insertion_index)
+	undo_redo.add_undo_method(_edited_canvas, &"remove_shadow_layer", layer_id)
+	undo_redo.commit_action()
+
+func _on_layer_remove_requested(layer_id: String) -> void:
+	if _edited_canvas == null or layer_id == BASE_LAYER_ID:
+		return
+	_finish_stroke()
+	var layer := _edited_canvas.call("get_shadow_layer_resource", layer_id) as Resource
+	var layer_index := int(_edited_canvas.call("get_layer_index", layer_id))
+	if layer == null or layer_index <= 0:
+		return
+	if _active_layer_id == layer_id:
+		_active_layer_id = BASE_LAYER_ID
+	var undo_redo := get_undo_redo()
+	undo_redo.create_action("Remove painted shadow layer", UndoRedo.MERGE_DISABLE, _edited_canvas)
+	undo_redo.add_do_method(_edited_canvas, &"remove_shadow_layer", layer_id)
+	undo_redo.add_undo_method(_edited_canvas, &"insert_shadow_layer", layer, layer_index)
+	undo_redo.commit_action()
+
+func _on_layer_name_changed(layer_id: String, display_name: String) -> void:
+	if _edited_canvas == null:
+		return
+	_finish_stroke()
+	var old_name := String(_edited_canvas.call("get_layer_name", layer_id))
+	if old_name == display_name:
+		return
+	var undo_redo := get_undo_redo()
+	undo_redo.create_action("Rename painted shadow layer", UndoRedo.MERGE_DISABLE, _edited_canvas)
+	undo_redo.add_do_method(_edited_canvas, &"set_layer_name", layer_id, display_name)
+	undo_redo.add_undo_method(_edited_canvas, &"set_layer_name", layer_id, old_name)
+	undo_redo.commit_action()
+
+func _on_layer_enabled_changed(layer_id: String, enabled: bool) -> void:
+	if _edited_canvas == null:
+		return
+	_finish_stroke()
+	var old_enabled := bool(_edited_canvas.call("is_layer_enabled", layer_id))
+	if old_enabled == enabled:
+		return
+	if not enabled and _dock != null:
+		_dock.set_paint_mode_enabled(false)
+	var undo_redo := get_undo_redo()
+	undo_redo.create_action("Toggle painted shadow layer", UndoRedo.MERGE_DISABLE, _edited_canvas)
+	undo_redo.add_do_method(_edited_canvas, &"set_layer_enabled", layer_id, enabled)
+	undo_redo.add_undo_method(_edited_canvas, &"set_layer_enabled", layer_id, old_enabled)
+	undo_redo.commit_action()
+
+func _on_layer_z_range_changed(layer_id: String, z_min: int, z_max: int) -> void:
+	if _edited_canvas == null:
+		return
+	_finish_stroke()
+	var old_range := _edited_canvas.call("get_layer_z_range", layer_id) as Vector2i
+	var new_range := Vector2i(mini(z_min, z_max), maxi(z_min, z_max))
+	if old_range == new_range:
+		return
+	var undo_redo := get_undo_redo()
+	# Layer selection itself is not an Undo action. MERGE_ENDS would therefore
+	# merge consecutive edits of different layers under this shared action name,
+	# keeping the first layer's undo and the second layer's redo. Keep each
+	# committed Z change independent and correct.
+	undo_redo.create_action("Set painted shadow layer Z", UndoRedo.MERGE_DISABLE, _edited_canvas)
+	undo_redo.add_do_method(_edited_canvas, &"set_layer_z_range", layer_id, new_range.x, new_range.y)
+	undo_redo.add_undo_method(_edited_canvas, &"set_layer_z_range", layer_id, old_range.x, old_range.y)
+	undo_redo.commit_action()
 
 func _on_settings_changed() -> void:
 	update_overlays()
@@ -337,7 +497,7 @@ func _on_paint_mode_changed(enabled: bool) -> void:
 	update_overlays()
 
 func _on_clear_requested() -> void:
-	_apply_full_mask_action("Clear painted shadow", 0.0)
+	_apply_full_mask_action("Clear painted shadow layer", 0.0)
 
 func _on_fill_requested() -> void:
-	_apply_full_mask_action("Fill painted shadow", 1.0)
+	_apply_full_mask_action("Fill painted shadow layer", 1.0)

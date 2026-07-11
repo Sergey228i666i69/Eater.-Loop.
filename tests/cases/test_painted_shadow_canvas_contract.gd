@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
 
 const CanvasScript = preload("res://addons/painted_shadow_canvas/runtime/painted_shadow_canvas_2d.gd")
+const LayerScript = preload("res://addons/painted_shadow_canvas/runtime/painted_shadow_layer.gd")
 const PluginScript = preload("res://addons/painted_shadow_canvas/plugin.gd")
 const ADDON_ROOT := "res://addons/painted_shadow_canvas"
 const RUNTIME_SCENE_PATH := ADDON_ROOT + "/runtime/painted_shadow_canvas_2d.tscn"
@@ -13,6 +14,7 @@ func run() -> Array[String]:
 	_test_editor_viewport_transform_contract()
 	_test_editor_input_capture_contract()
 	_test_runtime_light_contract()
+	_test_layer_masks_and_lights()
 	_test_mask_instances_and_snapshot_roundtrip()
 	_test_scene_serialization()
 	return get_failures()
@@ -31,6 +33,7 @@ func _test_addon_resources_load() -> void:
 		plugin_script_path,
 		ADDON_ROOT + "/editor/painted_shadow_dock.gd",
 		ADDON_ROOT + "/runtime/painted_shadow_brush_engine.gd",
+		ADDON_ROOT + "/runtime/painted_shadow_layer.gd",
 		ADDON_ROOT + "/runtime/painted_shadow_stroke_sampler.gd",
 		ADDON_ROOT + "/runtime/painted_shadow_canvas_2d.gd",
 		RUNTIME_SCENE_PATH,
@@ -78,6 +81,10 @@ func _test_editor_dock_contract() -> void:
 	assert_true(
 		source.find("return capture_left_drag") != -1,
 		"Paint mode must consume left-button motion even when the pointer is outside the canvas bounds"
+	)
+	assert_true(
+		source.find("_stroke_layer_id") != -1 and source.find("apply_layer_mask_snapshot") != -1,
+		"Painted shadow Undo/Redo must keep strokes bound to a stable layer ID"
 	)
 
 func _test_editor_viewport_transform_contract() -> void:
@@ -173,6 +180,66 @@ func _test_runtime_light_contract() -> void:
 	assert_eq(canvas.get_mask_image_copy().get_format(), Image.FORMAT_L8, "Authoritative saved mask must remain compact L8 data")
 	canvas.free()
 
+func _test_layer_masks_and_lights() -> void:
+	var canvas := CanvasScript.new()
+	canvas.canvas_size = Vector2(128.0, 64.0)
+	canvas.mask_resolution = Vector2i(64, 32)
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree != null:
+		tree.root.add_child(canvas)
+
+	var layer := canvas.create_shadow_layer("Behind table", -5, 6) as Resource
+	assert_true(layer != null and layer.get_script() == LayerScript, "Canvas must create typed painted-shadow layer resources")
+	assert_true(layer.resource_local_to_scene, "Painted-shadow layers must be local to each scene instance")
+	var layer_id := String(layer.get("layer_id"))
+	canvas.insert_shadow_layer(layer, 1)
+	assert_eq(canvas.get_layer_count(), 2, "Adding a layer must preserve Base and append one independent layer")
+	assert_eq(canvas.get_layer_index(layer_id), 1, "Additional layer must keep a stable ID and index")
+	canvas.set_layer_z_range(CanvasScript.BASE_LAYER_ID, 2048, 2048)
+	assert_eq(
+		canvas.get_layer_z_range(CanvasScript.BASE_LAYER_ID),
+		Vector2i(2048, 2048),
+		"Moving the complete Base Z range above its previous maximum must not clamp against stale state"
+	)
+	canvas.set_layer_z_range(CanvasScript.BASE_LAYER_ID, -1024, 1024)
+	canvas.set_layer_z_range(layer_id, 5000, 6000)
+	assert_eq(
+		canvas.get_layer_z_range(layer_id),
+		Vector2i(RenderingServer.CANVAS_ITEM_Z_MAX, RenderingServer.CANVAS_ITEM_Z_MAX),
+		"Additional layer Z ranges must stay inside CanvasItem renderer limits"
+	)
+	canvas.set_layer_z_range(layer_id, -5, 6)
+
+	var points := PackedVector2Array([Vector2(64.0, 32.0)])
+	assert_true(
+		canvas.paint_points_on_layer(layer_id, points, 12.0, 1.0, 0.0),
+		"Painting the selected layer must change its independent mask"
+	)
+	assert_true(canvas.get_layer_mask_value(layer_id, Vector2i(32, 16)) > 0.9, "Additional layer must store its own painted pixels")
+	assert_true(canvas.get_mask_value(Vector2i(32, 16)) < 0.01, "Painting an additional layer must not change the Base mask")
+	canvas.apply_layer_mask_snapshot(layer_id, canvas.capture_layer_mask_snapshot(layer_id))
+
+	var layer_light: PointLight2D = canvas.get_shadow_light_for_layer(layer_id)
+	assert_true(layer_light != null, "Every painted layer must own one internal PointLight2D")
+	if layer_light != null:
+		assert_eq(layer_light.blend_mode, Light2D.BLEND_MODE_SUB, "Layer lights must use subtractive blending")
+		assert_eq(layer_light.range_z_min, -5, "Layer light must keep its receiver Z minimum")
+		assert_eq(layer_light.range_z_max, 6, "Layer light must keep its receiver Z maximum")
+		assert_true(layer_light.owner == null, "Layer lights must remain transient and absent from authored scenes")
+		assert_true(layer_light.texture != null, "Layer light must receive its independent GPU mask")
+		if layer_light.texture != null:
+			assert_eq(layer_light.texture.get_image().get_format(), Image.FORMAT_RGBA8, "Layer GPU masks must be RGBA8 for GL Compatibility")
+
+	canvas.set_layer_enabled(layer_id, false)
+	assert_true(not layer_light.enabled, "Hidden painted layers must disable their subtractive light")
+	canvas.set_layer_enabled(layer_id, true)
+	var removed := canvas.remove_shadow_layer(layer_id)
+	assert_true(removed == layer, "Removing a layer must return the same resource for Undo reinsertion")
+	assert_eq(canvas.get_shadow_lights().size(), 1, "Removing a layer must remove only its transient light")
+	canvas.insert_shadow_layer(removed, 1)
+	assert_true(canvas.get_layer_mask_value(layer_id, Vector2i(32, 16)) > 0.9, "Reinserting a removed layer must restore its mask by stable ID")
+	canvas.free()
+
 func _test_mask_instances_and_snapshot_roundtrip() -> void:
 	var first := CanvasScript.new()
 	var second := CanvasScript.new()
@@ -206,6 +273,11 @@ func _test_scene_serialization() -> void:
 	canvas.mask_resolution = Vector2i(100, 50)
 	canvas.paint_segment(Vector2(100.0, 50.0), Vector2(100.0, 50.0), 20.0, 1.0, 0.3, 0.2)
 	canvas.apply_mask_snapshot(canvas.capture_mask_snapshot())
+	var extra_layer := canvas.create_shadow_layer("Behind props", -5, 6) as Resource
+	var extra_layer_id := String(extra_layer.get("layer_id"))
+	canvas.insert_shadow_layer(extra_layer, 1)
+	canvas.paint_points_on_layer(extra_layer_id, PackedVector2Array([Vector2(40.0, 25.0)]), 16.0, 1.0, 0.0)
+	canvas.apply_layer_mask_snapshot(extra_layer_id, canvas.capture_layer_mask_snapshot(extra_layer_id))
 
 	var packed := PackedScene.new()
 	assert_eq(packed.pack(canvas), OK, "Painted shadow canvas must pack into a scene")
@@ -217,11 +289,24 @@ func _test_scene_serialization() -> void:
 	assert_true(loaded != null, "Saved painted shadow scene must load")
 	if loaded != null:
 		var restored := loaded.instantiate()
+		var second_instance := loaded.instantiate()
 		assert_true(restored != null, "Saved painted shadow scene must instantiate")
 		if restored != null:
 			assert_true(restored.get_mask_value(Vector2i(50, 25)) > 0.5, "Painted mask must survive save and reload")
 			assert_eq(restored.get_shadow_light().blend_mode, Light2D.BLEND_MODE_SUB, "Restored scene must rebuild its subtractive light")
+			assert_eq(restored.get_layer_count(), 2, "Saved additional painted layers must survive scene reload")
+			assert_eq(restored.get_layer_name(extra_layer_id), "Behind props", "Saved layer names must survive scene reload")
+			assert_eq(restored.get_layer_z_range(extra_layer_id), Vector2i(-5, 6), "Saved receiver Z ranges must survive scene reload")
+			assert_true(restored.get_layer_mask_value(extra_layer_id, Vector2i(20, 12)) > 0.5, "Saved additional masks must survive scene reload")
+			if second_instance != null:
+				var first_resource := restored.get_shadow_layer_resource(extra_layer_id) as Resource
+				var second_resource := second_instance.get_shadow_layer_resource(extra_layer_id) as Resource
+				assert_true(first_resource != second_resource, "Scene instances must not share mutable painted-layer resources")
+				restored.set_layer_name(extra_layer_id, "Changed in first instance")
+				assert_eq(second_instance.get_layer_name(extra_layer_id), "Behind props", "Changing one instance must not rename another instance's layer")
 			restored.free()
+		if second_instance != null:
+			second_instance.free()
 
 	var absolute_path := ProjectSettings.globalize_path(temp_path)
 	if FileAccess.file_exists(temp_path):
