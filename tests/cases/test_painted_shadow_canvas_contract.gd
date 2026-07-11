@@ -1,6 +1,7 @@
 extends "res://tests/test_case.gd"
 
 const CanvasScript = preload("res://addons/painted_shadow_canvas/runtime/painted_shadow_canvas_2d.gd")
+const PluginScript = preload("res://addons/painted_shadow_canvas/plugin.gd")
 const ADDON_ROOT := "res://addons/painted_shadow_canvas"
 const RUNTIME_SCENE_PATH := ADDON_ROOT + "/runtime/painted_shadow_canvas_2d.tscn"
 const PLUGIN_CONFIG_PATH := ADDON_ROOT + "/plugin.cfg"
@@ -9,6 +10,8 @@ const PLUGIN_SCRIPT_PATH := ADDON_ROOT + "/plugin.gd"
 func run() -> Array[String]:
 	_test_addon_resources_load()
 	_test_editor_dock_contract()
+	_test_editor_viewport_transform_contract()
+	_test_editor_input_capture_contract()
 	_test_runtime_light_contract()
 	_test_mask_instances_and_snapshot_roundtrip()
 	_test_scene_serialization()
@@ -71,6 +74,72 @@ func _test_editor_dock_contract() -> void:
 	assert_true(
 		source.find("\t\t_editor_dock.open()") == -1,
 		"Painted shadow visibility must not regress to open(), which leaves the dock hidden behind another tab"
+	)
+	assert_true(
+		source.find("return capture_left_drag") != -1,
+		"Paint mode must consume left-button motion even when the pointer is outside the canvas bounds"
+	)
+
+func _test_editor_viewport_transform_contract() -> void:
+	var viewport_transform := Transform2D(
+		Vector2(0.35, 0.0),
+		Vector2(0.0, 0.35),
+		Vector2(-800.0, 250.0)
+	)
+	var item_transform := Transform2D(
+		Vector2(1.1, 0.2),
+		Vector2(-0.1, 0.9),
+		Vector2(6057.0, -293.0)
+	)
+	var local_position := Vector2(1000.0, 360.0)
+	var local_to_viewport: Transform2D = PluginScript.compose_local_to_viewport_transform(
+		viewport_transform,
+		item_transform
+	)
+	var viewport_position := local_to_viewport * local_position
+	var restored_local: Vector2 = PluginScript.viewport_position_to_local(
+		viewport_position,
+		viewport_transform,
+		item_transform
+	)
+	assert_true(
+		restored_local.is_equal_approx(local_position),
+		"Editor brush coordinates must round-trip through viewport zoom/pan and item transforms"
+	)
+
+func _test_editor_input_capture_contract() -> void:
+	var left_press := InputEventMouseButton.new()
+	left_press.button_index = MOUSE_BUTTON_LEFT
+	left_press.pressed = true
+	assert_true(
+		PluginScript.should_capture_paint_pointer_event(left_press, false),
+		"Paint mode must consume left-button presses before CanvasItem transform tools"
+	)
+
+	var left_release := InputEventMouseButton.new()
+	left_release.button_index = MOUSE_BUTTON_LEFT
+	left_release.pressed = false
+	assert_true(
+		PluginScript.should_capture_paint_pointer_event(left_release, false),
+		"Paint mode must consume left-button releases before CanvasItem transform tools"
+	)
+
+	var left_drag := InputEventMouseMotion.new()
+	left_drag.button_mask = MOUSE_BUTTON_MASK_LEFT
+	assert_true(
+		PluginScript.should_capture_paint_pointer_event(left_drag, false),
+		"Paint mode must consume left-button motion outside the canvas bounds"
+	)
+	assert_true(
+		not PluginScript.should_capture_paint_pointer_event(left_drag, true),
+		"Space or middle-button navigation must remain available during Paint mode"
+	)
+
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	assert_true(
+		not PluginScript.should_capture_paint_pointer_event(wheel, false),
+		"Paint mode must leave wheel zoom events to the 2D editor"
 	)
 
 func _test_runtime_light_contract() -> void:

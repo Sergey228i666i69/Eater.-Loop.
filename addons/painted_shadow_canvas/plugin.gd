@@ -16,6 +16,34 @@ var _stroke_sampler: RefCounted = StrokeSampler.new()
 var _cursor_local_position := Vector2.ZERO
 var _cursor_visible := false
 
+static func compose_local_to_viewport_transform(
+	viewport_canvas_transform: Transform2D,
+	item_canvas_transform: Transform2D
+) -> Transform2D:
+	return viewport_canvas_transform * item_canvas_transform
+
+static func viewport_position_to_local(
+	viewport_position: Vector2,
+	viewport_canvas_transform: Transform2D,
+	item_canvas_transform: Transform2D
+) -> Vector2:
+	return compose_local_to_viewport_transform(
+		viewport_canvas_transform,
+		item_canvas_transform
+	).affine_inverse() * viewport_position
+
+static func should_capture_paint_pointer_event(
+	event: InputEvent,
+	navigation_active: bool
+) -> bool:
+	if navigation_active:
+		return false
+	if event is InputEventMouseButton:
+		return event.button_index == MOUSE_BUTTON_LEFT
+	if event is InputEventMouseMotion:
+		return (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0
+	return false
+
 func _enter_tree() -> void:
 	var icon_texture := load(ICON_PATH) as Texture2D
 	add_custom_type("PaintedShadowCanvas2D", "Node2D", CanvasScript, icon_texture)
@@ -123,12 +151,17 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 	if event is InputEventMouseMotion:
 		_cursor_local_position = _screen_to_local(event.position)
 		_cursor_visible = true
-		if (event.button_mask & MOUSE_BUTTON_MASK_MIDDLE) != 0 or Input.is_key_pressed(KEY_SPACE):
+		var navigation_active: bool = (
+			(event.button_mask & MOUSE_BUTTON_MASK_MIDDLE) != 0
+			or Input.is_key_pressed(KEY_SPACE)
+		)
+		if navigation_active:
 			if _stroke_active:
 				_finish_stroke()
 			update_overlays()
 			return false
-		if _stroke_active and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+		var capture_left_drag := should_capture_paint_pointer_event(event, navigation_active)
+		if _stroke_active and capture_left_drag:
 			_paint_to(_cursor_local_position)
 			update_overlays()
 			return true
@@ -137,7 +170,10 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 			# case no MouseButton release reaches this plugin.
 			_finish_stroke()
 		update_overlays()
-		return false
+		# Paint mode owns an unmodified left drag everywhere in the viewport.
+		# Outside the bounds it paints nothing, but it must not move/rotate/scale
+		# the selected canvas through the built-in CanvasItemEditor tools.
+		return capture_left_drag
 
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed and Input.is_key_pressed(KEY_SPACE):
@@ -146,22 +182,21 @@ func _forward_canvas_gui_input(event: InputEvent) -> bool:
 		_cursor_local_position = local_position
 		_cursor_visible = true
 		if event.pressed:
-			if not get_canvas_rect().has_point(local_position):
-				return false
-			_begin_stroke(local_position)
+			if get_canvas_rect().has_point(local_position):
+				_begin_stroke(local_position)
 			update_overlays()
 			return true
 		if _stroke_active:
 			_finish_stroke()
-			update_overlays()
-			return true
+		update_overlays()
+		return true
 
 	return false
 
 func _forward_canvas_force_draw_over_viewport(overlay: Control) -> void:
 	if _edited_canvas == null or not is_instance_valid(_edited_canvas):
 		return
-	var canvas_transform: Transform2D = _edited_canvas.get_global_transform_with_canvas()
+	var canvas_transform := _get_local_to_viewport_transform()
 	var rect: Rect2 = get_canvas_rect()
 	var bounds := PackedVector2Array([
 		canvas_transform * rect.position,
@@ -172,7 +207,7 @@ func _forward_canvas_force_draw_over_viewport(overlay: Control) -> void:
 	])
 	overlay.draw_polyline(bounds, Color(0.4, 0.72, 1.0, 0.95), 2.0, true)
 
-	if not _can_paint() or not _cursor_visible:
+	if not _can_paint() or not _cursor_visible or not rect.has_point(_cursor_local_position):
 		return
 	var radius: float = float(_dock.call("get_brush_size")) * 0.5
 	var cursor_points := PackedVector2Array()
@@ -200,7 +235,19 @@ func _can_paint() -> bool:
 	)
 
 func _screen_to_local(screen_position: Vector2) -> Vector2:
-	return _edited_canvas.make_canvas_position_local(screen_position)
+	var editor_viewport := EditorInterface.get_editor_viewport_2d()
+	return viewport_position_to_local(
+		screen_position,
+		editor_viewport.global_canvas_transform,
+		_edited_canvas.get_global_transform_with_canvas()
+	)
+
+func _get_local_to_viewport_transform() -> Transform2D:
+	var editor_viewport := EditorInterface.get_editor_viewport_2d()
+	return compose_local_to_viewport_transform(
+		editor_viewport.global_canvas_transform,
+		_edited_canvas.get_global_transform_with_canvas()
+	)
 
 func _begin_stroke(local_position: Vector2) -> void:
 	if _stroke_active:

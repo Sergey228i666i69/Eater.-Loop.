@@ -29,6 +29,7 @@ var _clear_button: Button = null
 var _fill_button: Button = null
 var _status_label: Label = null
 var _applying_preset := false
+var _target_available := false
 
 func _ready() -> void:
 	_build_ui()
@@ -67,14 +68,13 @@ func adjust_brush_size(scale_factor: float) -> void:
 func set_target_available(available: bool) -> void:
 	if _paint_toggle == null:
 		return
+	_target_available = available
 	_paint_toggle.disabled = not available
 	_clear_button.disabled = not available
 	_fill_button.disabled = not available
 	if not available:
 		_paint_toggle.set_pressed_no_signal(false)
-		_status_label.text = "Select a PaintedShadowCanvas2D node."
-	else:
-		_status_label.text = "Enable Paint, then draw inside the blue bounds in the 2D viewport."
+	_update_status()
 
 func _build_ui() -> void:
 	custom_minimum_size = Vector2(280.0, 0.0)
@@ -97,6 +97,7 @@ func _build_ui() -> void:
 	_paint_toggle.toggle_mode = true
 	_paint_toggle.tooltip_text = "When enabled, left-drag paints the selected canvas. Esc cancels the current stroke."
 	_paint_toggle.toggled.connect(func(enabled: bool) -> void:
+		_update_status()
 		paint_mode_changed.emit(enabled)
 	)
 	add_child(_paint_toggle)
@@ -154,6 +155,16 @@ func _build_ui() -> void:
 	shortcut_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	shortcut_label.modulate = Color(0.62, 0.68, 0.76)
 	add_child(shortcut_label)
+
+func _update_status() -> void:
+	if _status_label == null:
+		return
+	if not _target_available:
+		_status_label.text = "Select a PaintedShadowCanvas2D node."
+	elif is_paint_mode_enabled():
+		_status_label.text = "Paint active: left-drag inside the blue bounds. Space or middle-drag pans; wheel zooms."
+	else:
+		_status_label.text = "Enable Paint, then draw inside the blue bounds in the 2D viewport."
 
 func _add_option_row(label_text: String, items: Array[String]) -> OptionButton:
 	var row := HBoxContainer.new()
