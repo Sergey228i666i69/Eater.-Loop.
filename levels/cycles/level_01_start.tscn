@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://cc6ehxxoauhyn"]
 
 [ext_resource type="Texture2D" uid="uid://bic51a06275mf" path="res://objects/environment/background/BackWalls.png" id="1_bij4o"]
-[ext_resource type="PackedScene" uid="uid://cmxtuvlqs321l" path="res://player/player.tscn" id="1_plrscn"]
 [ext_resource type="PackedScene" uid="uid://cgir8at2gjnkc" path="res://levels/minigames/feeding/feed_minigame.tscn" id="11_3555j"]
 [ext_resource type="Texture2D" uid="uid://kcpbktla5vc1" path="res://objects/environment/sprites/toilet_bathroom/Yorhic.png" id="11_w2g1e"]
 [ext_resource type="Texture2D" uid="uid://b1ui73qxfq1r7" path="res://levels/minigames/feeding/andreys_faces/HappyEat.png" id="12_bvnc7"]
@@ -69,6 +68,8 @@
 [ext_resource type="PackedScene" uid="uid://b7v0dt08jwi1j" path="res://levels/cycles/TextureDistortionManager.tscn" id="77_3215i"]
 [ext_resource type="Texture2D" uid="uid://dkiqee0or6cla" path="res://objects/environment/sprites/hall/Boots6.png" id="78_3fmbd"]
 [ext_resource type="PackedScene" path="res://objects/interactable/trigger/trigger_set_property.tscn" id="78_yxhbg"]
+[ext_resource type="PackedScene" path="res://addons/painted_shadow_canvas/runtime/painted_shadow_canvas_2d.tscn" id="79_3qsi1"]
+[ext_resource type="PackedScene" uid="uid://cmxtuvlqs321l" path="res://player/player.tscn" id="79_i7qr2"]
 [ext_resource type="Texture2D" uid="uid://oq1gpkqxc4q6" path="res://objects/environment/sprites/kitchen/Urna.png" id="79_o487h"]
 [ext_resource type="Texture2D" uid="uid://d134gyj8cprhb" path="res://objects/environment/background/decals/HoleInWall6.png" id="81_3fmbd"]
 [ext_resource type="Texture2D" uid="uid://dsohjj4aoi6fw" path="res://objects/environment/sprites/bedroom/Powerbank2.png" id="81_j5rey"]
@@ -111,10 +112,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 metadata/_edit_use_anchors_ = true
-
-[node name="Player" parent="." unique_id=793113760 instance=ExtResource("1_plrscn")]
-position = Vector2(-2366, 96)
-allow_running = false
 
 [node name="Bathroom" type="Node2D" parent="." unique_id=1951458508]
 position = Vector2(5579, 0)
@@ -204,15 +201,9 @@ position = Vector2(14479, 196)
 
 [node name="Door(InBathroom)" parent="Bathroom/InteractableObjects" unique_id=76317558 instance=ExtResource("82_5lo1f")]
 position = Vector2(14127.999, 83)
-is_locked = false
 door_locked_message = "Сначала нужно сделать что-то другое..."
 target_marker = NodePath("../../../Hall/InteractableObjects/Door(ToBathroom)")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
 door_texture = ExtResource("16_4cwao")
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Toilet" type="Node2D" parent="." unique_id=844565248]
 position = Vector2(9294, 0)
@@ -293,15 +284,9 @@ texture = ExtResource("60_gklq2")
 
 [node name="Door(InToilet)" parent="Toilet/InteractableObjects" unique_id=95384727 instance=ExtResource("82_5lo1f")]
 position = Vector2(16825, 83)
-is_locked = false
 door_locked_message = "Сначала нужно сделать что-то другое..."
 target_marker = NodePath("../../../Hall/InteractableObjects/Door(ToToilet)")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
 door_texture = ExtResource("16_4cwao")
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Hall" type="Node2D" parent="." unique_id=1321091505]
 
@@ -640,61 +625,31 @@ texture = ExtResource("74_pgbjj")
 
 [node name="Door(ToBedroom)" parent="Hall/InteractableObjects" unique_id=1179431477 instance=ExtResource("82_5lo1f")]
 position = Vector2(8434.125, 83)
-is_locked = false
 door_locked_message = "Сначала нужно сделать что-то другое..."
 target_marker = NodePath("../../../Bedroom/InteractableObjects/Door(InBedroom)")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Door(ToParents)" parent="Hall/InteractableObjects" unique_id=1963952830 instance=ExtResource("82_5lo1f")]
 position = Vector2(8818.125, 83)
 is_locked = true
 door_locked_message = "Там спят родители. Их сейчас лучше не тревожить."
-target_marker = NodePath("")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Door(Exit)" parent="Hall/InteractableObjects" unique_id=235978318 instance=ExtResource("82_5lo1f")]
 position = Vector2(6699, 83)
 is_locked = true
 door_locked_message = "Мне незачем выходить на улицу"
-target_marker = NodePath("")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
 door_texture = ExtResource("14_m3n5y")
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Door(ToBathroom)" parent="Hall/InteractableObjects" unique_id=334125368 instance=ExtResource("82_5lo1f")]
 position = Vector2(7515.125, 83)
-is_locked = false
 door_locked_message = "Сначала нужно сделать что-то другое..."
 target_marker = NodePath("../../../Bathroom/InteractableObjects/Door(InBathroom)")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
 door_texture = ExtResource("15_qr0f4")
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Door(ToToilet)" parent="Hall/InteractableObjects" unique_id=2019841809 instance=ExtResource("82_5lo1f")]
 position = Vector2(7832.125, 83)
-is_locked = false
 door_locked_message = "Сначала нужно сделать что-то другое..."
 target_marker = NodePath("../../../Toilet/InteractableObjects/Door(InToilet)")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
 door_texture = ExtResource("15_qr0f4")
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Fridge" parent="Hall/InteractableObjects" unique_id=293320804 instance=ExtResource("46_7kpgv")]
 position = Vector2(9809.79, 115.749985)
@@ -706,7 +661,6 @@ bg_music = ExtResource("54_1u7l1")
 win_sound = ExtResource("55_goh1n")
 eat_sound = ExtResource("56_oph48")
 background_texture = ExtResource("57_vebv3")
-use_locked_visual_after_eating = true
 metadata/_edit_group_ = true
 
 [node name="FridgeMarker" type="Marker2D" parent="Hall/InteractableObjects/Fridge" unique_id=1440638420]
@@ -924,14 +878,8 @@ texture = SubResource("GradientTexture2D_pgutp")
 
 [node name="Door(InBedroom)" parent="Bedroom/InteractableObjects" unique_id=1170857727 instance=ExtResource("82_5lo1f")]
 position = Vector2(-1581, 83)
-is_locked = false
 door_locked_message = "Сначала нужно сделать что-то другое..."
 target_marker = NodePath("../../../Hall/InteractableObjects/Door(ToBedroom)")
-required_key_id = ""
-required_key_name = ""
-consume_key_on_unlock = false
-interact_area_node = NodePath("")
-one_shot = false
 
 [node name="Bed" parent="Bedroom/InteractableObjects" unique_id=1906100001 instance=ExtResource("74_goh1n")]
 position = Vector2(-2420, 226)
@@ -953,3 +901,11 @@ apply_on_ready_if_overlapping = true
 music_enabled = true
 music_on_enter = 8
 music_on_exit = 9
+
+[node name="PaintedShadowCanvas2D" parent="." unique_id=525914816 instance=ExtResource("79_3qsi1")]
+position = Vector2(6057, -293)
+canvas_size = Vector2(4575, 720)
+mask_png = PackedByteArray()
+
+[node name="Player" parent="." unique_id=796409573 instance=ExtResource("79_i7qr2")]
+position = Vector2(-2228, 94)

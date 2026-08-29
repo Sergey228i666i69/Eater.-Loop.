@@ -53,6 +53,8 @@ offset = Vector2(0, -5)
 zoom = Vector2(1.1, 1.1)
 limit_enabled = false
 limit_smoothed = true
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
 
 [node name="PlayerSkeletonRig" parent="." instance=ExtResource("9_skeleton_rig")]
 position = Vector2(-5.375, 83.37938)
