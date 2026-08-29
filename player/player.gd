@@ -689,7 +689,7 @@ func _sync_camera_config() -> void:
 
 func _update_camera(delta: float) -> void:
 	_sync_camera_config()
-	var facing_dir := float(_get_facing_state().get_facing_direction())
+	var facing_dir := float(_get_facing_state().get_direction())
 	var is_moving := velocity.length_squared() > 1.0
 	_get_camera_state().update(
 		delta,

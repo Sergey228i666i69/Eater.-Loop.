@@ -78,7 +78,6 @@ func _test_snap_and_teleport_snaps_camera_instantly() -> void:
 
 func _test_player_teleport_api() -> void:
 	var player = PlayerScene.instantiate()
-	get_tree().root.add_child(player)
 
 	assert_true(player.has_method("teleport_to"), "Player must implement teleport_to API")
 	assert_true(player.has_method("snap_camera"), "Player must implement snap_camera API")
@@ -88,5 +87,4 @@ func _test_player_teleport_api() -> void:
 	assert_eq(player.global_position, Vector2(2400.0, -100.0), "Player teleport_to must update position")
 	assert_eq(player.velocity, Vector2.ZERO, "Player teleport_to must zero velocity")
 
-	player.queue_free()
-	await get_tree().process_frame
+	player.free()
