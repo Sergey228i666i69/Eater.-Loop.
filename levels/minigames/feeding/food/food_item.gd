@@ -3,6 +3,8 @@ class_name FoodItem
 
 signal eaten
 
+const FoodCrumbsEffectScript := preload("res://levels/minigames/feeding/food/food_crumbs_effect.gd")
+
 # Статика для блокировки (один пельмень в руку)
 static var is_any_dragging: bool = false
 
@@ -209,8 +211,23 @@ func _is_in_mouth() -> bool:
 	return _target_mouth.overlaps_area(self)
 
 func eat_me() -> void:
+	_spawn_crumbs()
 	eaten.emit()
 	queue_free()
+
+func _spawn_crumbs() -> void:
+	var parent := get_parent()
+	if parent == null:
+		return
+	var sprite := _find_primary_sprite()
+	if sprite != null and sprite.texture != null:
+		FoodCrumbsEffectScript.create_and_spawn(sprite, global_position, parent)
+
+func _find_primary_sprite() -> Sprite2D:
+	for child in get_children():
+		if child is Sprite2D and (child as Sprite2D).texture != null:
+			return child as Sprite2D
+	return null
 
 func set_interaction_enabled(enabled: bool) -> void:
 	if _interaction_enabled == enabled:
