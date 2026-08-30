@@ -37,12 +37,17 @@ StaminaBar="*res://player/stamina_bar.gd"
 FlashlightBar="*res://player/flashlight_bar.gd"
 CursorManager="*res://levels/minigames/cursor_manager.gd"
 MinigameController="*res://levels/minigames/minigame_controller.gd"
+MCPRuntimeProbe="*res://addons/godot_mcp/runtime/mcp_runtime_probe.gd"
 
 [display]
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg", "res://addons/painted_shadow_canvas/plugin.cfg")
 
 [file_customization]
 

@@ -120,12 +120,7 @@ func _apply_conditional_respawn_position() -> void:
 	var player := get_tree().get_first_node_in_group("player") as Node2D
 	if player == null:
 		return
-	if player.has_method("teleport_to"):
-		player.teleport_to(marker.global_position)
-	else:
-		player.global_position = marker.global_position
-		if player.has_method("snap_camera"):
-			player.snap_camera()
+	player.global_position = marker.global_position
 
 func _apply_default_player_progress() -> void:
 	if not unlock_flashlight_on_ready:

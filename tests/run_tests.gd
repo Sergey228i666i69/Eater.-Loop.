@@ -13,6 +13,7 @@ func _run_all_tests() -> void:
         failures.append("No tests found in %s" % TEST_DIR)
     else:
         for path in test_paths:
+            print("[TEST] ", path.get_file())
             var test_failures := await _run_test(path)
             for message in test_failures:
                 failures.append("%s: %s" % [path.get_file(), message])
@@ -59,24 +60,7 @@ func _run_test(path: String) -> Array[String]:
         return ["Failed to instantiate test script"]
     if not test.has_method("run"):
         return ["Test script has no run()"]
-    var result: Variant = test.call("run")
-    if result is Object and result.has_signal("completed"):
-        var state: Object = result
-        if state.has_method("is_valid") and not bool(state.call("is_valid")):
-            result = null
-        else:
-            var status := {"completed": false}
-            state.connect("completed", func(_value = null) -> void:
-                status["completed"] = true
-            , Object.CONNECT_ONE_SHOT)
-            var timeout := create_timer(TEST_TIMEOUT_SECONDS, true)
-            var tick := create_timer(0.05, true)
-            while not bool(status["completed"]) and timeout.time_left > 0.0:
-                await tick.timeout
-                tick = create_timer(0.05, true)
-            if not bool(status["completed"]):
-                return ["Timed out after %.1f sec" % TEST_TIMEOUT_SECONDS]
-            result = null
+    var result: Variant = await test.call("run")
     if result == null and test.has_method("get_failures"):
         return test.get_failures()
     if result is Array:

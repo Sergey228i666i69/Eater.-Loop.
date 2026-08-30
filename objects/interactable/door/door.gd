@@ -138,12 +138,7 @@ func _perform_transition() -> void:
 	await UIMessage.fade_out(0.4)
 	
 	if is_instance_valid(player):
-		if player.has_method("teleport_to"):
-			player.teleport_to(marker.global_position)
-		else:
-			player.global_position = marker.global_position
-			if player.has_method("snap_camera"):
-				player.snap_camera()
+		player.global_position = marker.global_position
 	
 	await get_tree().create_timer(0.1).timeout
 	await UIMessage.fade_in(0.4)

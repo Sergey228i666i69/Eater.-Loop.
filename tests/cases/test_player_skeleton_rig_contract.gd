@@ -418,9 +418,9 @@ var _opaque_texture_points: Dictionary = {}
 
 func run() -> Array[String]:
 	_test_rig_scene_contract()
-	_test_legacy_player_keeps_sprite_sequence()
+	_test_active_player_keeps_sprite_sequence()
 	_test_levels_keep_active_player_scene()
-	await _test_player_scene_mounts_and_mirrors_rig()
+	await _test_experimental_player_scene_mounts_and_mirrors_rig()
 	return get_failures()
 
 func _test_rig_scene_contract() -> void:
@@ -797,33 +797,40 @@ func _test_rig_scene_contract() -> void:
 			assert_true(pelvis_visual.z_index > front_thigh_visual.z_index, "Player skeleton pelvis must cover the front-thigh upper crop seam")
 	rig.free()
 
-func _test_legacy_player_keeps_sprite_sequence() -> void:
+func _test_active_player_keeps_sprite_sequence() -> void:
+	var player_scene := assert_loads(PLAYER_SCENE_PATH) as PackedScene
+	assert_true(player_scene != null, "Active player scene failed to load")
+	if player_scene == null:
+		return
+	var player := player_scene.instantiate()
+	assert_true(player.get_node_or_null("AnimatedSprite2D") is AnimatedSprite2D, "Active production player must use AnimatedSprite2D frame sequence")
+	assert_true(player.get_node_or_null("PlayerSkeletonRig") == null, "Active player must stay sprite-only and must not mount the experimental skeleton rig")
+	player.free()
+
 	var legacy_scene := assert_loads(LEGACY_PLAYER_SCENE_PATH) as PackedScene
 	assert_true(legacy_scene != null, "Legacy player scene failed to load")
-	if legacy_scene == null:
-		return
-	var legacy_player := legacy_scene.instantiate()
-	assert_true(legacy_player.get_node_or_null("AnimatedSprite2D") is AnimatedSprite2D, "Legacy player must keep old AnimatedSprite2D sequence")
-	assert_true(legacy_player.get_node_or_null("PlayerSkeletonRig") == null, "Legacy player must stay sprite-only and must not mount the new skeleton rig")
-	legacy_player.free()
+	if legacy_scene != null:
+		var legacy_player := legacy_scene.instantiate()
+		assert_true(legacy_player.get_node_or_null("AnimatedSprite2D") is AnimatedSprite2D, "Legacy player must keep AnimatedSprite2D sequence")
+		assert_true(legacy_player.get_node_or_null("PlayerSkeletonRig") == null, "Legacy player must stay sprite-only")
+		legacy_player.free()
 
 func _test_levels_keep_active_player_scene() -> void:
 	for path in utils.list_files(LEVEL_DIR, ".tscn", ["tests", ".godot", "addons"], ["archive", "trash"]):
 		var content := FileAccess.get_file_as_string(path)
 		if content.find("res://player/") == -1:
 			continue
-		assert_true(content.find(LEGACY_PLAYER_SCENE_PATH) == -1, "Levels must not use legacy player scene: %s" % path)
-		assert_true(content.find(PLAYER_SCENE_PATH) != -1, "Levels with player references must use active skeleton player scene: %s" % path)
+		assert_true(content.find(PLAYER_SCENE_PATH) != -1, "Levels with player references must use active frame-by-frame player scene: %s" % path)
 
-func _test_player_scene_mounts_and_mirrors_rig() -> void:
+func _test_experimental_player_scene_mounts_and_mirrors_rig() -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	assert_true(tree != null, "SceneTree is not available")
 	if tree == null:
 		return
 
-	var player_scene := assert_loads(PLAYER_SCENE_PATH) as PackedScene
-	assert_true(player_scene != null, "Player scene failed to load")
-	if player_scene == null:
+	var rig_scene := assert_loads(PLAYER_RIG_SCENE_PATH) as PackedScene
+	assert_true(rig_scene != null, "Player skeleton rig scene failed to load")
+	if rig_scene == null:
 		return
 
 	var root := Node2D.new()
@@ -832,22 +839,29 @@ func _test_player_scene_mounts_and_mirrors_rig() -> void:
 		GameState.reset_run()
 	if CycleState != null and CycleState.has_method("reset_cycle_state"):
 		CycleState.reset_cycle_state()
-	var player := player_scene.instantiate()
+
+	var player := CharacterBody2D.new()
+	player.set_script(load("res://player/player.gd"))
+	var step_audio := StepAudioComponent.new()
+	step_audio.name = "StepAudioComponent"
+	player.add_child(step_audio)
+	var rig := rig_scene.instantiate() as Node2D
+	rig.name = "PlayerSkeletonRig"
+	rig.position = Vector2(-5.375, 83.37938)
+	rig.scale = Vector2(0.44800887, 0.44800875)
+	player.add_child(rig)
 	root.add_child(player)
 	await tree.process_frame
 
-	var rig := player.get_node_or_null("PlayerSkeletonRig") as Node2D
-	assert_true(player.get_node_or_null("AnimatedSprite2D") == null, "Active player must not keep legacy AnimatedSprite2D")
-	assert_true(rig != null, "Player must mount PlayerSkeletonRig")
-	assert_true(player.get_node_or_null("StepAudioComponent") is StepAudioComponent, "Active skeleton player must keep step audio component")
+	assert_true(rig != null, "Experimental player test must mount PlayerSkeletonRig")
 	if rig != null:
 		var animation_player := rig.get_node_or_null("SkeletonAnimationPlayer") as AnimationPlayer
 		assert_true(animation_player != null, "Mounted PlayerSkeletonRig must keep SkeletonAnimationPlayer")
 		if animation_player != null:
 			assert_eq(animation_player.current_animation, "idle", "Player skeleton animation must start from idle")
-		assert_eq(rig.position, Vector2(-5.375, 83.37938), "PlayerSkeletonRig must keep the old player visual anchor")
-		assert_true(_almost_eq(absf(rig.scale.x), 0.44800887), "PlayerSkeletonRig x-scale must keep the old player visual scale")
-		assert_true(_almost_eq(rig.scale.y, 0.44800875), "PlayerSkeletonRig y-scale must keep the old player visual scale")
+		assert_eq(rig.position, Vector2(-5.375, 83.37938), "PlayerSkeletonRig must keep the visual anchor")
+		assert_true(_almost_eq(absf(rig.scale.x), 0.44800887), "PlayerSkeletonRig x-scale must keep visual scale")
+		assert_true(_almost_eq(rig.scale.y, 0.44800875), "PlayerSkeletonRig y-scale must keep visual scale")
 		var flashlight_visual := rig.get_node_or_null("Skeleton2D/" + FLASHLIGHT_VISUAL_PATH) as Sprite2D
 		var front_hand_visual := rig.get_node_or_null("Skeleton2D/" + FRONT_HAND_VISUAL_PATH) as Sprite2D
 		var front_hand_empty_visual := rig.get_node_or_null("Skeleton2D/" + FRONT_HAND_EMPTY_VISUAL_PATH) as Sprite2D

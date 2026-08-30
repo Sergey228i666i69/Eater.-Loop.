@@ -1,3 +1,6 @@
+## Фасад игрового персонажа (Андрей).
+## ОСНОВНАЯ АНИМАЦИЯ: Покадровая спрайтовая анимация (AnimatedSprite2D) в res://player/player.tscn.
+## ЭКСПЕРИМЕНТ: Поддержка скелетного рига (PlayerSkeletonRig) сохранена только для изолированного эксперимента/прототипа.
 extends CharacterBody2D
 
 const PlayerFlashlightChargeState = preload("res://player/player_flashlight_charge_state.gd")
@@ -5,7 +8,6 @@ const PlayerFacingState = preload("res://player/player_facing_state.gd")
 const PlayerInventoryState = preload("res://player/player_inventory_state.gd")
 const PlayerSkeletonStepState = preload("res://player/player_skeleton_step_state.gd")
 const PlayerStaminaState = preload("res://player/player_stamina_state.gd")
-const PlayerCameraStateClass = preload("res://player/player_camera_state.gd")
 
 signal player_made_sound
 signal flashlight_recharged
@@ -13,16 +15,6 @@ signal flashlight_activation_denied(charge_ratio: float)
 
 ## Скорость движения игрока.
 @export var speed: float = 415.0
-
-@export_group("Камера")
-## Включить кинематографичное упреждение взгляда (Look-Ahead).
-@export var camera_look_ahead_enabled: bool = true
-## Дистанция упреждения камеры по направлению взгляда (Look-Ahead).
-@export_range(0.0, 150.0, 1.0) var camera_look_ahead_distance: float = 38.0
-## Множитель упреждения при беге.
-@export_range(1.0, 2.5, 0.05) var camera_look_ahead_run_multiplier: float = 1.25
-## Скорость интерполяции упреждения взгляда.
-@export_range(0.1, 10.0, 0.1) var camera_look_ahead_speed: float = 2.5
 
 @export_group("Бег и выносливость")
 ## Разрешить бег.
@@ -103,7 +95,6 @@ signal flashlight_activation_denied(charge_ratio: float)
 @onready var pivot: Node2D = get_node_or_null("Pivot") as Node2D
 @onready var sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 @onready var skeleton_rig: Node2D = get_node_or_null("PlayerSkeletonRig") as Node2D
-@onready var camera_node: Camera2D = get_node_or_null("Camera2D") as Camera2D
 @onready var flashlight: PointLight2D = null
 var step_audio: StepAudioComponent = null
 var skeleton_animation_player: AnimationPlayer = null
@@ -131,7 +122,6 @@ var _stamina_state: RefCounted
 var _current_skeleton_animation: StringName = StringName()
 var _skeleton_step_state: RefCounted
 var _facing_state: RefCounted
-var _camera_state: RefCounted
 
 # Переменные для аудио
 var _flashlight_player: AudioStreamPlayer
@@ -197,11 +187,6 @@ func _ready() -> void:
 	_flashlight_charge_state = PlayerFlashlightChargeState.new()
 	_sync_flashlight_charge_config()
 	_get_flashlight_charge_state().reset_full()
-	_camera_state = PlayerCameraStateClass.new()
-	_sync_camera_config()
-	if camera_node != null:
-		_camera_state.bind_camera(camera_node)
-		_camera_state.snap_to_target()
 	_apply_facing()
 	_update_skeleton_motion_animation(false)
 	_update_skeleton_flashlight_visibility()
@@ -229,7 +214,6 @@ func _physics_process(delta: float) -> void:
 		_update_walk_animation(delta, 0.0)
 		_update_flashlight_charge(delta)
 		_update_skeleton_flashlight_visibility()
-		_update_camera(delta)
 		return
 	var direction := Input.get_axis("move_left", "move_right")
 	if _is_screen_dark():
@@ -254,7 +238,6 @@ func _physics_process(delta: float) -> void:
 	_update_walk_animation(delta, direction)
 	_update_flashlight_charge(delta)
 	_update_skeleton_flashlight_visibility()
-	_update_camera(delta)
 
 func _is_movement_blocked() -> bool:
 	return _movement_blocked
@@ -612,7 +595,6 @@ func apply_checkpoint_state(state: Dictionary) -> void:
 		var should_enable := bool(state.get("flashlight_enabled", false)) and has_flashlight_available()
 		flashlight.enabled = should_enable
 	_update_skeleton_flashlight_visibility()
-	snap_camera()
 
 func _get_inventory_state() -> RefCounted:
 	if _inventory_state == null:
@@ -654,49 +636,6 @@ func _sync_stamina_config() -> void:
 		stamina_recovery_rate,
 		stamina_recovery_delay,
 		stamina_min_to_run
-	)
-
-# ===== Работа с камерой =====
-func teleport_to(target_global_position: Vector2) -> void:
-	global_position = target_global_position
-	velocity = Vector2.ZERO
-	snap_camera()
-
-func snap_camera() -> void:
-	_get_camera_state().snap_to_target()
-
-func get_camera_look_ahead_offset() -> Vector2:
-	return _get_camera_state().get_look_ahead_offset()
-
-func is_camera_look_ahead_enabled() -> bool:
-	return _get_camera_state().look_ahead_enabled
-
-func is_camera_smoothing_enabled() -> bool:
-	return _get_camera_state().look_ahead_enabled
-
-func _get_camera_state() -> RefCounted:
-	if _camera_state == null:
-		_camera_state = PlayerCameraStateClass.new()
-	return _camera_state
-
-func _sync_camera_config() -> void:
-	_get_camera_state().configure(
-		camera_look_ahead_enabled,
-		camera_look_ahead_distance,
-		camera_look_ahead_run_multiplier,
-		camera_look_ahead_speed
-	)
-
-func _update_camera(delta: float) -> void:
-	_sync_camera_config()
-	var facing_dir := float(_get_facing_state().get_direction())
-	var is_moving := velocity.length_squared() > 1.0
-	_get_camera_state().update(
-		delta,
-		facing_dir,
-		is_moving,
-		_is_running,
-		_is_movement_blocked()
 	)
 
 # ===== Работа с ключами =====

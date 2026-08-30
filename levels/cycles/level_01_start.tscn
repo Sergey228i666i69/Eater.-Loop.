@@ -908,4 +908,4 @@ canvas_size = Vector2(4575, 720)
 mask_png = PackedByteArray()
 
 [node name="Player" parent="." unique_id=796409573 instance=ExtResource("79_i7qr2")]
-position = Vector2(-2226, 95)
+position = Vector2(-2228, 94)

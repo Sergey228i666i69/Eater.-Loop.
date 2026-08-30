@@ -41,7 +41,7 @@ facade API: допускай `null` guard на отсутствие autoload-а,
   триггеры, ключи, notes.
 - `objects/interactable/templates/` - copy-start шаблоны интерактивов.
 - `enemies/` - runner, stalker, light-sensitive и light-only enemies.
-- `player/` - Player facade, skeleton rig, UI bars, camera/flashlight/stamina helpers.
+- `player/` - Player facade (покадровая анимация AnimatedSprite2D), архивный skeleton rig эксперимент, UI bars, flashlight/stamina helpers.
 - `global/` - общие helpers, localization, interaction manager, scene context.
 - `music/` - audio assets и `music_mix_settings.tres`.
 - `tests/cases/` - focused validators и runtime regression tests.

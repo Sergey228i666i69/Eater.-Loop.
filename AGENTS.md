@@ -2,66 +2,20 @@
 
 ## Назначение
 
-Этот файл - короткий навигатор по репозиторию Godot-проекта `едок.-петля` и результатам мультиагентного аудита от 2026-05-14. Он держится в пределах короткой справки, а подробности вынесены в отдельные документы в `docs/`.
+Этот файл - короткий вход для агентов в Godot-проект `едок.-петля`.
+Подробные агентские правила и контракты живут только в `docs/ai/`.
 
-## Документы Аудита
+## Читать Сначала
 
-- [Сводка мультиагентного аудита](docs/audit_multiagent_summary.md)
-- [Архитектура, autoload и состояние](docs/audit_architecture_state.md)
-- [Игровой цикл, уровни, враги и мини-игры](docs/audit_gameplay_loop.md)
-- [Интерактивные объекты и scene contracts](docs/audit_interactables_and_scene_contracts.md)
-- [Тесты, ассеты, export и воспроизводимость](docs/audit_tooling_assets_tests.md)
-- [Гигиена репозитория, naming и мусор](docs/audit_repo_hygiene.md)
-- [Рефакторинг-роадмап](docs/audit_refactor_roadmap.md)
-- [Content authoring guide](docs/content_authoring_guide.md)
+1. [AI README](docs/ai/README.md)
+2. [Правила работы агента](docs/ai/agent-operating-rules.md)
+3. [Карта проекта](docs/ai/project-map.md)
+4. [Архитектурные контракты](docs/ai/architecture-contracts.md)
+5. [Контракты добавления контента](docs/ai/content-authoring-contracts.md)
+6. [Проверка и воспроизводимость](docs/ai/verification.md)
+7. [Риски и roadmap рефакторинга](docs/ai/refactor-roadmap.md)
 
-## Короткая Оценка
-
-Текущая проблемность после ремонтных проходов: **около 5/10**. Первичный аудит 2026-05-14 оценивал проект на **7.3/10**.
-
-Это не разваленный проект: entrypoint понятен, autoload-и явно заведены, есть локальный тестовый слой и часть архитектурных контрактов уже проверяется. После ремонтных проходов закрыты главные runtime-дыры: input света, фокус интерактивов, run-finish, checkpoint-сценарии, asset tracking, minigame input/timeout/prompt-restore/music-session/confirm-release, one-shot completion, reversible triggers, явные spawner conditions, typed dependency/key-source/lab-id conditions, typed interaction outcomes, pause ownership tokens, scene NodePath/group-method/trigger-target/trigger-effect/utility-path/level/fridge-authoring/checkpoint-stable-path/exported-content-path validators, content-object typed collaborator guards, runtime input-action literal contracts, localization CSV/mojibake/RU player-facing/translit-key/static non-Cyrillic/GDScript call-literal text contracts, project-config contracts, внешний доступ к ключевым `GameState`/`CycleState` полям и private backing для core `CycleState` flags. Naming debt из аудита нормализован, а `UIMessage`, `MinigameController`, scene checkpoint snapshot/restore/dynamic-restore часть `GameState`, run/stamina, facing/checkpoint, key inventory, skeleton step timing и flashlight charge/recharge части `Player` и death-title/death-entry/death-fade/stalker/overlay/cursor/death-camera/death-retry/death-screen-reset/death-sequence/cycle-timer/cycle-phase/timer-node/distortion-gate/distortion-progress/distortion-overlay/distortion-phase части `GameDirector` получили helper split-ы. Но проект всё ещё дорог в поддержке: уровни завязаны на NodePath/имена детей, `MusicManager`/`GameDirector`/`Player` остаются крупными фасадами, а huge STU-сцены остаются дорогими для ревью.
-
-## Главные Риски
-
-1. **Fresh clone стал воспроизводимее, но требует Git LFS.** Ассеты и `*.import` теперь tracked, root `export_presets.cfg` tracked, бинарники идут через LFS. После clone нужен `git lfs install && git lfs pull`.
-2. **Полный тестовый прогон зелёный на момент последней проверки.** `bash tests/run_tests.sh` проходил со 114 тестами без `ObjectDB instances leaked at exit`.
-3. **Runtime-входы света переведены на `interact`.** Старый `lamp_switch` больше не нужен лампе и старому прожектору.
-4. **Главные gameplay-баги закрыты.** Sleep/wake-флаг переживает переход цикла, run закрывается после титров, потолочный враг снова учитывает лампы, деньги level 12 и runtime-spawned threats сохраняются в checkpoint, холодильник fail-closed, minigame timeout одноразовый.
-5. **Интерактивы централизованы через `InteractionManager`.** Одно нажатие выбирает один объект по доступности, приоритету и расстоянию; manager ходит к `InteractiveObject` через публичные `get_interact_action_name()` и `set_manager_focus(...)`, а не через private string calls.
-6. **Dependency-система интерактивов стала typed.** Key-door цикл и прежний one-shot fail-open закрыты тестами: дверь, холодильник, ноутбук и блокпост теперь завершаются только после успешного outcome. Базовый `InteractiveObject` различает `COMPLETED` и `INTERACTION_REQUESTED`, эмитит `interaction_result`, `interaction_succeeded`, `interaction_failed`, `interaction_cancelled`, а `InteractionResultBuilder` держит typed Dictionary `payload` для reward/item/branch data. Legacy `interaction_finished` остаётся только совместимым success wrapper: runtime scripts и scene authoring должны подписываться на typed `interaction_succeeded`.
-7. **Scene/trigger/spawner/config/state contracts укреплены тестами и CI export smoke.** `SceneContext` запрещает локальные path-checks и классифицирует gameplay через path fallback, `gameplay_scene` group или typed `CycleLevel` root contract, reversible triggers обязаны быть `one_shot=false`, configured `TriggerSetProperty`/`PropertyChange` target paths должны резолвиться и указывать на реальные свойства, каждый `TriggerSetProperty` должен иметь хотя бы один property/sfx/music effect, а replace/event-start music actions требуют `music_stream`, key-doors должны иметь источник ключа в той же сцене, `SearchKeyManager.search_spots` должен быть непустым и resolving в `SearchSpot`, managed `SearchSpot` configs должны иметь typed `SearchKeyMinigame`/key/trash contract, inherited door/interactable typed defaults не должны сериализоваться как `null`, checkpoint participants должны иметь стабильный scene-relative path без generated `@...` segments, dynamic checkpoint restore fail-closed разрешает только allowlisted runtime scenes, utility-level paths для лебёдки, corridor distortion и `TargetMonsterSpawner` condition sources должны резолвиться, лебёдка должна указывать `fridge_path` на `Fridge`, active content scene exported non-empty `NodePath`/`Array[NodePath]` values должны резолвиться, scene-owned audio players должны явно использовать `Music`/`Sounds` bus, STU route/wiring paths включая level 07 post-fridge Hall2 door layout должны быть exported и валидироваться, root exported `*_path` wiring должен резолвиться и соответствовать ожидаемым типам, content-object scripts, `CycleLevel`, `TimedLabMinigameBase` и `MinigameController` не должны возвращаться к stringly `has_method/call` для стабильных collaborators вроде `UIMessage` fade/screen-dark/dialogue/transition и `Fridge.apply_winch_release_state`, playable `level_*.tscn` scenes должны иметь typed `CycleLevel` root contract, cycle-level metadata/Player instance/Player export ranges/bed transitions/exported root paths/LevelMusic configs должны быть валидны, bed `next_level_path` должен вести только в cycle-level или ending scene, lab laptops должны иметь валидные timer settings и timed-lab minigame scenes, required lab IDs должны ссылаться на реальные ноутбуки, обычные feeding-холодильники должны указывать `FeedingMinigame`, final-холодильник должен указывать `FinalFeedMinigame`, code-lock холодильники должны иметь полный minigame contract, spawner-ы с `enemy_scene` обязаны явно подтверждать condition и читать state-флаги через публичные методы, runtime light contracts регистрируются через `ReactiveLightContracts` и обязаны иметь нужные методы, включённые editor plugins должны иметь `plugin.cfg`, configured translations должны грузиться как `Translation`, death/ending/note/obstacle/lab/money/gamepad-hint player-facing strings должны иметь localization keys, новые ASCII phrase translit keys для русских строк запрещены, статические `.tscn` non-Cyrillic player-facing строки и прямые GDScript UI call-literals требуют CSV-key или явной technical exception, внешние runtime-скрипты должны ходить к ключевым `CycleState` полям через публичные методы, а GitHub Actions после тестов делает MacOS debug export smoke с export templates.
-   - Level-12 money interactables должны резолвить именно `Level12MoneySystem`; content-object scripts не должны возвращаться к `has_method/call` для money API.
-   - Feeding `food_scenes` должны инстанцироваться как `FoodItem`; feeding runtime не должен проверять edible API через stringly `has_method`.
-   - SQL lab widgets должны инстанцироваться как `SqlDropSlot`/`SqlDragWord`; SQL minigame runtime не должен проверять их через stringly `has_method/has_signal`.
-8. **Большие singleton/god-classes стали лучше, но не исчезли.** `UIMessage` вынес fade state в `UIFadeController`, `MinigameController` вынес backdrop presentation в `MinigameBackdropPresenter`, prompt suspend/restore lifecycle в `MinigamePromptVisibilityCoordinator`, timer state в `MinigameTimerState`, gamepad scheme registry в `GamepadSchemeRegistry`, gamepad hint policy в `GamepadHintBuilder`, gamepad navigation repeat state в `GamepadNavigationRepeat`, gamepad node/provider resolving в `GamepadNodeResolver`, gamepad callback routing в `GamepadCallbackRouter`, gamepad confirm release gate state в `GamepadConfirmReleaseGate`, typed pause/cursor ownership в `MinigameModalOwnership` и minigame music stack lifecycle в `MinigameMusicSession`, `GameState` делегирует scene checkpoint snapshot/restore в `CheckpointSceneSnapshot`, а dynamic runtime restore policy в `CheckpointDynamicRestore`, `Player` делегирует run/stamina state в `PlayerStaminaState`, facing/checkpoint normalization в `PlayerFacingState`, key inventory/checkpoint state в `PlayerInventoryState`, skeleton step timing state в `PlayerSkeletonStepState` и flashlight charge/recharge state в `PlayerFlashlightChargeState`, `GameDirector` вынес death-title/glitch presentation в `GameDirectorDeathTitlePresenter`, death entry presentation setup в `GameDirectorDeathEntryPresenter`, stalker spawn/checkpoint logic в `GameDirectorStalkerService`, overlay layer policy в `GameDirectorOverlayLayerCoordinator`, death cursor/input policy в `GameDirectorDeathCursorCoordinator`, death camera capture/restore в `GameDirectorDeathCameraCoordinator`, death fade/tween setup в `GameDirectorDeathFadeCoordinator`, death retry restore/darken/reload policy в `GameDirectorDeathRetryCoordinator`, death UI reset/cleanup в `GameDirectorDeathScreenReset`, death sequence active/pause gate state в `GameDirectorDeathSequenceState`, cycle timer/checkpoint state в `GameDirectorCycleTimerState`, CycleState phase bridge в `GameDirectorCyclePhaseBridge`, timer node lifecycle в `GameDirectorTimerNodeCoordinator`, minigame distortion gate в `GameDirectorDistortionGate`, distortion progress/easing math в `GameDirectorDistortionProgress`, distortion overlay/material actuator в `GameDirectorDistortionOverlayCoordinator` и distortion phase/checkpoint state в `GameDirectorDistortionPhaseState`; `MusicManager` делегирует mix-offset policy в `MusicMixSettings`, pause-reason state в `MusicPauseReasonState`, stack bookkeeping в `MusicStackState`, ambient suppression/pending resume state в `MusicAmbientCoordinator`/`MusicAmbientSuppressionState` и scoped event/distortion sources в `MusicScopedSourceRegistry`; `Fridge` вынес code-lock adapter в `FridgeCodeLockSession`, feeding setup в `FridgeFeedingSession` и post-feeding world hooks в `FridgeCompletionSession`, но остальной audio facade, `GameDirector` и `Player` всё ещё требуют осторожных future refactor-ов.
-9. **Уровни и объекты сильно завязаны на NodePath и имена детей.** Переименование узла может silently выключить звук, анимацию, двери, fridge-flow или scripted wiring.
-10. **Крупная археология удалена.** `archive(trash)` и `level_NSTU_test.tscn` убраны, активный `level_09_сrazy.tscn` переименован в `level_09_crazy.tscn`.
-
-## Оценки По Срезам
-
-- Архитектура и состояние: **5.2/10** проблемности.
-- Gameplay loop, уровни, враги, мини-игры: **4.8/10**.
-- Интерактивы и scene contracts: **5/10**.
-- Тесты, ассеты, export, CI hygiene: **4/10**.
-- Repo hygiene и maintainability: **5/10**.
-
-## Что В Проекте Хорошо
-
-- Main scene и autoload-и явно заданы в `project.godot`.
-- Есть локальный тест-раннер и 114 тестов.
-- Тесты уже проверяют autoload-и, main scene, project config, input action literals, localization CSV/mojibake/translit-key/static non-Cyrillic/GDScript call-literal text hygiene, RU player-facing localization key coverage including gamepad hints, cycle/LevelMusic/lab/fridge authoring contracts, scene audio-bus contracts, typed interaction signal subscriptions, публичный `InteractionManager` -> `InteractiveObject` focus/action contract, загрузку сцен и запрет использования приватного API `MusicManager`.
-- `MusicManager` большой, но имеет осмысленный публичный фасад; mix-offset policy живёт в `MusicMixSettings`, pause-reason bookkeeping в `MusicPauseReasonState`, stack bookkeeping в `MusicStackState`, ambient suppression/pending resume state в `MusicAmbientCoordinator`/`MusicAmbientSuppressionState`, а event/distortion source registry в `MusicScopedSourceRegistry`.
-- `MinigameSettings` как `Resource` лучше, чем полностью ad-hoc Dictionary-конфиги.
-- `InteractiveObject` уже является полезной базовой точкой для lock/dependency/one-shot/minigame поведения.
-
-## Команды Проверки
-
-- Parser-only: `godot --headless --check-only -s res://tests/run_tests.gd`
-- Полный локальный suite: `bash tests/run_tests.sh`
-
-На момент последней проверки parser-only проходил, а полный suite проходил со 114 тестами. Перед релизными выводами или крупным рефакторингом нужно перепроверить текущее состояние командой выше.
-
-## Правила Работы Для Агентов
+## Жёсткие Правила
 
 - Перед изменениями проверь ветку: не работай напрямую в `main`; если текущая ветка `main`, создай ветку с префиксом `codex/`.
 - Не трогай чужие незакоммиченные изменения без явной просьбы.
@@ -71,9 +25,7 @@
 - Если полный suite зелёный после твоей работы, создай коммит с понятным названием.
 - Если suite красный из-за уже известных проблем, явно укажи это в финальном отчёте.
 
-## Первый Ремонтный Порядок
+## Команды Проверки
 
-1. Продолжить аккуратный распил `MusicManager`, оставшегося `GameDirector` и `Player` только tested slices.
-2. Продолжить DRY-разбор крупных STU-сцен на reusable scene instances.
-3. Расширять localization validator на более сложные multi-line GDScript UI expressions, если эта зона начнёт активно меняться.
-4. Для release оставлять отдельную ручную signed/notarized сборку, если нужен финальный distributable; CI уже делает debug export smoke.
+- Parser-only: `godot --headless --check-only -s res://tests/run_tests.gd`
+- Полный локальный suite: `bash tests/run_tests.sh`

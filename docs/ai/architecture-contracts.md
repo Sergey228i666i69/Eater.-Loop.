@@ -95,16 +95,12 @@
 Сцены ожидают настоящий `Player` из `res://player/player.tscn`.
 
 - Cycle-level scene должна иметь ровно один Player instance.
+- **Основная анимация**: Покадровая спрайтовая анимация (`AnimatedSprite2D` со спрайтами `ezgif-frame-*.png`).
+- **Скелетный риг**: `player_skeleton_rig.tscn` — архивный неудачный эксперимент, не используемый на уровнях.
 - Ключи, stamina, flashlight, physics toggles и point-lit checks вызываются
   через публичный Player API.
 - Не добавляй `player.has_method(...)` fallback, если сцена по contract обязана
   иметь Player.
-
-## Камера И Телепортация Персонажа
-
-- Камера игрока использует сглаживание (`PlayerCameraState`) и look-ahead упреждение.
-- При программной смене координат игрока (`Door`, `CycleLevel` conditional spawn, checkpoint restore, respawn) используй `Player.teleport_to(target_global_position)` или вызывай `Player.snap_camera()`.
-- `snap_camera()` сбрасывает внутреннее сглаживание Godot `Camera2D.reset_smoothing()` и look-ahead буфер, исключая артефакт «пролёта» камеры через стены при переходах сквозь двери.
 
 ## Текст И Локализация
 
