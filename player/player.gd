@@ -15,16 +15,14 @@ signal flashlight_activation_denied(charge_ratio: float)
 @export var speed: float = 415.0
 
 @export_group("Камера")
-## Включить плавное следование камеры.
-@export var camera_smoothing_enabled: bool = true
-## Скорость сглаживания камеры.
-@export_range(0.1, 20.0, 0.1) var camera_smooth_speed: float = 6.0
+## Включить кинематографичное упреждение взгляда (Look-Ahead).
+@export var camera_look_ahead_enabled: bool = true
 ## Дистанция упреждения камеры по направлению взгляда (Look-Ahead).
-@export_range(0.0, 300.0, 1.0) var camera_look_ahead_distance: float = 65.0
+@export_range(0.0, 150.0, 1.0) var camera_look_ahead_distance: float = 38.0
 ## Множитель упреждения при беге.
-@export_range(1.0, 3.0, 0.05) var camera_look_ahead_run_multiplier: float = 1.35
+@export_range(1.0, 2.5, 0.05) var camera_look_ahead_run_multiplier: float = 1.25
 ## Скорость интерполяции упреждения взгляда.
-@export_range(0.1, 10.0, 0.1) var camera_look_ahead_speed: float = 3.5
+@export_range(0.1, 10.0, 0.1) var camera_look_ahead_speed: float = 2.5
 
 @export_group("Бег и выносливость")
 ## Разрешить бег.
@@ -670,8 +668,11 @@ func snap_camera() -> void:
 func get_camera_look_ahead_offset() -> Vector2:
 	return _get_camera_state().get_look_ahead_offset()
 
+func is_camera_look_ahead_enabled() -> bool:
+	return _get_camera_state().look_ahead_enabled
+
 func is_camera_smoothing_enabled() -> bool:
-	return _get_camera_state().smoothing_enabled
+	return _get_camera_state().look_ahead_enabled
 
 func _get_camera_state() -> RefCounted:
 	if _camera_state == null:
@@ -680,8 +681,7 @@ func _get_camera_state() -> RefCounted:
 
 func _sync_camera_config() -> void:
 	_get_camera_state().configure(
-		camera_smoothing_enabled,
-		camera_smooth_speed,
+		camera_look_ahead_enabled,
 		camera_look_ahead_distance,
 		camera_look_ahead_run_multiplier,
 		camera_look_ahead_speed

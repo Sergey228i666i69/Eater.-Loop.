@@ -1,11 +1,10 @@
 extends RefCounted
 class_name PlayerCameraState
 
-var smoothing_enabled: bool = true
-var smoothing_speed: float = 6.0
-var look_ahead_distance: float = 65.0
-var look_ahead_run_multiplier: float = 1.35
-var look_ahead_speed: float = 3.5
+var look_ahead_enabled: bool = true
+var look_ahead_distance: float = 38.0
+var look_ahead_run_multiplier: float = 1.25
+var look_ahead_speed: float = 2.5
 
 var _camera: Camera2D = null
 var _base_position: Vector2 = Vector2.ZERO
@@ -14,14 +13,12 @@ var _current_look_ahead: Vector2 = Vector2.ZERO
 var _target_look_ahead: Vector2 = Vector2.ZERO
 
 func configure(
-	p_smoothing_enabled: bool,
-	p_smoothing_speed: float,
+	p_look_ahead_enabled: bool,
 	p_look_ahead_distance: float,
 	p_look_ahead_run_multiplier: float,
 	p_look_ahead_speed: float
 ) -> void:
-	smoothing_enabled = p_smoothing_enabled
-	smoothing_speed = maxf(0.1, p_smoothing_speed)
+	look_ahead_enabled = p_look_ahead_enabled
 	look_ahead_distance = maxf(0.0, p_look_ahead_distance)
 	look_ahead_run_multiplier = maxf(1.0, p_look_ahead_run_multiplier)
 	look_ahead_speed = maxf(0.1, p_look_ahead_speed)
@@ -51,8 +48,10 @@ func get_base_position() -> Vector2:
 func _apply_camera_settings() -> void:
 	if not has_camera():
 		return
-	_camera.position_smoothing_enabled = smoothing_enabled
-	_camera.position_smoothing_speed = smoothing_speed
+	# Keep position smoothing disabled on the Camera2D node to ensure
+	# the player character and viewport remain crisp and rock-solid
+	# without sub-pixel sprite jitter or rubber-band rebound on stop.
+	_camera.position_smoothing_enabled = false
 
 func update(
 	delta: float,
@@ -64,13 +63,12 @@ func update(
 	if not has_camera():
 		return
 	
-	if not smoothing_enabled or look_ahead_distance <= 0.0 or is_blocked:
+	if not look_ahead_enabled or look_ahead_distance <= 0.0 or is_blocked:
 		_target_look_ahead = Vector2.ZERO
-	elif is_moving and absf(facing_dir) > 0.01:
-		var dist := look_ahead_distance * (look_ahead_run_multiplier if is_running else 1.0)
-		_target_look_ahead = Vector2(signf(facing_dir) * dist, 0.0)
 	else:
-		_target_look_ahead = Vector2.ZERO
+		var dir := signf(facing_dir) if absf(facing_dir) > 0.01 else 1.0
+		var mult := (look_ahead_run_multiplier if (is_moving and is_running) else 1.0)
+		_target_look_ahead = Vector2(dir * look_ahead_distance * mult, 0.0)
 
 	var alpha: float = 1.0 - exp(-look_ahead_speed * maxf(0.0001, delta))
 	_current_look_ahead = _current_look_ahead.lerp(_target_look_ahead, alpha)

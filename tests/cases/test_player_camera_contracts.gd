@@ -16,12 +16,11 @@ func _test_camera_binding_and_configuration() -> void:
 	camera.position = Vector2(0.0, -26.0)
 	camera.offset = Vector2(0.0, -5.0)
 
-	state.configure(true, 7.0, 80.0, 1.5, 4.0)
+	state.configure(true, 40.0, 1.25, 2.5)
 	state.bind_camera(camera)
 
 	assert_true(state.has_camera(), "Player camera state must report bound camera")
-	assert_eq(camera.position_smoothing_enabled, true, "Camera position smoothing must be enabled")
-	assert_eq(camera.position_smoothing_speed, 7.0, "Camera position smoothing speed must match configuration")
+	assert_eq(camera.position_smoothing_enabled, false, "Camera position smoothing must stay disabled to prevent sprite jitter")
 	assert_eq(state.get_base_position(), Vector2(0.0, -26.0), "Base camera position must be captured")
 	camera.free()
 
@@ -30,13 +29,13 @@ func _test_look_ahead_tracking_and_direction() -> void:
 	var camera := Camera2D.new()
 	camera.position = Vector2(0.0, -26.0)
 
-	state.configure(true, 6.0, 60.0, 1.5, 10.0)
+	state.configure(true, 40.0, 1.25, 10.0)
 	state.bind_camera(camera)
 
 	# Moving right (walk)
 	state.update(0.5, 1.0, true, false, false)
 	var offset_right: Vector2 = state.get_look_ahead_offset()
-	assert_true(offset_right.x > 30.0, "Moving right must produce positive X look-ahead offset")
+	assert_true(offset_right.x > 20.0, "Moving right must produce positive X look-ahead offset")
 
 	# Moving right (run)
 	state.update(0.5, 1.0, true, true, false)
@@ -48,11 +47,10 @@ func _test_look_ahead_tracking_and_direction() -> void:
 	var offset_left: Vector2 = state.get_look_ahead_offset()
 	assert_true(offset_left.x < 0.0, "Moving left must produce negative X look-ahead offset")
 
-	# Stopped
-	for i in range(5):
-		state.update(0.2, 0.0, false, false, false)
+	# Stopped facing right: keeps positive look-ahead so it does not bounce back like jelly
+	state.update(0.5, 1.0, false, false, false)
 	var offset_stopped: Vector2 = state.get_look_ahead_offset()
-	assert_true(absf(offset_stopped.x) < 5.0, "Stopped state must ease look-ahead back toward center")
+	assert_true(offset_stopped.x > 20.0, "Stopped state must maintain facing direction without jelly rebound")
 
 	camera.free()
 
@@ -61,7 +59,7 @@ func _test_snap_and_teleport_snaps_camera_instantly() -> void:
 	var camera := Camera2D.new()
 	camera.position = Vector2(0.0, -26.0)
 
-	state.configure(true, 6.0, 60.0, 1.5, 10.0)
+	state.configure(true, 40.0, 1.25, 10.0)
 	state.bind_camera(camera)
 
 	var dummy_player := CharacterBody2D.new()
@@ -81,7 +79,7 @@ func _test_player_teleport_api() -> void:
 
 	assert_true(player.has_method("teleport_to"), "Player must implement teleport_to API")
 	assert_true(player.has_method("snap_camera"), "Player must implement snap_camera API")
-	assert_true(player.is_camera_smoothing_enabled(), "Player must enable camera smoothing by default")
+	assert_true(player.is_camera_look_ahead_enabled(), "Player must enable camera look-ahead by default")
 
 	player.teleport_to(Vector2(2400.0, -100.0))
 	assert_eq(player.global_position, Vector2(2400.0, -100.0), "Player teleport_to must update position")
